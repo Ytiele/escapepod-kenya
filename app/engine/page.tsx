@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { tours } from '@/data/mock'
 import type { ChatMessage, Tour, RecommendationData } from '@/lib/types'
-import { getStoredUser, type User } from '@/lib/auth'
+import { getStoredUser, signOut, type User } from '@/lib/auth'
 
 // ── Static data ───────────────────────────────────────────────────────────
 
@@ -639,15 +639,32 @@ export default function EnginePage() {
 
         {/* User */}
         <div className="px-3 py-3 border-t border-white/6">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/6 transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
-              {user
-                ? <span className="text-xs font-semibold text-gold">{user.name[0].toUpperCase()}</span>
-                : <svg className="w-4 h-4 text-cream/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              }
-            </div>
-            <span className="text-sm text-cream/65 font-medium truncate">{user ? user.name : 'Sign in'}</span>
-          </div>
+          {user ? (
+            <button
+              onClick={() => { signOut(); setUser(null) }}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-white/6 transition-colors text-left group"
+            >
+              <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
+                <span className="text-xs font-semibold text-gold">{user.name[0].toUpperCase()}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-cream/65 font-medium truncate">{user.name}</p>
+                <p className="text-xs text-cream/25 group-hover:text-cream/40 transition-colors">Sign out</p>
+              </div>
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/6 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-cream/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <span className="text-sm text-cream/65 font-medium">Sign in</span>
+            </Link>
+          )}
         </div>
       </aside>
 
