@@ -115,6 +115,31 @@ function IconClock() {
   )
 }
 
+function IconMenu() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  )
+}
+
+function IconX() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  )
+}
+
+function IconPanelRight() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path strokeLinecap="round" d="M15 3v18" />
+    </svg>
+  )
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function parseMsgContent(content: string) {
@@ -435,8 +460,22 @@ export default function EnginePage() {
   const [leadCaptureMsg, setLeadCaptureMsg] = useState<string | null>(null)
   const [leadSubmitted, setLeadSubmitted] = useState(false)
   const [sidebarView, setSidebarView] = useState<'recents' | 'search'>('recents')
+  const [leftOpen, setLeftOpen] = useState(true)
+  const [rightOpen, setRightOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      if (mobile) setLeftOpen(false)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     setUser(getStoredUser())
@@ -529,8 +568,23 @@ export default function EnginePage() {
   return (
     <div className="flex h-screen bg-navy overflow-hidden">
 
+      {/* Mobile backdrops */}
+      {leftOpen && isMobile && (
+        <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setLeftOpen(false)} />
+      )}
+      {rightOpen && selectedTour && !leadCaptureMsg && isMobile && (
+        <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setRightOpen(false)} />
+      )}
+
       {/* ── LEFT SIDEBAR ────────────────────────────────────────────── */}
-      <aside className="w-70 border-r border-white/8 flex flex-col bg-slate shrink-0">
+      <aside className={[
+        'flex flex-col bg-slate border-r border-white/8 shrink-0',
+        'transition-all duration-300 ease-in-out overflow-hidden',
+        'fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto',
+        leftOpen
+          ? 'w-70 translate-x-0'
+          : '-translate-x-full lg:translate-x-0 w-70 lg:w-0',
+      ].join(' ')}>
 
         {/* Logo */}
         <div className="px-5 py-4 border-b border-white/6">
@@ -574,10 +628,11 @@ export default function EnginePage() {
           <SearchPanel
             onSelectTour={(t) => {
               setSelectedTour(t)
-              // Ensure we're in chat mode to show detail view
+              setRightOpen(true)
               if (!hasConversation) {
                 setMessages([{ role: 'assistant', content: JSON.stringify({ type: 'question', message: `Here's what we have in store for ${t.title}. Feel free to ask me anything about this journey, or tell me more about what you're looking for and I'll refine your options.` }) }])
               }
+              if (isMobile) setLeftOpen(false)
             }}
           />
         )}
@@ -603,17 +658,33 @@ export default function EnginePage() {
         <div className="flex flex-col flex-1 overflow-hidden">
 
           {/* Header */}
-          <header className="flex items-center px-6 h-14 border-b border-white/8 shrink-0 gap-4">
+          <header className="flex items-center px-4 h-14 border-b border-white/8 shrink-0 gap-3">
+            <button
+              onClick={() => setLeftOpen(o => !o)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-cream/50 hover:bg-white/8 hover:text-cream transition-colors shrink-0"
+              aria-label="Toggle sidebar"
+            >
+              <IconMenu />
+            </button>
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <div className="w-7 h-7 rounded-full bg-white/8 overflow-hidden shrink-0 flex items-center justify-center">
                 <img src="/images/Escape pod logo.jpg" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-sm font-semibold text-cream/80 truncate">Escapepod Tour Engine</span>
             </div>
-            {selectedTour && (
-              <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors shrink-0">
-                Share <IconShare />
-              </button>
+            {selectedTour && !leadCaptureMsg && (
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setRightOpen(o => !o)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-cream/40 hover:bg-white/8 hover:text-cream transition-colors"
+                  aria-label="Toggle travel plan"
+                >
+                  <IconPanelRight />
+                </button>
+                <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors">
+                  Share <IconShare />
+                </button>
+              </div>
             )}
           </header>
 
@@ -718,7 +789,7 @@ export default function EnginePage() {
                             key={tour.id}
                             tour={tour}
                             rec={activeRecs.find(r => r.tourId === tour.id)}
-                            onView={id => { const t = tours.find(t => t.id === id); if (t) setSelectedTour(t) }}
+                            onView={id => { const t = tours.find(t => t.id === id); if (t) { setSelectedTour(t); setRightOpen(true) } }}
                           />
                         ))}
                       </div>
@@ -780,12 +851,29 @@ export default function EnginePage() {
 
         {/* ── RIGHT PANEL — detail only ────────────────────────────── */}
         {selectedTour && !leadCaptureMsg && (
-          <aside className="w-95 border-l border-white/8 flex flex-col bg-slate shrink-0">
+          <aside className={[
+            'flex flex-col bg-slate border-l border-white/8 shrink-0',
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            'fixed lg:relative inset-y-0 right-0 z-50 lg:z-auto',
+            'w-full sm:w-95',
+            rightOpen
+              ? 'translate-x-0'
+              : 'translate-x-full lg:translate-x-0 lg:w-0',
+          ].join(' ')}>
             <div className="flex items-center justify-between px-5 h-14 border-b border-white/8 shrink-0">
               <h3 className="font-semibold text-cream">Travel Plan</h3>
-              <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors">
-                <IconBookmark /> Bookmark
-              </button>
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors">
+                  <IconBookmark /> Bookmark
+                </button>
+                <button
+                  onClick={() => setRightOpen(false)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-cream/35 hover:bg-white/8 hover:text-cream transition-colors"
+                  aria-label="Close panel"
+                >
+                  <IconX />
+                </button>
+              </div>
             </div>
             <DetailRightPanel tour={selectedTour} rec={selectedRec} />
           </aside>
