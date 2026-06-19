@@ -328,6 +328,16 @@ function DetailRightPanel({ tour, rec }: { tour: Tour; rec?: RecommendationData 
               </ul>
             </div>
           )}
+
+          <div className="pt-4 border-t border-white/6">
+            <Link
+              href="/contact"
+              className="flex items-center justify-center bg-gold text-navy font-semibold px-8 py-3.5 rounded-full hover:bg-gold/90 transition-colors text-sm w-full"
+            >
+              Book This Journey
+            </Link>
+            <p className="text-center text-[11px] text-cream/25 mt-3">A travel designer will be in touch within 24 hours.</p>
+          </div>
         </div>
       )}
     </div>
@@ -795,7 +805,7 @@ export default function EnginePage() {
 
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 border border-cream/25 text-cream/80 font-medium px-6 py-2.5 rounded-xl hover:bg-cream hover:text-navy transition-all text-sm"
+                  className="inline-flex items-center gap-2 bg-gold text-navy font-semibold px-8 py-3 rounded-full hover:bg-gold/90 transition-colors text-sm"
                 >
                   Book Tour
                 </Link>
