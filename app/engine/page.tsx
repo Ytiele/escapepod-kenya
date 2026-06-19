@@ -820,7 +820,7 @@ export default function EnginePage() {
                       </p>
                     </div>
                     <div className="px-8 pb-8">
-                      <div className="grid grid-cols-3 gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                         {resultTours.map(tour => (
                           <TourResultCard
                             key={tour.id}
