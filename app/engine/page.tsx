@@ -169,7 +169,8 @@ function ChatInput({ value, onChange, onKeyDown, onSubmit, placeholder, disabled
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         rows={1}
-        className="w-full bg-white/6 border border-white/10 rounded-xl pl-5 pr-14 py-4 text-cream placeholder-cream/25 text-sm focus:outline-none focus:border-gold/40 transition-colors resize-none leading-relaxed overflow-hidden"
+        className="w-full bg-white/6 border border-white/10 rounded-xl pl-5 pr-14 py-4 text-cream placeholder-cream/25 text-sm focus:outline-none focus:border-gold/40 transition-colors resize-none leading-relaxed"
+        style={{ overflowY: 'hidden' }}
       />
       <button
         type="submit"
@@ -560,7 +561,7 @@ export default function EnginePage() {
     value: input, onChange: handleInputChange, onKeyDown: handleKeyDown,
     onSubmit: () => sendMessage(input),
     placeholder: !hasConversation
-      ? 'What journey do you have in mind…'
+      ? 'What journey do you have in mind...'
       : resultTours ? 'Ask to adjust, combine options, or refine further…'
       : 'Type your answer or select an option above…',
     disabled: !input.trim() || loading, textareaRef,
@@ -737,7 +738,7 @@ export default function EnginePage() {
                 True luxury is not found in a static itinerary — it is built around your specific rhythm.
               </p>
               <div className="w-full max-w-2xl">
-                <ChatInput {...chatProps} placeholder="What journey do you have in mind…" />
+                <ChatInput {...chatProps} placeholder="What journey do you have in mind..." />
               </div>
             </div>
           )}
