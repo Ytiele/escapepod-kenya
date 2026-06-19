@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { tours } from '@/data/mock'
 import type { ChatMessage, Tour, RecommendationData } from '@/lib/types'
@@ -448,6 +449,7 @@ function SearchPanel({ onSelectTour }: { onSelectTour: (t: Tour) => void }) {
 // ── Main page ─────────────────────────────────────────────────────────────
 
 export default function EnginePage() {
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -653,9 +655,9 @@ export default function EnginePage() {
               </div>
             </button>
           ) : (
-            <Link
-              href="/login"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/6 transition-colors"
+            <button
+              onClick={() => router.push('/login')}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-white/6 transition-colors text-left"
             >
               <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center shrink-0">
                 <svg className="w-4 h-4 text-cream/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -663,7 +665,7 @@ export default function EnginePage() {
                 </svg>
               </div>
               <span className="text-sm text-cream/65 font-medium">Sign in</span>
-            </Link>
+            </button>
           )}
         </div>
       </aside>
@@ -689,20 +691,38 @@ export default function EnginePage() {
               </div>
               <span className="text-sm font-semibold text-cream/80 truncate">Escapepod Tour Engine</span>
             </div>
-            {selectedTour && !leadCaptureMsg && (
-              <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+              {selectedTour && !leadCaptureMsg && (
+                <>
+                  <button
+                    onClick={() => setRightOpen(o => !o)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-cream/40 hover:bg-white/8 hover:text-cream transition-colors"
+                    aria-label="Toggle travel plan"
+                  >
+                    <IconPanelRight />
+                  </button>
+                  <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors mr-1">
+                    Share <IconShare />
+                  </button>
+                </>
+              )}
+              {user ? (
                 <button
-                  onClick={() => setRightOpen(o => !o)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-cream/40 hover:bg-white/8 hover:text-cream transition-colors"
-                  aria-label="Toggle travel plan"
+                  onClick={() => { signOut(); setUser(null) }}
+                  className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center hover:bg-gold/30 transition-colors shrink-0"
+                  title={`${user.name} — click to sign out`}
                 >
-                  <IconPanelRight />
+                  <span className="text-xs font-semibold text-gold">{user.name[0].toUpperCase()}</span>
                 </button>
-                <button className="flex items-center gap-1.5 text-sm text-cream/35 hover:text-cream/70 transition-colors">
-                  Share <IconShare />
+              ) : (
+                <button
+                  onClick={() => router.push('/login')}
+                  className="text-sm text-cream/40 hover:text-cream/80 transition-colors px-2.5 py-1 rounded-lg hover:bg-white/6 border border-white/8 hover:border-white/15"
+                >
+                  Sign in
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </header>
 
           {/* ── WELCOME STATE ── */}
