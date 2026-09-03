@@ -363,7 +363,16 @@ export default function OnGroundSection() {
             <motion.h3 variants={fadeUpSoft} className="text-navy text-xl font-medium mb-2">{current.title}</motion.h3>
             <motion.p variants={fadeUpSoft} className="text-charcoal/60 text-sm mb-7 leading-relaxed">{current.description}</motion.p>
 
-            {activePanel === 'guide' ? <GuideForm key="guide" /> : <TransportForm key="transport" />}
+            {/* Both forms stay mounted the whole time — only visibility
+                toggles. This is what lets a "Request sent" state survive
+                switching tabs: the component (and its status) is never
+                torn down, just hidden, until the page is reloaded. */}
+            <div className={activePanel === 'guide' ? 'block' : 'hidden'}>
+              <GuideForm />
+            </div>
+            <div className={activePanel === 'transport' ? 'block' : 'hidden'}>
+              <TransportForm />
+            </div>
           </motion.div>
         </motion.div>
 
