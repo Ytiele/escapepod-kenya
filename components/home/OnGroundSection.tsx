@@ -3,7 +3,12 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear } from '@/lib/motion'
+import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear, ease } from '@/lib/motion'
+
+// For fields that mount conditionally (after the parent's whileInView has
+// already resolved) — `variants` alone won't animate them in, since they
+// weren't there when the parent's stagger fired. Self-contained instead.
+const revealIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.35, ease } }
 
 const panels = {
   guide: {
@@ -22,16 +27,250 @@ const panels = {
   },
 }
 
-export default function OnGroundSection() {
-  const [activePanel, setActivePanel] = useState<'guide' | 'transport'>('guide')
-  const [submitted, setSubmitted] = useState(false)
+const CAR_TYPES = ['Sedan', 'SUV (4x4)', 'Van / Minibus', 'Luxury SUV']
 
-  function handleSubmit(e: { preventDefault(): void }) {
-    e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 4000)
+type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
+
+const inputCls = 'w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors'
+const selectCls = 'w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy/60 text-sm focus:outline-none focus:border-gold transition-colors appearance-none'
+
+// ── Success / error feedback, shared by both forms ─────────────────────────
+
+function FormFeedback({ status, errorMessage, onReset }: { status: FormStatus; errorMessage: string; onReset: () => void }) {
+  if (status === 'success') {
+    return (
+      <div className="bg-gold/10 border border-gold/30 rounded-xl px-5 py-4 text-center">
+        <p className="text-navy font-medium text-sm">Request sent.</p>
+        <p className="text-charcoal/60 text-xs mt-1">We&apos;ll be in touch shortly.</p>
+        <button onClick={onReset} className="mt-3 text-xs text-gold font-medium hover:underline">
+          Send another request
+        </button>
+      </div>
+    )
+  }
+  if (status === 'error') {
+    return <p className="text-xs text-red-600">{errorMessage}</p>
+  }
+  return null
+}
+
+// ── Guide form ──────────────────────────────────────────────────────────────
+
+function GuideForm() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [guideType, setGuideType] = useState('')
+  const [otherDescription, setOtherDescription] = useState('')
+  const [status, setStatus] = useState<FormStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  function reset() {
+    setName(''); setEmail(''); setPhone(''); setGuideType(''); setOtherDescription('')
+    setStatus('idle'); setErrorMessage('')
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (status === 'submitting' || status === 'success') return // no double submission
+    setStatus('submitting')
+    try {
+      const res = await fetch('/api/request-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, guideType, otherDescription }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+      setStatus('success')
+    } catch (err) {
+      setStatus('error')
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    }
+  }
+
+  if (status === 'success') {
+    return <FormFeedback status={status} errorMessage={errorMessage} onReset={reset} />
+  }
+
+  const isSubmitting = status === 'submitting'
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <motion.input variants={fadeUpSoft}
+        type="text" placeholder="Your Name" required disabled={isSubmitting}
+        value={name} onChange={(e) => setName(e.target.value)}
+        className={inputCls}
+      />
+      <motion.input variants={fadeUpSoft}
+        type="email" placeholder="Email Address" required disabled={isSubmitting}
+        value={email} onChange={(e) => setEmail(e.target.value)}
+        className={inputCls}
+      />
+      <motion.input variants={fadeUpSoft}
+        type="tel" placeholder="Phone / WhatsApp" disabled={isSubmitting}
+        value={phone} onChange={(e) => setPhone(e.target.value)}
+        className={inputCls}
+      />
+      <motion.select variants={fadeUpSoft} required disabled={isSubmitting}
+        value={guideType} onChange={(e) => setGuideType(e.target.value)}
+        className={selectCls}
+      >
+        <option value="">Type of Guide Needed</option>
+        <option>Wildlife Photography</option>
+        <option>Cultural Heritage</option>
+        <option>Multi-Day Expedition</option>
+        <option>Birding Specialist</option>
+        <option>Other</option>
+      </motion.select>
+
+      {guideType === 'Other' && (
+        <motion.textarea {...revealIn}
+          placeholder="Describe the kind of guide you need" required disabled={isSubmitting}
+          value={otherDescription} onChange={(e) => setOtherDescription(e.target.value)}
+          rows={3}
+          className={`${inputCls} resize-none`}
+        />
+      )}
+
+      <motion.button variants={scaleIn}
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? 'Sending…' : 'Request a Private Guide'}
+      </motion.button>
+
+      {status === 'error' && <FormFeedback status={status} errorMessage={errorMessage} onReset={reset} />}
+    </form>
+  )
+}
+
+// ── Transport form ──────────────────────────────────────────────────────────
+
+function TransportForm() {
+  const [carType, setCarType] = useState('')
+  const [serviceType, setServiceType] = useState<'rent' | 'taxi' | null>(null)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [pickupLocation, setPickupLocation] = useState('')
+  const [pickupTime, setPickupTime] = useState('')
+  const [dropoffLocation, setDropoffLocation] = useState('')
+  const [status, setStatus] = useState<FormStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  function reset() {
+    setCarType(''); setServiceType(null); setName(''); setEmail('')
+    setPickupLocation(''); setPickupTime(''); setDropoffLocation('')
+    setStatus('idle'); setErrorMessage('')
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (status === 'submitting' || status === 'success') return // no double submission
+    setStatus('submitting')
+    try {
+      const res = await fetch('/api/request-transport', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, carType, serviceType, pickupLocation, pickupTime, dropoffLocation }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+      setStatus('success')
+    } catch (err) {
+      setStatus('error')
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    }
+  }
+
+  if (status === 'success') {
+    return <FormFeedback status={status} errorMessage={errorMessage} onReset={reset} />
+  }
+
+  const isSubmitting = status === 'submitting'
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <motion.select variants={fadeUpSoft} required disabled={isSubmitting}
+        value={carType}
+        onChange={(e) => { setCarType(e.target.value); setServiceType(null) }}
+        className={selectCls}
+      >
+        <option value="">Type of Car</option>
+        {CAR_TYPES.map((t) => <option key={t}>{t}</option>)}
+      </motion.select>
+
+      {carType && (
+        <motion.div {...revealIn} className="flex rounded-xl bg-navy/10 p-1">
+          {(['rent', 'taxi'] as const).map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => setServiceType(opt)}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                serviceType === opt ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
+              }`}
+            >
+              {opt === 'rent' ? 'Rent a Car' : 'Hire a Taxi'}
+            </button>
+          ))}
+        </motion.div>
+      )}
+
+      {serviceType && (
+        <>
+          <motion.input {...revealIn}
+            type="text" placeholder="Your Name" required disabled={isSubmitting}
+            value={name} onChange={(e) => setName(e.target.value)}
+            className={inputCls}
+          />
+          <motion.input {...revealIn}
+            type="email" placeholder="Email Address" required disabled={isSubmitting}
+            value={email} onChange={(e) => setEmail(e.target.value)}
+            className={inputCls}
+          />
+
+          {serviceType === 'taxi' && (
+            <>
+              <motion.input {...revealIn}
+                type="text" placeholder="Pickup Location" required disabled={isSubmitting}
+                value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)}
+                className={inputCls}
+              />
+              <motion.input {...revealIn}
+                type="datetime-local" placeholder="Pickup Time" required disabled={isSubmitting}
+                value={pickupTime} onChange={(e) => setPickupTime(e.target.value)}
+                className={inputCls}
+              />
+              <motion.input {...revealIn}
+                type="text" placeholder="Drop-off Location" required disabled={isSubmitting}
+                value={dropoffLocation} onChange={(e) => setDropoffLocation(e.target.value)}
+                className={inputCls}
+              />
+            </>
+          )}
+
+          <motion.button {...revealIn}
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Sending…' : 'Request Transport'}
+          </motion.button>
+        </>
+      )}
+
+      {status === 'error' && <FormFeedback status={status} errorMessage={errorMessage} onReset={reset} />}
+    </form>
+  )
+}
+
+// ── Section ───────────────────────────────────────────────────────────────
+
+export default function OnGroundSection() {
+  const [activePanel, setActivePanel] = useState<'guide' | 'transport'>('guide')
   const current = panels[activePanel]
 
   return (
@@ -69,7 +308,7 @@ export default function OnGroundSection() {
           viewport={viewportNear}
         >
           <button
-            onClick={() => { setActivePanel('guide'); setSubmitted(false) }}
+            onClick={() => setActivePanel('guide')}
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
               activePanel === 'guide' ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
             }`}
@@ -77,7 +316,7 @@ export default function OnGroundSection() {
             Request a Private Guide
           </button>
           <button
-            onClick={() => { setActivePanel('transport'); setSubmitted(false) }}
+            onClick={() => setActivePanel('transport')}
             className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
               activePanel === 'transport' ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
             }`}
@@ -124,60 +363,7 @@ export default function OnGroundSection() {
             <motion.h3 variants={fadeUpSoft} className="text-navy text-xl font-medium mb-2">{current.title}</motion.h3>
             <motion.p variants={fadeUpSoft} className="text-charcoal/60 text-sm mb-7 leading-relaxed">{current.description}</motion.p>
 
-            {activePanel === 'guide' ? (
-              <form onSubmit={handleSubmit} className="space-y-3.5">
-                <motion.input variants={fadeUpSoft}
-                  type="text" placeholder="Your Name" required
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.input variants={fadeUpSoft}
-                  type="email" placeholder="Email Address" required
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.input variants={fadeUpSoft}
-                  type="tel" placeholder="Phone / WhatsApp"
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.select variants={fadeUpSoft} className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy/60 text-sm focus:outline-none focus:border-gold transition-colors appearance-none">
-                  <option value="">Type of Guide Needed</option>
-                  <option>Wildlife Photography</option>
-                  <option>Cultural Heritage</option>
-                  <option>Multi-Day Expedition</option>
-                  <option>Birding Specialist</option>
-                </motion.select>
-                <motion.button variants={scaleIn}
-                  type="submit"
-                  className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2"
-                >
-                  {submitted ? "Request Sent — We'll be in touch shortly." : 'Request a Private Guide'}
-                </motion.button>
-              </form>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3.5">
-                <motion.input variants={fadeUpSoft}
-                  type="text" placeholder="Your Name" required
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.input variants={fadeUpSoft}
-                  type="email" placeholder="Email Address" required
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.input variants={fadeUpSoft}
-                  type="text" placeholder="Pickup Location"
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.input variants={fadeUpSoft}
-                  type="text" placeholder="Destination"
-                  className="w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 text-navy placeholder-navy/40 text-sm focus:outline-none focus:border-gold transition-colors"
-                />
-                <motion.button variants={scaleIn}
-                  type="submit"
-                  className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2"
-                >
-                  {submitted ? "Request Sent — We'll be in touch shortly." : 'Request Transport'}
-                </motion.button>
-              </form>
-            )}
+            {activePanel === 'guide' ? <GuideForm key="guide" /> : <TransportForm key="transport" />}
           </motion.div>
         </motion.div>
 
