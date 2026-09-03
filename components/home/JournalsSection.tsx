@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import type { JournalPost } from '@/lib/types'
 import { stagger, fromLeft, fromRight, slideUp, scaleFade, viewport } from '@/lib/motion'
@@ -61,12 +62,15 @@ export default function JournalsSection({ posts }: Props) {
               <Link
                 href={`/stories/${post.slug}`}
                 className="group relative rounded-2xl overflow-hidden aspect-3/4 flex flex-col justify-end cursor-pointer"
-                style={{
-                  backgroundImage: `url('${journalImages[i % journalImages.length]}')`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
               >
+                <Image
+                  src={journalImages[i % journalImages.length]}
+                  alt={post.title}
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  loading="lazy"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent" />
                 <div className="relative z-10 p-6 space-y-2">
                   <div className="flex items-center gap-3">

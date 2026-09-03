@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear } from '@/lib/motion'
 
@@ -94,14 +95,16 @@ export default function OnGroundSection() {
           viewport={viewportNear}
         >
           {/* Portrait image */}
-          <div
-            className="relative min-h-72 lg:min-h-full transition-all duration-700"
-            style={{
-              backgroundImage: `url('${encodeURI(current.image)}')`,
-              backgroundSize: 'cover',
-              backgroundPosition: current.imagePosition,
-            }}
-          >
+          <div className="relative min-h-72 lg:min-h-full transition-all duration-700">
+            <Image
+              src={current.image}
+              alt={current.title}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              loading="lazy"
+              className="object-cover"
+              style={{ objectPosition: current.imagePosition }}
+            />
             <div className="absolute inset-0 bg-linear-to-t from-navy/60 via-navy/10 to-transparent" />
             <div className="absolute bottom-6 left-6">
               <span className="text-cream/70 text-[10px] font-medium tracking-[0.18em] uppercase">

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 const quickLinks = [
   { label: 'About Us', href: '/about' },
@@ -16,9 +17,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pb-12 border-b border-cream/10">
           <div className="md:col-span-1">
             <Link href="/" className="inline-flex items-center hover:opacity-80 transition-opacity">
-              <img
+              <Image
                 src="/images/png logo.png"
                 alt="EscapePod Logo"
+                width={430}
+                height={101}
+                loading="lazy"
                 className="h-10 w-auto"
               />
             </Link>

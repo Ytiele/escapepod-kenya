@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
@@ -34,12 +35,17 @@ export default async function StoryPage({ params }: Props) {
       <article className="bg-cream">
         <section
           className="relative min-h-[60vh] flex items-end pb-16 pt-40 overflow-hidden"
-          style={
-            post.image
-              ? { backgroundImage: `url('${post.image}')`, backgroundSize: 'cover', backgroundPosition: 'bottom' }
-              : undefined
-          }
         >
+          {post.image && (
+            <Image
+              src={post.image}
+              alt={post.title}
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover object-bottom"
+            />
+          )}
           {post.image ? (
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30" />
           ) : (
@@ -136,18 +142,18 @@ export default async function StoryPage({ params }: Props) {
                       href={`/stories/${rel.slug}`}
                       className="group flex gap-3"
                     >
-                      <div
-                          className="shrink-0 w-14 h-14 rounded-xl bg-linear-to-br from-slate to-navy"
-                          style={
-                            rel.image
-                              ? {
-                                  backgroundImage: `url('${encodeURI(rel.image)}')`,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center',
-                                }
-                              : undefined
-                          }
-                        />
+                      <div className="relative shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-linear-to-br from-slate to-navy">
+                          {rel.image && (
+                            <Image
+                              src={rel.image}
+                              alt={rel.title}
+                              fill
+                              sizes="56px"
+                              loading="lazy"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
                       <div>
                         {rel.category && (
                           <span className="text-gold text-xs font-medium">{rel.category}</span>
@@ -198,18 +204,17 @@ export default async function StoryPage({ params }: Props) {
                 href={`/stories/${rel.slug}`}
                 className="group flex flex-col rounded-2xl overflow-hidden border border-navy/10 hover:border-navy/30 transition-all"
               >
-                <div
-                  className="h-44 bg-linear-to-br from-slate to-navy relative shrink-0"
-                  style={
-                    rel.image
-                      ? {
-                          backgroundImage: `url('${encodeURI(rel.image)}')`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }
-                      : undefined
-                  }
-                >
+                <div className="h-44 bg-linear-to-br from-slate to-navy relative shrink-0">
+                  {rel.image && (
+                    <Image
+                      src={rel.image}
+                      alt={rel.title}
+                      fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                   {rel.category && (
                     <span className="absolute top-3 left-3 bg-gold/20 text-gold text-xs px-3 py-1 rounded-full font-medium">

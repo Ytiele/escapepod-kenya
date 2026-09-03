@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { tours } from '@/data/mock'
@@ -195,7 +196,16 @@ function TourResultCard({ tour, rec, onView }: { tour: Tour; rec?: Recommendatio
       onClick={() => onView(tour.id)}
     >
       <div className="h-44 bg-white/6 overflow-hidden relative">
-        {img && <img src={img} alt={tour.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />}
+        {img && (
+          <Image
+            src={img}
+            alt={tour.title}
+            fill
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            loading="lazy"
+            className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+          />
+        )}
         {rec && (
           <div className="absolute top-3 left-3">
             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold border backdrop-blur-sm ${LABEL_STYLES[rec.label] ?? ''}`}>
@@ -404,8 +414,17 @@ function SearchPanel({ onSelectTour }: { onSelectTour: (t: Tour) => void }) {
                 onClick={() => onSelectTour(tour)}
                 className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/6 transition-colors text-left group"
               >
-                <div className="w-12 h-12 rounded-lg bg-white/8 overflow-hidden shrink-0">
-                  {img && <img src={img} alt={tour.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />}
+                <div className="relative w-12 h-12 rounded-lg bg-white/8 overflow-hidden shrink-0">
+                  {img && (
+                    <Image
+                      src={img}
+                      alt={tour.title}
+                      fill
+                      sizes="48px"
+                      loading="lazy"
+                      className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm text-cream/80 font-medium truncate group-hover:text-cream transition-colors">{tour.title}</p>
@@ -601,7 +620,14 @@ export default function EnginePage() {
         {/* Logo */}
         <div className="px-5 py-4 border-b border-white/6">
           <Link href="/">
-            <img src="/images/png logo.png" alt="EscapePod" className="h-10 w-auto object-contain brightness-0 invert opacity-90" />
+            <Image
+              src="/images/png logo.png"
+              alt="EscapePod"
+              width={430}
+              height={101}
+              loading="lazy"
+              className="h-10 w-auto object-contain brightness-0 invert opacity-90"
+            />
           </Link>
         </div>
 
@@ -696,8 +722,8 @@ export default function EnginePage() {
               <IconMenu />
             </button>
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-white/8 overflow-hidden shrink-0 flex items-center justify-center">
-                <img src="/images/Escape pod logo.jpg" alt="" className="w-full h-full object-cover" />
+              <div className="relative w-7 h-7 rounded-full bg-white/8 overflow-hidden shrink-0 flex items-center justify-center">
+                <Image src="/images/Escape pod logo.jpg" alt="" fill sizes="28px" priority className="object-cover" />
               </div>
               <span className="text-sm font-semibold text-cream/80 truncate">Escapepod Tour Engine</span>
             </div>
@@ -738,8 +764,8 @@ export default function EnginePage() {
           {/* ── WELCOME STATE ── */}
           {!hasConversation && (
             <div className="flex flex-col items-center justify-center flex-1 px-8 pb-10" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(242,167,85,0.07) 0%, transparent 65%)' }}>
-              <div className="w-24 h-24 mb-7 flex items-center justify-center opacity-90">
-                <img src="/images/Escape pod logo.jpg" alt="EscapePod" className="w-full h-full object-contain" />
+              <div className="relative w-24 h-24 mb-7 flex items-center justify-center opacity-90">
+                <Image src="/images/Escape pod logo.jpg" alt="EscapePod" fill sizes="96px" className="object-contain" />
               </div>
               <h1 className="text-4xl font-bold text-cream text-center mb-3 leading-tight">
                 Welcome Back {firstName}
@@ -777,7 +803,14 @@ export default function EnginePage() {
 
                 <div className="h-52 bg-white/6 rounded-2xl mb-6 overflow-hidden relative">
                   {TOUR_IMAGES[selectedTour.id] && (
-                    <img src={TOUR_IMAGES[selectedTour.id]} alt={selectedTour.title} className="w-full h-full object-cover opacity-90" />
+                    <Image
+                      src={TOUR_IMAGES[selectedTour.id]}
+                      alt={selectedTour.title}
+                      fill
+                      sizes="(min-width: 1024px) 40vw, 100vw"
+                      loading="lazy"
+                      className="object-cover opacity-90"
+                    />
                   )}
                   {selectedRec && (
                     <div className="absolute top-3 left-3">

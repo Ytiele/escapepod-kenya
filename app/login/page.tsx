@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { signIn, signUp, getStoredUser } from '@/lib/auth'
 
 type Mode = 'signin' | 'signup'
@@ -70,9 +71,12 @@ export default function LoginPage() {
         />
         <div className="relative z-10 p-16 flex flex-col justify-between h-full">
           <Link href="/" className="hover:opacity-80 transition-opacity w-fit">
-            <img 
-              src="/images/png logo.png" 
-              alt="EscapePod Logo" 
+            <Image
+              src="/images/png logo.png"
+              alt="EscapePod Logo"
+              width={430}
+              height={101}
+              priority
               className="h-8 w-auto"
             />
           </Link>
@@ -104,9 +108,12 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden mb-10">
             <Link href="/" className="hover:opacity-80 transition-opacity inline-block">
-              <img 
-                src="/images/png logo.png" 
-                alt="EscapePod Logo" 
+              <Image
+                src="/images/png logo.png"
+                alt="EscapePod Logo"
+                width={430}
+                height={101}
+                priority
                 className="h-8 w-auto"
               />
             </Link>

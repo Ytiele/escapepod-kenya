@@ -35,9 +35,12 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-20">
         <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <img
+          <Image
             src="/images/png logo.png"
             alt="EscapePod Logo"
+            width={430}
+            height={101}
+            priority
             className="h-12 w-auto"
           />
         </Link>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
@@ -34,11 +35,16 @@ export default function StoriesPage() {
   return (
     <>
       <section
-        className="relative bg-cover bg-center min-h-[55vh] flex items-end pb-16 pt-40 overflow-hidden"
-        style={{
-          backgroundImage: `url('${encodeURI('/images/hot ballon.jpg')}')`,
-        }}
+        className="relative min-h-[55vh] flex items-end pb-16 pt-40 overflow-hidden"
       >
+        <Image
+          src="/images/hot ballon.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
           <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">The Journals</span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl font-medium leading-[1.1] tracking-tight max-w-2xl">
@@ -56,9 +62,13 @@ export default function StoriesPage() {
             style={{ minHeight: '50vh' }}
           >
             {/* Background — sunset image, anchored to bottom */}
-            <div
-              className="absolute inset-0 bg-cover bg-bottom"
-              style={{ backgroundImage: `url('${encodeURI(featured.image ?? '/images/lamu-sunset.jpg')}')` }}
+            <Image
+              src={featured.image ?? '/images/lamu-sunset.jpg'}
+              alt={featured.title}
+              fill
+              sizes="100vw"
+              loading="lazy"
+              className="object-cover object-bottom"
             />
             {/* Layered gradient overlays for depth */}
             <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent" />
@@ -126,16 +136,17 @@ export default function StoriesPage() {
                     >
                       <div
                         className={`relative h-52 ${post.image ? '' : `bg-linear-to-br ${gradients[(i + 1) % gradients.length]}`}`}
-                        style={
-                          post.image
-                            ? {
-                                backgroundImage: `url('${encodeURI(post.image)}')`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                              }
-                            : undefined
-                        }
                       >
+                        {post.image && (
+                          <Image
+                            src={post.image}
+                            alt={post.title}
+                            fill
+                            sizes="(min-width: 768px) 50vw, 100vw"
+                            loading="lazy"
+                            className="object-cover"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                         {post.category && (
                           <div className="absolute top-3 left-3">
@@ -193,18 +204,18 @@ export default function StoriesPage() {
                   <div className="space-y-4">
                     {posts.slice(0, 4).map((p) => (
                       <Link key={p.slug} href={`/stories/${p.slug}`} className="group flex gap-3">
-                        <div
-                          className="shrink-0 w-14 h-14 rounded-xl bg-linear-to-br from-slate to-navy"
-                          style={
-                            p.image
-                              ? {
-                                  backgroundImage: `url('${encodeURI(p.image)}')`,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center',
-                                }
-                              : undefined
-                          }
-                        />
+                        <div className="relative shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-linear-to-br from-slate to-navy">
+                          {p.image && (
+                            <Image
+                              src={p.image}
+                              alt={p.title}
+                              fill
+                              sizes="56px"
+                              loading="lazy"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
                         <div>
                           {p.category && (
                             <span className="text-gold text-xs font-medium">{p.category}</span>

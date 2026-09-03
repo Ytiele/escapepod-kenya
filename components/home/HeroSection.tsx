@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 const SLIDE_DURATION = 6000
@@ -80,18 +81,22 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden bg-navy">
-      {/* Full-screen photo backgrounds — CSS background-image crossfade */}
+      {/* Full-screen photo backgrounds — crossfade */}
       {travelerTypes.map((t, i) => (
         <div
           key={t.label}
           className="absolute inset-0 transition-opacity duration-1000"
-          style={{
-            opacity: i === activeIndex ? 1 : 0,
-            backgroundImage: `url('${t.image}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          style={{ opacity: i === activeIndex ? 1 : 0 }}
         >
+          <Image
+            src={t.image}
+            alt={t.headline.replace('\n', ' ')}
+            fill
+            sizes="100vw"
+            priority={i === 0}
+            loading={i === 0 ? undefined : 'lazy'}
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-linear-to-b from-navy/55 via-navy/25 to-navy/80" />
           <div className="absolute inset-0 bg-linear-to-r from-navy/65 to-transparent" />
         </div>
@@ -149,13 +154,16 @@ export default function HeroSection() {
                   ? 'ring-2 ring-gold ring-offset-2 ring-offset-transparent'
                   : 'opacity-55 hover:opacity-85'
               }`}
-              style={{
-                height: '130px',
-                backgroundImage: `url('${t.image}')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
+              style={{ height: '130px' }}
             >
+              <Image
+                src={t.image}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 25vw, 50vw"
+                loading="lazy"
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
               <div className="relative z-10 p-4 h-full flex flex-col justify-end">

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 
 
@@ -11,14 +12,16 @@ function FounderSection() {
     <section className="bg-sand py-24 lg:py-32">
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div
-            className="rounded-3xl min-h-[600px] flex items-center justify-center relative overflow-hidden"
-            style={{
-              backgroundImage: `url('${encodeURI('/images/rose kagushia.png')}')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
+          <div className="rounded-3xl min-h-[600px] flex items-center justify-center relative overflow-hidden">
+            <Image
+              src="/images/rose kagushia.png"
+              alt="Rose Kagucia, Founder of EscapePod Kenya"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              loading="lazy"
+              className="object-cover"
+            />
+          </div>
 
           <div>
             <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">The Founder</span>
@@ -76,14 +79,17 @@ function FounderSection() {
 export default function AboutPage() {
   return (
     <>
-      <section 
+      <section
         className="relative bg-navy min-h-[60vh] flex items-end pb-16 pt-40 overflow-hidden"
-        style={{
-          backgroundImage: `url('${encodeURI('/images/about escape.png')}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
       >
+        <Image
+          src="/images/about escape.png"
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
+        />
         <div
           className="absolute inset-0 opacity-30"
           style={{
@@ -146,9 +152,12 @@ export default function AboutPage() {
                 Operational Integrity
               </h2>
 
-              <img
+              <Image
                 src="/images/Tourism logo.png"
                 alt="Tourism Regulatory Authority"
+                width={1920}
+                height={671}
+                loading="lazy"
                 className="mt-10 w-80 h-auto"
               />
             </div>
@@ -182,9 +191,12 @@ export default function AboutPage() {
                 The Architecture of Movement
               </h2>
 
-              <img
+              <Image
                 src="/images/transport logo.png"
                 alt="Transport Partner Logo"
+                width={1468}
+                height={692}
+                loading="lazy"
                 className="mt-10 w-80 h-auto"
               />
             </div>
