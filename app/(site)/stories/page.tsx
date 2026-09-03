@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
+import NewsletterSidebar from '@/components/stories/NewsletterSidebar'
 
 const gradients = [
   'from-slate to-navy',
@@ -231,25 +232,7 @@ export default function StoriesPage() {
                 </div>
 
                 {/* Newsletter */}
-                <div className="bg-gold/10 border border-gold/30 rounded-2xl p-6">
-                  <h4 className="text-navy text-sm font-medium uppercase tracking-wider mb-3">
-                    Subscribe to Newsletter
-                  </h4>
-                  <p className="text-charcoal/60 text-xs mb-4 leading-relaxed">
-                    Rare destinations and unreleased itineraries, delivered elegantly.
-                  </p>
-                  <input
-                    type="email"
-                    placeholder="Your email"
-                    className="w-full bg-cream border border-navy/10 rounded-xl px-4 py-2.5 text-navy text-sm focus:outline-none focus:border-gold mb-3"
-                  />
-                  <button
-                    type="button"
-                    className="w-full bg-navy text-cream font-medium py-2.5 rounded-xl text-sm hover:bg-navy/80 transition-colors"
-                  >
-                    Subscribe
-                  </button>
-                </div>
+                <NewsletterSidebar />
               </aside>
 
             </div>
