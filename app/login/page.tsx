@@ -251,9 +251,9 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-cream/30 text-xs">
             By continuing, you agree to our{' '}
-            <Link href="/" className="text-gold/60 hover:text-gold transition-colors">Terms</Link>
+            <Link href="/terms" className="text-gold/60 hover:text-gold transition-colors">Terms</Link>
             {' & '}
-            <Link href="/" className="text-gold/60 hover:text-gold transition-colors">Privacy Policy</Link>
+            <Link href="/privacy" className="text-gold/60 hover:text-gold transition-colors">Privacy Policy</Link>
           </p>
         </div>
       </div>
