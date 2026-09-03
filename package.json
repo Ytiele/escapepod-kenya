@@ -11,6 +11,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
     "@sanity/client": "^7.22.1",
+    "@supabase/supabase-js": "^2.114.0",
     "framer-motion": "^12.40.0",
     "next": "16.2.7",
     "next-sanity": "^13.0.11",

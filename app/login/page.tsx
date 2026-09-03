@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { signIn, signUp, getStoredUser } from '@/lib/auth'
+import { signIn, signUp, getCurrentUser } from '@/lib/auth'
 
 type Mode = 'signin' | 'signup'
 
@@ -20,7 +20,7 @@ export default function LoginPage() {
 
   // Already logged in — go straight to engine
   useEffect(() => {
-    if (getStoredUser()) router.replace('/engine')
+    getCurrentUser().then((u) => { if (u) router.replace('/engine') })
   }, [router])
 
   function switchMode(m: Mode) {
@@ -44,10 +44,9 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      const result =
-        mode === 'signup'
-          ? signUp(name.trim(), email.trim(), password)
-          : signIn(email.trim(), password)
+      const result = mode === 'signup'
+        ? await signUp(name.trim(), email.trim(), password)
+        : await signIn(email.trim(), password)
 
       if ('error' in result) {
         setError(result.error)

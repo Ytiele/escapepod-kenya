@@ -1,22 +1,3 @@
-export interface ItineraryDay {
-  day: number
-  title: string
-  description: string
-}
-
-export interface Tour {
-  id: string
-  title: string
-  location: string
-  days: number
-  price: number
-  travelerType: string
-  tags: string[]
-  description: string
-  itinerary: ItineraryDay[]
-  image?: string
-}
-
 export interface JournalPost {
   slug: string
   title: string
@@ -32,17 +13,36 @@ export interface JournalPost {
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  tourIds?: string[]
 }
 
-export interface RecommendationData {
-  tourId: string
-  label: 'Best Fit' | 'Alternative Luxury' | 'Stretch'
-  journeyName: string
-  whyThisFits: string
-  accommodation: string
-  signatureExperiences: string[]
-  travelNotes: string[]
-  whatToPack: string[]
-  enhancements: string[]
+// Shape of a row in the Supabase `experiences` table — see
+// scripts/curate-schema.sql. Everything here is verified inventory data;
+// nothing on this type should ever be filled in by guesswork.
+export interface Experience {
+  id: string
+  name: string
+  destination: string
+  duration_days: number | null
+  price_usd_pp_min: number | null
+  price_usd_pp_max: number | null
+  weather?: string | null
+  accommodation?: string[]
+  key_activities?: string[]
+  persona_fit?: Record<string, number>
+  experience_dna?: Record<string, number>
+  travel_style?: Record<string, string>
+  physical_intensity?: number
+  ideal_for?: string[]
+  match_score?: number
+}
+
+// What /api/curate returns after a turn.
+export interface CuratePayload {
+  type: 'search_experiences' | 'generate_directions' | 'build_itinerary'
+  data: Experience[] | Record<string, unknown>
+}
+
+export interface CurateResponse {
+  text: string
+  payload: CuratePayload | null
 }

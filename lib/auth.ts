@@ -1,46 +1,46 @@
-export type User = { name: string; email: string }
+// Thin client-side wrappers around the /api/auth/* routes. Real session
+// state lives in httpOnly cookies set by those routes (backed by Supabase
+// Auth) — nothing sensitive is ever stored in localStorage or read here.
 
-type StoredUser = User & { password: string }
+export type User = { id: string; name: string; email: string }
 
-function getUsers(): StoredUser[] {
-  if (typeof window === 'undefined') return []
-  try { return JSON.parse(localStorage.getItem('ep_users') ?? '[]') } catch { return [] }
+async function parseJson(res: Response) {
+  try { return await res.json() } catch { return {} }
 }
 
-export function getStoredUser(): User | null {
-  if (typeof window === 'undefined') return null
+export async function getCurrentUser(): Promise<User | null> {
   try {
-    const s = localStorage.getItem('ep_session')
-    return s ? JSON.parse(s) : null
-  } catch { return null }
-}
-
-export function signIn(email: string, password: string): { user: User } | { error: string } {
-  const match = getUsers().find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-  )
-  if (!match) return { error: 'Incorrect email or password.' }
-  const user: User = { name: match.name, email: match.email }
-  localStorage.setItem('ep_session', JSON.stringify(user))
-  return { user }
-}
-
-export function signUp(
-  name: string,
-  email: string,
-  password: string,
-): { user: User } | { error: string } {
-  const users = getUsers()
-  if (users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-    return { error: 'An account with that email already exists.' }
+    const res = await fetch('/api/auth/session')
+    if (!res.ok) return null
+    const data = await parseJson(res)
+    return data.user ?? null
+  } catch {
+    return null
   }
-  users.push({ name, email, password })
-  localStorage.setItem('ep_users', JSON.stringify(users))
-  const user: User = { name, email }
-  localStorage.setItem('ep_session', JSON.stringify(user))
-  return { user }
 }
 
-export function signOut() {
-  localStorage.removeItem('ep_session')
+export async function signIn(email: string, password: string): Promise<{ user: User } | { error: string }> {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) return { error: data.error ?? 'Incorrect email or password.' }
+  return { user: data.user }
+}
+
+export async function signUp(name: string, email: string, password: string): Promise<{ user: User } | { error: string }> {
+  const res = await fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) return { error: data.error ?? 'Could not create your account.' }
+  return { user: data.user }
+}
+
+export async function signOut(): Promise<void> {
+  try { await fetch('/api/auth/logout', { method: 'POST' }) } catch { /* ignore */ }
 }
