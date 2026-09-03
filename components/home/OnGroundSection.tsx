@@ -97,22 +97,22 @@ function GuideForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
-      <motion.input variants={fadeUpSoft}
+      <motion.input {...revealIn}
         type="text" placeholder="Your Name" required disabled={isSubmitting}
         value={name} onChange={(e) => setName(e.target.value)}
         className={inputCls}
       />
-      <motion.input variants={fadeUpSoft}
+      <motion.input {...revealIn}
         type="email" placeholder="Email Address" required disabled={isSubmitting}
         value={email} onChange={(e) => setEmail(e.target.value)}
         className={inputCls}
       />
-      <motion.input variants={fadeUpSoft}
+      <motion.input {...revealIn}
         type="tel" placeholder="Phone / WhatsApp" disabled={isSubmitting}
         value={phone} onChange={(e) => setPhone(e.target.value)}
         className={inputCls}
       />
-      <motion.select variants={fadeUpSoft} required disabled={isSubmitting}
+      <motion.select {...revealIn} required disabled={isSubmitting}
         value={guideType} onChange={(e) => setGuideType(e.target.value)}
         className={selectCls}
       >
@@ -133,7 +133,7 @@ function GuideForm() {
         />
       )}
 
-      <motion.button variants={scaleIn}
+      <motion.button {...revealIn}
         type="submit"
         disabled={isSubmitting}
         className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -192,7 +192,7 @@ function TransportForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
-      <motion.select variants={fadeUpSoft} required disabled={isSubmitting}
+      <motion.select {...revealIn} required disabled={isSubmitting}
         value={carType}
         onChange={(e) => { setCarType(e.target.value); setServiceType(null) }}
         className={selectCls}
