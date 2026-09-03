@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import BookingForm from '@/components/contact/BookingForm'
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -41,19 +41,7 @@ export default function ContactPage() {
                 suits you entirely.
               </p>
 
-              <div className="mt-8">
-                <Link
-                  href="https://calendly.com/escapepodkenya"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-8 py-4 rounded-full text-base hover:bg-gold/90 transition-colors"
-                >
-                  Book A Time
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </Link>
-              </div>
+              <BookingForm />
             </div>
 
             <div className="space-y-8">
