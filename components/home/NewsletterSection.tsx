@@ -2,17 +2,36 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { stagger, staggerFast, fadeUp, slideUp, scaleIn, scaleFade, viewport } from '@/lib/motion'
+import { stagger, fadeUp, slideUp, scaleIn, scaleFade, viewport } from '@/lib/motion'
+
+type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState<Status>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  function handleSubmit(e: { preventDefault(): void }) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
-    setSubmitted(true)
-    setEmail('')
+    if (status === 'submitting' || status === 'success') return // no double submission
+    setStatus('submitting')
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+      setStatus('success')
+      setEmail('')
+    } catch (err) {
+      setStatus('error')
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    }
   }
+
+  const isSubmitting = status === 'submitting'
 
   return (
     <section className="bg-navy py-24 lg:py-32">
@@ -38,14 +57,14 @@ export default function NewsletterSection() {
         </motion.div>
 
         {/* Form / success — scales in */}
-        {submitted ? (
+        {status === 'success' ? (
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="visible"
             className="mt-10 bg-gold/10 border border-gold/30 rounded-2xl px-8 py-6"
           >
-            <p className="text-gold font-medium text-lg">You're on the list.</p>
+            <p className="text-gold font-medium text-lg">You&apos;re on the list.</p>
             <p className="text-cream/60 text-sm mt-1">
               Expect something worth reading — never noise.
             </p>
@@ -62,18 +81,24 @@ export default function NewsletterSection() {
             <input
               type="email"
               required
+              disabled={isSubmitting}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
-              className="flex-1 bg-cream/10 border border-cream/20 rounded-full px-6 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold transition-colors"
+              className="flex-1 bg-cream/10 border border-cream/20 rounded-full px-6 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold transition-colors disabled:opacity-60"
             />
             <button
               type="submit"
-              className="bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors whitespace-nowrap"
+              disabled={isSubmitting}
+              className="bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Subscribe
+              {isSubmitting ? 'Sending…' : 'Subscribe'}
             </button>
           </motion.form>
+        )}
+
+        {status === 'error' && (
+          <p className="mt-3 text-sm text-red-400">{errorMessage}</p>
         )}
 
         <motion.p
