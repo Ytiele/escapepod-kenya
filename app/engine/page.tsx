@@ -93,6 +93,28 @@ function renderMessageText(text: string) {
   })
 }
 
+// Real stages of the actual /api/curate pipeline (Haiku intent extraction ->
+// Sonnet tool calls against Supabase -> synthesis) — a genuine request here
+// routinely takes 15-40s, so the point of rotating through these plus a
+// live elapsed-time counter is to make that visible as real work in
+// progress, not to fake finer-grained progress than we actually have.
+const LOADING_STAGES = [
+  'Understanding your request…',
+  'Searching verified inventory…',
+  'Scoring the best matches…',
+  'Curating your directions…',
+]
+
+function LoadingDots({ className = 'w-2 h-2 bg-gold' }: { className?: string }) {
+  return (
+    <span className="flex items-center gap-1">
+      {[0, 150, 300].map((d) => (
+        <span key={d} className={`rounded-full animate-bounce ${className}`} style={{ animationDelay: `${d}ms` }} />
+      ))}
+    </span>
+  )
+}
+
 // ── Icons ─────────────────────────────────────────────────────────────────
 
 function IconEdit() {
@@ -137,6 +159,9 @@ function IconSend() {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
     </svg>
   )
+}
+function IconSpinner() {
+  return <span className="w-4 h-4 border-2 border-navy/25 border-t-navy rounded-full animate-spin" />
 }
 
 // ── Row + section types ──────────────────────────────────────────────────
@@ -188,6 +213,7 @@ interface ComposerProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSubmit: () => void
   disabled: boolean
+  loading: boolean
   hint: string
   placeholder: string
   chips: string[]
@@ -195,14 +221,16 @@ interface ComposerProps {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>
 }
 
-function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, hint, placeholder, chips, onPick, textareaRef }: ComposerProps) {
+function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, loading, hint, placeholder, chips, onPick, textareaRef }: ComposerProps) {
   if (!open) {
     return (
       <button
         onClick={onOpen}
         className="animate-pod-in mx-auto flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/30 text-navy text-sm shadow-sm hover:bg-gold/15 transition-colors"
       >
-        <span className="font-mono text-[10px] bg-cream px-1.5 py-0.5 rounded-full text-navy/60">⌘K</span>
+        {loading ? <LoadingDots className="w-1.5 h-1.5 bg-gold" /> : (
+          <span className="font-mono text-[10px] bg-cream px-1.5 py-0.5 rounded-full text-navy/60">⌘K</span>
+        )}
         {hint}
       </button>
     )
@@ -225,7 +253,7 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
           disabled={disabled}
           className="shrink-0 w-10 h-10 rounded-full bg-gold text-navy flex items-center justify-center hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <IconSend />
+          {loading ? <IconSpinner /> : <IconSend />}
         </button>
       </form>
       {chips.length > 0 && (
@@ -450,6 +478,8 @@ export default function EnginePage() {
   const [toast, setToast] = useState('')
   const [vw, setVw] = useState(1280)
   const [catalogDestinations, setCatalogDestinations] = useState<string[]>([])
+  const [loadingStage, setLoadingStage] = useState(0)
+  const [elapsed, setElapsed] = useState(0)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -457,6 +487,18 @@ export default function EnginePage() {
   const mobile = vw < 820
   const narrow = vw < 1180
   const hasTrip = messages.length > 0
+
+  // ── Loading feedback — rotate through real pipeline stages + a live
+  // elapsed-time counter, so a genuinely long request (15-40s is normal
+  // for the full Haiku -> Sonnet -> Supabase -> Sonnet pipeline) reads as
+  // active work, not a stalled page. ──────────────────────────────────
+  useEffect(() => {
+    if (!loading) { setLoadingStage(0); setElapsed(0); return }
+    const start = Date.now()
+    const stageId = setInterval(() => setLoadingStage((s) => (s + 1) % LOADING_STAGES.length), 2600)
+    const clockId = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000)
+    return () => { clearInterval(stageId); clearInterval(clockId) }
+  }, [loading])
 
   // ── Auth + initial data ──────────────────────────────────────────────
   useEffect(() => {
@@ -533,6 +575,7 @@ export default function EnginePage() {
     setMessages(updated)
     setInput('')
     setSelectedKey(null)
+    setPodOpen(false)
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setLoading(true)
     if (!wasEmpty) flash('Updating your plan…')
@@ -555,7 +598,6 @@ export default function EnginePage() {
         setExperiences(data.payload.data as Experience[])
         flash(`${data.payload.data.length} direction${data.payload.data.length === 1 ? '' : 's'} ready`)
       }
-      setPodOpen(false)
     } catch {
       setMessages((prev) => [...prev, {
         role: 'assistant',
@@ -728,7 +770,7 @@ export default function EnginePage() {
           {hasTrip && (
             <span className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${loading ? 'bg-gold/20 text-gold' : 'bg-navy/8 text-navy/70'}`}>
               <span className={`w-1.5 h-1.5 rounded-full bg-current ${loading ? 'animate-status-pulse' : ''}`} />
-              {loading ? 'Building' : 'Plan ready'}
+              {loading ? `Building · ${elapsed}s` : 'Plan ready'}
             </span>
           )}
         </header>
@@ -744,8 +786,21 @@ export default function EnginePage() {
           </div>
         )}
 
+        {/* First response still in flight — nothing to show yet, so give this
+            its own reassuring state rather than an almost-empty sheet card. */}
+        {hasTrip && rows.length === 0 && (
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 pb-16 text-center">
+            <LoadingDots className="w-3 h-3 bg-gold" />
+            <p className="text-navy text-lg font-medium">{LOADING_STAGES[loadingStage]}</p>
+            <p className="text-charcoal/50 text-sm max-w-sm">
+              This usually takes 20–40 seconds — we&apos;re genuinely searching verified inventory and scoring real matches, not just generating text.
+            </p>
+            <p className="font-mono text-xs text-navy/30">{elapsed}s elapsed</p>
+          </div>
+        )}
+
         {/* Sheet */}
-        {hasTrip && (
+        {hasTrip && rows.length > 0 && (
           <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: `0 ${mobile ? '13.2px' : '26.4px'} 200px` }}>
             <div className="max-w-2xl mx-auto bg-white/60 rounded-3xl shadow-lg overflow-hidden mt-2">
 
@@ -787,9 +842,10 @@ export default function EnginePage() {
                   <SheetRow key={row.key} row={row} selected={selectedKey === row.key} onClick={() => { setSelectedKey(row.key); setPodOpen(false) }} delay={i * 60} />
                 ))}
                 {loading && (
-                  <div className="flex items-center gap-2.5 px-3 py-4 text-gold text-sm">
-                    <span className="w-2 h-2 rounded-full bg-current animate-status-pulse" />
-                    {experiences ? 'Refining your plan…' : 'Searching verified inventory…'}
+                  <div className="flex items-center gap-3 px-3 py-4">
+                    <LoadingDots className="w-1.5 h-1.5 bg-gold" />
+                    <span className="text-gold text-sm">{LOADING_STAGES[loadingStage]}</span>
+                    <span className="ml-auto font-mono text-xs text-navy/30">{elapsed}s</span>
                   </div>
                 )}
               </div>
@@ -807,7 +863,8 @@ export default function EnginePage() {
             onKeyDown={handleKeyDown}
             onSubmit={() => sendMessage(input)}
             disabled={!input.trim() || loading}
-            hint={hasTrip ? 'Change something' : 'Tell me about your trip'}
+            loading={loading}
+            hint={loading ? `${LOADING_STAGES[loadingStage]} ${elapsed}s` : (hasTrip ? 'Change something' : 'Tell me about your trip')}
             placeholder={hasTrip ? "Swap a direction, shift the budget, add a stop…" : 'A week in Kenya for two, safari and beach, September…'}
             chips={chips}
             onPick={(t) => sendMessage(t)}
