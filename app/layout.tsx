@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: '%s | EscapePod Kenya',
   },
   description:
-    'The luxury of zero friction. AI-curated, bespoke Kenyan travel experiences designed around your unique rhythm.',
+    'The luxury of zero friction. Curated by EscapePod Intelligence, bespoke Kenyan travel experiences designed around your unique rhythm.',
   keywords: ['Kenya safari', 'luxury travel', 'bespoke travel', 'EscapePod', 'Lamu', 'Maasai Mara'],
   openGraph: {
     siteName: 'EscapePod Kenya',

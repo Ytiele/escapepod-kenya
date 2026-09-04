@@ -1030,7 +1030,7 @@ export default function EnginePage() {
                 </div>
               )}
 
-              {/* AI reasoning — always visible below the cards, never hidden
+              {/* Escapepod Intelligence's reasoning — always visible below the cards, never hidden
                   behind a click. When this turn was a comparison, the
                   "Your current pick" card above stays badged so both sides
                   of the comparison — the initial pick and the alternatives —
