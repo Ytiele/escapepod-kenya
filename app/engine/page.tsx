@@ -49,9 +49,9 @@ function imageForDestination(destination: string): string | null {
 // gradient), since a card or the detail panel claiming to show "this
 // place" needs to actually show that place.
 const HERO_FALLBACK_IMAGES = [
-  '/images/hero-fallback/1.jpg',
-  '/images/hero-fallback/2.jpg',
-  '/images/hero-fallback/3.jpg',
+  '/images/aiham-m-azu-GsrfR4I-unsplash.jpg',
+  '/images/jens-riesenberg-JD0YQq2jq-s-unsplash.jpg',
+  '/images/jeremy-hynes-qsdkMlbfne4-unsplash.jpg',
 ]
 
 function priceLabel(exp: Experience) {
