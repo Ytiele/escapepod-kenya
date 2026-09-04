@@ -569,19 +569,13 @@ function ProfileDialog({ user, onClose, onSignOut }: { user: User; onClose: () =
   )
 }
 
-// A recent chat stores the full transcript + last results, not just a
-// title — otherwise there'd be nothing to restore when it's clicked.
+// Lightweight sidebar listing — tied to the traveler's account via
+// /api/chats, not the device, so it follows them across browsers/devices.
+// The full transcript is fetched on demand (GET /api/chats/[id]) only
+// when a chat is actually opened.
 interface RecentChat {
   id: string
   title: string
-  messages: ChatMessage[]
-  experiences: Experience[] | null
-}
-
-function isRecentChat(v: unknown): v is RecentChat {
-  if (!v || typeof v !== 'object') return false
-  const r = v as Record<string, unknown>
-  return typeof r.id === 'string' && typeof r.title === 'string' && Array.isArray(r.messages)
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────
@@ -640,13 +634,10 @@ export default function EnginePage() {
   // ── Auth + initial data ──────────────────────────────────────────────
   useEffect(() => {
     getCurrentUser().then((u) => { if (!u) router.replace('/login'); else setUser(u) })
-    try {
-      const stored = localStorage.getItem('ep_recent_chats')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) setRecentChats(parsed.filter(isRecentChat))
-      }
-    } catch { /* ignore */ }
+    fetch('/api/chats')
+      .then((res) => (res.ok ? res.json() : { chats: [] }))
+      .then((data) => setRecentChats(Array.isArray(data.chats) ? data.chats : []))
+      .catch(() => { /* ignore — sidebar just shows "No recent chats yet" */ })
     fetch('/api/experiences')
       .then((res) => res.json())
       .then((data) => {
@@ -727,20 +718,27 @@ export default function EnginePage() {
     toastTimer.current = setTimeout(() => setToast(''), 2600)
   }
 
-  // Upsert the given transcript into "Recent plans" under `id`, keeping it
-  // at the top. Called after every exchange (not just on "New trip"), so a
-  // conversation is never lost just because the user didn't explicitly
-  // close it out — and it's always up to date when clicked back into.
-  function saveRecent(id: string, msgs: ChatMessage[], exps: Experience[] | null) {
+  // Upsert the given transcript into "Recent plans" under `id`, tied to
+  // the signed-in traveler's account (not the device) via /api/chats, so
+  // it's there when they open the same profile on another device. Called
+  // after every exchange (not just on "New trip"), so a conversation is
+  // never lost just because the user didn't explicitly close it out.
+  const saveRecent = useCallback(async (id: string, msgs: ChatMessage[], exps: Experience[] | null) => {
     const first = msgs.find((m) => m.role === 'user')
     if (!first) return
     const title = first.content.length > 38 ? first.content.slice(0, 38) + '…' : first.content
-    setRecentChats((prev) => {
-      const updated = [{ id, title, messages: msgs, experiences: exps }, ...prev.filter((c) => c.id !== id)].slice(0, 6)
-      try { localStorage.setItem('ep_recent_chats', JSON.stringify(updated)) } catch { /* ignore */ }
-      return updated
-    })
-  }
+    try {
+      const res = await fetch('/api/chats', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title, messages: msgs, experiences: exps }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      setRecentChats((prev) => [{ id, title }, ...prev.filter((c) => c.id !== id)].slice(0, 8))
+    } catch {
+      flash("Couldn't save this to your history — it's still on this screen.")
+    }
+  }, [])
 
   function startNewChat() {
     setMessages([]); setInput(''); setExperiences(null); setSelectedKey(null)
@@ -748,10 +746,19 @@ export default function EnginePage() {
     setPodOpen(true); setNavOpen(false)
   }
 
-  function loadRecentChat(c: RecentChat) {
-    setMessages(c.messages); setExperiences(c.experiences); setCurrentChatId(c.id)
-    setSelectedKey(null); setSuggestions([]); setInput(''); setCompareAnchorId(null)
-    setPodOpen(false); setNavOpen(false)
+  async function loadRecentChat(c: RecentChat) {
+    try {
+      const res = await fetch(`/api/chats/${c.id}`)
+      if (!res.ok) throw new Error('load failed')
+      const data = await res.json()
+      setMessages(data.chat.messages ?? [])
+      setExperiences(data.chat.experiences ?? null)
+      setCurrentChatId(data.chat.id)
+      setSelectedKey(null); setSuggestions([]); setInput(''); setCompareAnchorId(null)
+      setPodOpen(false); setNavOpen(false)
+    } catch {
+      flash("Couldn't open that plan — please try again.")
+    }
   }
 
   const sendMessage = useCallback(async (text: string) => {
@@ -801,7 +808,7 @@ export default function EnginePage() {
         content: 'Something went wrong on our end — please try again in a moment.',
       }])
     } finally { setLoading(false) }
-  }, [messages, loading, router, currentChatId, experiences])
+  }, [messages, loading, router, currentChatId, experiences, saveRecent])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
