@@ -45,4 +45,9 @@ export interface CuratePayload {
 export interface CurateResponse {
   text: string
   payload: CuratePayload | null
+  // Short, conversation-specific quick replies Claude proposes for its own
+  // final reply — e.g. plausible answers to a question it just asked, or
+  // next moves that follow from what it just presented. Empty when Claude
+  // didn't produce any (the client falls back to generic chips).
+  suggestions?: string[]
 }

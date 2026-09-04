@@ -250,60 +250,68 @@ interface ComposerProps {
   chips: string[]
   onPick: (text: string) => void
   textareaRef: React.RefObject<HTMLTextAreaElement | null>
+  containerRef: React.RefObject<HTMLDivElement | null>
 }
 
-function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, loading, hint, placeholder, chips, onPick, textareaRef }: ComposerProps) {
-  if (!open) {
-    return (
+// Both states are always mounted and cross-fade via opacity/scale — this is
+// what makes the collapse (e.g. from a click outside) read as one smooth
+// motion instead of a hard swap between two different elements.
+function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, loading, hint, placeholder, chips, onPick, textareaRef, containerRef }: ComposerProps) {
+  return (
+    <div ref={containerRef} className="relative w-full">
       <button
         onClick={onOpen}
-        className="animate-pod-in mx-auto flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/30 text-navy text-sm shadow-sm hover:bg-gold/15 transition-colors"
+        className={`absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gold/10 border border-gold/30 text-navy text-sm shadow-sm hover:bg-gold/15 transition-all duration-300 ease-out ${
+          open ? 'opacity-0 scale-95 translate-y-1 pointer-events-none' : 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+        }`}
       >
         {loading ? <LoadingDots className="w-1.5 h-1.5 bg-gold" /> : (
           <span className="font-mono text-[10px] bg-cream px-1.5 py-0.5 rounded-full text-navy/60">⌘K</span>
         )}
         {hint}
       </button>
-    )
-  }
 
-  return (
-    <div className="animate-pod-in w-full bg-cream border border-navy/10 rounded-3xl shadow-lg overflow-hidden">
-      <form onSubmit={(e) => { e.preventDefault(); onSubmit() }} className="flex items-end gap-2 p-3">
-        <textarea
-          ref={textareaRef}
-          rows={1}
-          value={value}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          placeholder={placeholder}
-          className="flex-1 resize-none border-0 outline-none bg-transparent text-navy placeholder-navy/30 text-[15px] leading-relaxed max-h-28 py-1.5"
-        />
-        <button
-          type="submit"
-          disabled={disabled}
-          className="shrink-0 w-10 h-10 rounded-full bg-gold text-navy flex items-center justify-center hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? <IconSpinner /> : <IconSend />}
-        </button>
-      </form>
-      {chips.length > 0 && (
-        <div className="border-t border-navy/8 bg-navy/3 px-4 py-3 flex flex-col gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Suggested next</span>
-          <div className="flex gap-2 flex-wrap">
-            {chips.map((c) => (
-              <button
-                key={c}
-                onClick={() => onPick(c)}
-                className="text-left px-3.5 py-1.5 rounded-full border border-gold/30 bg-gold/10 text-navy/80 text-[13px] hover:bg-gold/20 transition-colors"
-              >
-                {c}
-              </button>
-            ))}
+      <div
+        className={`w-full bg-cream border border-navy/10 rounded-3xl shadow-lg overflow-hidden origin-bottom transition-all duration-300 ease-out ${
+          open ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'
+        }`}
+      >
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit() }} className="flex items-end gap-2 p-3">
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={value}
+            onChange={onChange}
+            onKeyDown={onKeyDown}
+            placeholder={placeholder}
+            className="flex-1 resize-none border-0 outline-none bg-transparent text-navy placeholder-navy/30 text-[15px] leading-relaxed max-h-28 py-1.5"
+          />
+          <button
+            type="submit"
+            disabled={disabled}
+            className="shrink-0 w-10 h-10 rounded-full bg-gold text-navy flex items-center justify-center hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? <IconSpinner /> : <IconSend />}
+          </button>
+        </form>
+        {chips.length > 0 && (
+          <div className="border-t border-navy/8 bg-navy/3 px-4 py-3 flex flex-col gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Suggested next</span>
+            <div className="flex gap-2 flex-wrap">
+              {chips.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => onPick(c)}
+                  className="text-left px-3.5 py-1.5 rounded-full border border-gold/30 bg-gold/10 text-navy/80 text-[13px] hover:bg-gold/20 transition-colors"
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] text-navy/30">Enter to send · Esc to dismiss · ⌘K to summon</span>
           </div>
-          <span className="text-[11px] text-navy/30">Enter to send · Esc to dismiss · ⌘K to summon</span>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
@@ -487,6 +495,21 @@ function ProfileDialog({ user, onClose, onSignOut }: { user: User; onClose: () =
   )
 }
 
+// A recent chat stores the full transcript + last results, not just a
+// title — otherwise there'd be nothing to restore when it's clicked.
+interface RecentChat {
+  id: string
+  title: string
+  messages: ChatMessage[]
+  experiences: Experience[] | null
+}
+
+function isRecentChat(v: unknown): v is RecentChat {
+  if (!v || typeof v !== 'object') return false
+  const r = v as Record<string, unknown>
+  return typeof r.id === 'string' && typeof r.title === 'string' && Array.isArray(r.messages)
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────
 
 export default function EnginePage() {
@@ -497,7 +520,9 @@ export default function EnginePage() {
   const [loading, setLoading] = useState(false)
   const [experiences, setExperiences] = useState<Experience[] | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-  const [recentChats, setRecentChats] = useState<{ id: string; title: string }[]>([])
+  const [recentChats, setRecentChats] = useState<RecentChat[]>([])
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<string[]>([])
   const [podOpen, setPodOpen] = useState(true)
   const [navOpen, setNavOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -509,6 +534,7 @@ export default function EnginePage() {
   const [elapsed, setElapsed] = useState(0)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const composerRef = useRef<HTMLDivElement>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const mobile = vw < 820
@@ -532,7 +558,10 @@ export default function EnginePage() {
     getCurrentUser().then((u) => { if (!u) router.replace('/login'); else setUser(u) })
     try {
       const stored = localStorage.getItem('ep_recent_chats')
-      if (stored) setRecentChats(JSON.parse(stored))
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) setRecentChats(parsed.filter(isRecentChat))
+      }
     } catch { /* ignore */ }
     fetch('/api/experiences')
       .then((res) => res.json())
@@ -574,24 +603,49 @@ export default function EnginePage() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  // ── Click away from the open composer to collapse it back to the CTA ──
+  useEffect(() => {
+    if (!podOpen) return
+    function onPointerDown(e: PointerEvent) {
+      if (composerRef.current && e.target instanceof Node && !composerRef.current.contains(e.target)) {
+        setPodOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [podOpen])
+
   function flash(msg: string) {
     setToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(''), 2600)
   }
 
+  // Upsert the given transcript into "Recent plans" under `id`, keeping it
+  // at the top. Called after every exchange (not just on "New trip"), so a
+  // conversation is never lost just because the user didn't explicitly
+  // close it out — and it's always up to date when clicked back into.
+  function saveRecent(id: string, msgs: ChatMessage[], exps: Experience[] | null) {
+    const first = msgs.find((m) => m.role === 'user')
+    if (!first) return
+    const title = first.content.length > 38 ? first.content.slice(0, 38) + '…' : first.content
+    setRecentChats((prev) => {
+      const updated = [{ id, title, messages: msgs, experiences: exps }, ...prev.filter((c) => c.id !== id)].slice(0, 6)
+      try { localStorage.setItem('ep_recent_chats', JSON.stringify(updated)) } catch { /* ignore */ }
+      return updated
+    })
+  }
+
   function startNewChat() {
-    if (messages.length > 0) {
-      const first = messages.find((m) => m.role === 'user')
-      if (first) {
-        const title = first.content.length > 38 ? first.content.slice(0, 38) + '…' : first.content
-        const updated = [{ id: Date.now().toString(), title }, ...recentChats].slice(0, 6)
-        setRecentChats(updated)
-        try { localStorage.setItem('ep_recent_chats', JSON.stringify(updated)) } catch { /* ignore */ }
-      }
-    }
     setMessages([]); setInput(''); setExperiences(null); setSelectedKey(null)
+    setCurrentChatId(null); setSuggestions([])
     setPodOpen(true); setNavOpen(false)
+  }
+
+  function loadRecentChat(c: RecentChat) {
+    setMessages(c.messages); setExperiences(c.experiences); setCurrentChatId(c.id)
+    setSelectedKey(null); setSuggestions([]); setInput('')
+    setPodOpen(false); setNavOpen(false)
   }
 
   const sendMessage = useCallback(async (text: string) => {
@@ -599,9 +653,12 @@ export default function EnginePage() {
     const userMsg: ChatMessage = { role: 'user', content: text.trim() }
     const updated = [...messages, userMsg]
     const wasEmpty = messages.length === 0
+    const chatId = currentChatId ?? Date.now().toString()
+    if (!currentChatId) setCurrentChatId(chatId)
     setMessages(updated)
     setInput('')
     setSelectedKey(null)
+    setSuggestions([])
     setPodOpen(false)
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setLoading(true)
@@ -616,22 +673,29 @@ export default function EnginePage() {
       if (!res.ok) throw new Error('request failed')
       const data: CurateResponse = await res.json()
 
-      setMessages((prev) => [...prev, {
+      const assistantMsg: ChatMessage = {
         role: 'assistant',
         content: data.text || "I'm here — could you tell me a little more about what you have in mind?",
-      }])
-
-      if (data.payload?.data && Array.isArray(data.payload.data) && data.payload.data.length > 0) {
-        setExperiences(data.payload.data as Experience[])
-        flash(`${data.payload.data.length} direction${data.payload.data.length === 1 ? '' : 's'} ready`)
       }
+      const finalMessages = [...updated, assistantMsg]
+      setMessages(finalMessages)
+      setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+
+      let finalExperiences = experiences
+      if (data.payload?.data && Array.isArray(data.payload.data) && data.payload.data.length > 0) {
+        finalExperiences = data.payload.data as Experience[]
+        setExperiences(finalExperiences)
+        flash(`${finalExperiences.length} direction${finalExperiences.length === 1 ? '' : 's'} ready`)
+      }
+
+      saveRecent(chatId, finalMessages, finalExperiences)
     } catch {
       setMessages((prev) => [...prev, {
         role: 'assistant',
         content: 'Something went wrong on our end — please try again in a moment.',
       }])
     } finally { setLoading(false) }
-  }, [messages, loading, router])
+  }, [messages, loading, router, currentChatId, experiences])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
@@ -680,9 +744,12 @@ export default function EnginePage() {
     ]
   }, [catalogDestinations])
 
-  const chips = hasTrip
-    ? ['Show me something different', 'Adjust the budget', 'Combine two of these', 'Ask a follow-up question']
-    : starters
+  // Claude's own conversation-specific quick replies take priority — they're
+  // grounded in what it just said (or asked). Only fall back to generic
+  // chips/starters when it didn't produce any (e.g. very first turn text
+  // parse miss).
+  const genericChips = ['Show me something different', 'Adjust the budget', 'Combine two of these', 'Ask a follow-up question']
+  const chips = suggestions.length > 0 ? suggestions : (hasTrip ? genericChips : starters)
 
   // ── Layout ────────────────────────────────────────────────────────────
   const gridCols = mobile
@@ -727,7 +794,13 @@ export default function EnginePage() {
           <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2">Recent plans</span>
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5">
             {recentChats.map((c) => (
-              <button key={c.id} className="text-left px-3 py-2.5 rounded-xl text-[13.5px] text-cream/60 hover:bg-white/6 hover:text-cream/85 transition-colors truncate">
+              <button
+                key={c.id}
+                onClick={() => loadRecentChat(c)}
+                className={`text-left px-3 py-2.5 rounded-xl text-[13.5px] transition-colors truncate ${
+                  c.id === currentChatId ? 'bg-white/10 text-cream' : 'text-cream/60 hover:bg-white/6 hover:text-cream/85'
+                }`}
+              >
                 {c.title}
               </button>
             ))}
@@ -897,6 +970,7 @@ export default function EnginePage() {
             chips={chips}
             onPick={(t) => sendMessage(t)}
             textareaRef={textareaRef}
+            containerRef={composerRef}
           />
         </div>
       </main>

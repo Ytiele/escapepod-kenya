@@ -53,6 +53,24 @@ Surface 2-3 meaningfully different directions, never a catalogue.
 LANGUAGE
 Confident, warm, specific. Explain recommendations in terms of what the
 traveler said. Avoid generic tourism language.
+
+QUICK REPLIES
+Only on the turn where you are NOT calling another tool — i.e. this is your
+actual reply to the traveler — end your message with a hidden line in
+exactly this format, as the very last thing you write, nothing after it:
+<<<SUGGESTIONS>>>["reply one", "reply two", "reply three"]
+Rules:
+- 2 to 4 items, each under 6 words, each something the traveler could tap
+  instead of typing.
+- If your reply ends in a question, the suggestions must be plausible short
+  answers to THAT question, and nothing else — no generic filler like
+  "show me something different" mixed in.
+- If your reply presents directions/options rather than asking a question,
+  the suggestions should be the natural next moves (e.g. picking one of the
+  named directions, adjusting a stated constraint).
+- Never include this line while you still intend to call a tool this turn.
+- This line is stripped before the traveler ever sees it — write it as if
+  it were internal metadata, not part of your message.
 `.trim();
 
 const TOOLS: Anthropic.Tool[] = [
@@ -212,6 +230,28 @@ function isHighValueTrip(profile: Record<string, unknown> | null | undefined, hi
   return false;
 }
 
+// ── Quick-reply extraction ──────────────────────────────────────────────
+// Claude appends a hidden <<<SUGGESTIONS>>>[...] line to its final reply
+// (see QUICK REPLIES in the system prompt above). Strip it out of the text
+// the traveler sees and surface it as structured data instead — no extra
+// model round-trip, since it rides along on the reply Claude was already
+// generating.
+const SUGGESTIONS_RE = /\n*<<<SUGGESTIONS>>>\s*(\[[\s\S]*?\])\s*$/;
+
+function extractSuggestions(text: string): { text: string; suggestions: string[] } {
+  const match = text.match(SUGGESTIONS_RE);
+  if (!match) return { text, suggestions: [] };
+  try {
+    const parsed = JSON.parse(match[1]);
+    if (Array.isArray(parsed) && parsed.every((s) => typeof s === 'string')) {
+      return { text: text.slice(0, match.index).trim(), suggestions: parsed.slice(0, 4) };
+    }
+  } catch {
+    // Malformed — fall through and just show the raw text with nothing cut.
+  }
+  return { text, suggestions: [] };
+}
+
 function maxPriceIn(result: unknown): number {
   const rows = Array.isArray(result) ? result : [result];
   let max = 0;
@@ -330,7 +370,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const response = NextResponse.json({ text: finalText, payload: uiPayload });
+  const { text: cleanText, suggestions } = extractSuggestions(finalText);
+  const response = NextResponse.json({ text: cleanText, payload: uiPayload, suggestions });
   if (refreshed) setSessionCookies(response, refreshed);
   return response;
 }
