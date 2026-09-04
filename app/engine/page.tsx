@@ -821,6 +821,11 @@ export default function EnginePage() {
 
   const tripTitle = stats ? stats.destinations.slice(0, 2).join(' & ') + (stats.destinations.length > 2 ? ' & more' : '') : ''
 
+  // First destination among this trip's directions that we have a real
+  // photo for — falls back to the gradient (handled at the render site)
+  // rather than guessing at a photo for somewhere we don't have one.
+  const heroImage = stats ? stats.destinations.map(imageForDestination).find((src): src is string => Boolean(src)) ?? null : null
+
   const lastAssistantText = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? ''
 
   const selectedExp = experiences?.find((e) => e.id === selectedKey) ?? null
@@ -972,10 +977,21 @@ export default function EnginePage() {
           <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: `0 ${mobile ? '13.2px' : '26.4px'} ${composerClearance}px` }}>
             <div className="max-w-3xl mx-auto bg-white/60 rounded-3xl shadow-lg overflow-hidden mt-2">
 
-              <div className={`bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'} flex items-center justify-center`} style={{ height: mobile ? 110 : 140 }}>
-                <span className="text-cream/50 text-xs font-medium tracking-widest uppercase">
-                  {stats ? stats.destinations.join(' · ') : 'Curating your journey'}
-                </span>
+              {/* The destination pills and title right below already name
+                  this trip — showing the same words a third time up here
+                  read as repetitive, so this is just the real photo (or a
+                  gradient where we don't have one), no text over it. */}
+              <div className={`relative overflow-hidden ${heroImage ? '' : `bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'}`}`} style={{ height: mobile ? 110 : 140 }}>
+                {heroImage && (
+                  <Image
+                    src={heroImage}
+                    alt={stats ? stats.destinations.join(', ') : 'Kenya'}
+                    fill
+                    sizes="(min-width: 768px) 768px, 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                )}
               </div>
 
               <div className="p-6 flex flex-col gap-3">
