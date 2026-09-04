@@ -53,20 +53,10 @@ function durationLabel(exp: Experience) {
 }
 
 // Minimal, dependency-free renderer for Claude's markdown-flavored replies.
-// Claude occasionally sprinkles in colorful emoji (🥇🌊✨🔍) as decorative
-// markers. Those are full-color glyphs — CSS `color` can't retint them, so
-// they'd sit outside our navy/gold palette no matter what. Strip any that
-// land mid-text here; the ones that lead a line get pulled out and swapped
-// for our own gold marker by the callers in renderMessageText instead, so
-// every icon a chat response actually shows is one we control the color of.
+// The system prompt tells Claude not to use emoji at all, but this strips
+// any that slip through anyway — belt and braces, since a stray emoji is a
+// full-color glyph CSS can't retint to match the site's palette either way.
 const EMOJI_RE = /\p{Extended_Pictographic}\uFE0F?/gu
-const LEADING_EMOJI_RE = /^(\p{Extended_Pictographic}\uFE0F?)\s*/u
-
-function splitLeadingEmoji(line: string): { rest: string; hadEmoji: boolean } {
-  const match = line.match(LEADING_EMOJI_RE)
-  if (!match) return { rest: line, hadEmoji: false }
-  return { rest: line.slice(match[0].length), hadEmoji: true }
-}
 
 function renderInline(text: string) {
   const withoutEmoji = text.replace(EMOJI_RE, '').replace(/ {2,}/g, ' ').trim()
@@ -106,9 +96,7 @@ function renderMessageText(text: string) {
           {bullets.map((l, li) => (
             <li key={li} className="flex gap-2 text-sm text-charcoal/70 leading-relaxed">
               <span className="text-gold shrink-0 mt-0.5">•</span>
-              {/* Already has a marker — drop any emoji rather than show a
-                  second, differently-colored one right next to it. */}
-              <span>{renderInline(splitLeadingEmoji(l).rest)}</span>
+              <span>{renderInline(l)}</span>
             </li>
           ))}
         </ul>
@@ -160,26 +148,12 @@ function renderMessageText(text: string) {
       if (/^-{3,}$/.test(line)) { flushBullets(); nodes.push(<hr key={`hr-${nodes.length}`} className="border-navy/10 my-3" />); continue }
       if (/^#{1,6}\s+/.test(line)) {
         flushBullets()
-        const { rest, hadEmoji } = splitLeadingEmoji(line.replace(/^#{1,6}\s+/, ''))
-        nodes.push(
-          <p key={`h-${nodes.length}`} className="text-navy font-semibold mt-3 mb-1 flex items-baseline gap-1.5">
-            {hadEmoji && <span className="text-gold shrink-0" aria-hidden="true">✦</span>}
-            <span className="min-w-0">{renderInline(rest)}</span>
-          </p>
-        )
+        nodes.push(<p key={`h-${nodes.length}`} className="text-navy font-semibold mt-3 mb-1">{renderInline(line.replace(/^#{1,6}\s+/, ''))}</p>)
         continue
       }
       if (/^[-*]\s+/.test(line)) { bullets.push(line.replace(/^[-*]\s+/, '')); continue }
       flushBullets()
-      {
-        const { rest, hadEmoji } = splitLeadingEmoji(line)
-        nodes.push(
-          <p key={`p-${nodes.length}`} className="text-sm text-charcoal/80 leading-relaxed flex items-baseline gap-1.5">
-            {hadEmoji && <span className="text-gold shrink-0" aria-hidden="true">✦</span>}
-            <span className="min-w-0">{renderInline(rest)}</span>
-          </p>
-        )
-      }
+      nodes.push(<p key={`p-${nodes.length}`} className="text-sm text-charcoal/80 leading-relaxed">{renderInline(line)}</p>)
     }
     flushTable()
     flushBullets()
