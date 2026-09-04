@@ -40,6 +40,20 @@ function imageForDestination(destination: string): string | null {
   return null
 }
 
+// Decorative-only fallback for the Sheet's hero banner specifically — when
+// a trip's directions don't map to a destination we have real photography
+// for, this is a random pick from a small pool rather than a flat
+// gradient, so the result doesn't read as broken/blunt. Deliberately NOT
+// used by ItineraryCard or ExperiencePanel — those two stay strictly tied
+// to imageForDestination (a real photo of the actual place, or the
+// gradient), since a card or the detail panel claiming to show "this
+// place" needs to actually show that place.
+const HERO_FALLBACK_IMAGES = [
+  '/images/hero-fallback/1.jpg',
+  '/images/hero-fallback/2.jpg',
+  '/images/hero-fallback/3.jpg',
+]
+
 function priceLabel(exp: Experience) {
   const { price_usd_pp_min: min, price_usd_pp_max: max } = exp
   if (min && max && min !== max) return `$${min.toLocaleString()}–$${max.toLocaleString()}`
@@ -593,6 +607,11 @@ export default function EnginePage() {
   // pick and every alternative stay visible and bookable side by side,
   // instead of the comparison losing track of which one was "the initial."
   const [compareAnchorId, setCompareAnchorId] = useState<string | null>(null)
+  // Which HERO_FALLBACK_IMAGES entry to show when this trip has no real
+  // destination photo — re-rolled in an effect (see below) whenever a new
+  // result set arrives, not computed during render (Math.random() has no
+  // business running in the render path).
+  const [heroFallbackIndex, setHeroFallbackIndex] = useState(0)
   const [recentChats, setRecentChats] = useState<RecentChat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -711,6 +730,13 @@ export default function EnginePage() {
       setCompareAnchorId(null)
     }
   }, [experiences, compareAnchorId])
+
+  // Re-roll the hero fallback photo whenever a genuinely new result set
+  // arrives, so a trip with no real destination photo gets a fresh random
+  // pick each time rather than reusing whatever showed on the last one.
+  useEffect(() => {
+    setHeroFallbackIndex(Math.floor(Math.random() * HERO_FALLBACK_IMAGES.length))
+  }, [experiences])
 
   function flash(msg: string) {
     setToast(msg)
@@ -843,9 +869,9 @@ export default function EnginePage() {
   const tripTitle = stats ? stats.destinations.slice(0, 2).join(' & ') + (stats.destinations.length > 2 ? ' & more' : '') : ''
 
   // First destination among this trip's directions that we have a real
-  // photo for — falls back to the gradient (handled at the render site)
-  // rather than guessing at a photo for somewhere we don't have one.
+  // photo for — null when none of them do.
   const heroImage = stats ? stats.destinations.map(imageForDestination).find((src): src is string => Boolean(src)) ?? null : null
+  const heroDisplayImage = heroImage ?? HERO_FALLBACK_IMAGES[heroFallbackIndex]
 
   const lastAssistantText = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? ''
 
@@ -1000,19 +1026,21 @@ export default function EnginePage() {
 
               {/* The destination pills and title right below already name
                   this trip — showing the same words a third time up here
-                  read as repetitive, so this is just the real photo (or a
-                  gradient where we don't have one), no text over it. */}
-              <div className={`relative overflow-hidden ${heroImage ? '' : `bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'}`}`} style={{ height: mobile ? 110 : 140 }}>
-                {heroImage && (
-                  <Image
-                    src={heroImage}
-                    alt={stats ? stats.destinations.join(', ') : 'Kenya'}
-                    fill
-                    sizes="(min-width: 768px) 768px, 100vw"
-                    className="object-cover"
-                    priority
-                  />
-                )}
+                  read as repetitive, so this is just a photo, no text over
+                  it. A real destination photo when we have one; otherwise
+                  a random decorative fallback (see HERO_FALLBACK_IMAGES)
+                  rather than a flat gradient, so a result for somewhere we
+                  don't have photography for doesn't feel blunt. */}
+              <div className="relative overflow-hidden" style={{ height: mobile ? 110 : 140 }}>
+                <Image
+                  src={heroDisplayImage}
+                  alt={stats ? stats.destinations.join(', ') : 'Kenya'}
+                  fill
+                  sizes="(min-width: 768px) 768px, 100vw"
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent" />
               </div>
 
               <div className="p-6 flex flex-col gap-3">
