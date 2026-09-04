@@ -274,7 +274,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         </div>
         <button
           onClick={onView}
-          className="self-start flex items-center gap-1 text-navy/60 text-[12px] font-medium hover:text-gold transition-colors mb-3"
+          className="self-start shrink-0 flex items-center gap-1 border-[3px] border-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/10 transition-colors mb-3"
         >
           See more details <span aria-hidden>→</span>
         </button>
