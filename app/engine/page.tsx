@@ -591,6 +591,11 @@ export default function EnginePage() {
   const [catalogDestinations, setCatalogDestinations] = useState<string[]>([])
   const [loadingStage, setLoadingStage] = useState(0)
   const [elapsed, setElapsed] = useState(0)
+  // Measured live from the composer itself (see effect below) rather than
+  // guessed as a fixed number — its open height varies with chip count and
+  // viewport width, and a fixed guess previously left the last bit of text
+  // sitting underneath it on narrower screens.
+  const [composerClearance, setComposerClearance] = useState(140)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const composerRef = useRef<HTMLDivElement>(null)
@@ -642,6 +647,20 @@ export default function EnginePage() {
       ro.observe(document.documentElement)
     }
     return () => { window.removeEventListener('resize', measure); ro?.disconnect() }
+  }, [])
+
+  // ── Composer clearance — keep scrollable content from ever rendering
+  // underneath the composer, whatever height it happens to be right now
+  // (collapsed pill vs. open with N wrapped chips vs. narrow viewport). ──
+  useEffect(() => {
+    const el = composerRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect.height ?? el.offsetHeight
+      setComposerClearance(Math.ceil(h) + 64) // + gap to viewport edge + breathing room
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
   // ── Keyboard shortcuts ───────────────────────────────────────────────
@@ -915,9 +934,12 @@ export default function EnginePage() {
           )}
         </header>
 
-        {/* Empty state */}
+        {/* Empty state — scrollable with room reserved at the bottom for the
+            composer (which starts open here, and can run tall with wrapped
+            starter chips on narrow screens), so this text can never end up
+            rendered underneath it; it scrolls into view instead. */}
         {!hasTrip && (
-          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-4 px-6 pb-16 overflow-hidden text-center">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-4 px-6 overflow-y-auto text-center" style={{ paddingBottom: composerClearance }}>
             <span className="w-13 h-13 rounded-full bg-gold/15 flex items-center justify-center text-gold text-xl">✦</span>
             <h1 className="text-navy text-4xl md:text-5xl font-medium tracking-tight">Tell me where you&apos;re going.</h1>
             <p className="text-charcoal/60 text-base max-w-md text-balance">
@@ -929,7 +951,7 @@ export default function EnginePage() {
         {/* First response still in flight — nothing to show yet, so give this
             its own reassuring state rather than an almost-empty sheet card. */}
         {hasTrip && !lastAssistantText && (
-          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 pb-16 text-center">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 overflow-y-auto text-center" style={{ paddingBottom: composerClearance }}>
             <LoadingDots className="w-3 h-3 bg-gold" />
             <p className="text-navy text-lg font-medium">{LOADING_STAGES[loadingStage]}</p>
             <p className="text-charcoal/50 text-sm max-w-sm">
@@ -941,7 +963,7 @@ export default function EnginePage() {
 
         {/* Sheet */}
         {hasTrip && lastAssistantText && (
-          <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: `0 ${mobile ? '13.2px' : '26.4px'} 200px` }}>
+          <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: `0 ${mobile ? '13.2px' : '26.4px'} ${composerClearance}px` }}>
             <div className="max-w-3xl mx-auto bg-white/60 rounded-3xl shadow-lg overflow-hidden mt-2">
 
               <div className={`bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'} flex items-center justify-center`} style={{ height: mobile ? 110 : 140 }}>
