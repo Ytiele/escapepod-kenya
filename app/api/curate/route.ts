@@ -399,10 +399,26 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
 
     case 'generate_directions': {
       const { data } = await supabaseAdmin.from('experiences').select('*').in('id', input.candidate_ids);
+      if (!data || data.length === 0) return [];
+
+      // Attach the same real match_score used by search_experiences, so the
+      // frontend always has a number to show — this previously only rode
+      // along when Claude called search_experiences directly.
+      const { data: traveler } = await supabaseAdmin
+        .from('travelers')
+        .select('profile, persona')
+        .eq('id', travelerId)
+        .single();
+      const confidence = traveler?.profile?.confidence?.overall ?? 0.3;
+      const scored = scoreExperiences(data, traveler?.profile?.preferences ?? {}, traveler?.persona, confidence);
+
       // Simple first pass: one direction per distinct destination among the
-      // candidates. Replace with real narrative grouping once you see how
-      // Claude tends to call this in practice.
-      return data;
+      // candidates, in the order Claude chose to present them (its ordering
+      // usually encodes "Best Fit" first). Replace with real narrative
+      // grouping once you see how Claude tends to call this in practice.
+      return (input.candidate_ids as string[])
+        .map((id) => scored.find((s) => s.id === id))
+        .filter(Boolean);
     }
 
     case 'build_itinerary':

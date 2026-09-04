@@ -138,13 +138,6 @@ function IconX() {
     </svg>
   )
 }
-function IconChevronRight() {
-  return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  )
-}
 function IconPin() {
   return (
     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -164,42 +157,41 @@ function IconSpinner() {
   return <span className="w-4 h-4 border-2 border-navy/25 border-t-navy rounded-full animate-spin" />
 }
 
-// ── Row + section types ──────────────────────────────────────────────────
+// ── Itinerary card — compact, match-score-forward, books directly ────────
 
-type RowKey = 'overview' | string // 'overview' or an Experience id
-
-interface SheetRowData {
-  key: RowKey
-  badge: string
-  badgeCls: string
-  title: string
-  kicker: string
-  summary: string
-  meta: string
-}
-
-// ── Sheet row ────────────────────────────────────────────────────────────
-
-function SheetRow({ row, selected, onClick, delay }: { row: SheetRowData; selected: boolean; onClick: () => void; delay: number }) {
+function ItineraryCard({ exp, index, selected, onView, onBook, delay }: {
+  exp: Experience; index: number; selected: boolean; onView: () => void; onBook: () => void; delay: number
+}) {
+  const blurb = exp.ideal_for?.length ? `Ideal for ${exp.ideal_for.slice(0, 2).join(', ')}` : (exp.key_activities?.[0] ?? '')
   return (
-    <button
-      onClick={onClick}
+    <div
       style={{ animationDelay: `${delay}ms` }}
-      className={`animate-row-in w-full text-left grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3.5 rounded-2xl border-t border-navy/8 transition-colors ${selected ? 'bg-gold/10' : 'hover:bg-navy/5'}`}
+      className={`animate-row-in flex flex-col bg-white rounded-2xl border overflow-hidden transition-colors ${selected ? 'border-gold/50 ring-1 ring-gold/30' : 'border-navy/8 hover:border-gold/30'}`}
     >
-      <span className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0 ${row.badgeCls}`}>{row.badge}</span>
-      <span className="min-w-0 flex flex-col gap-0.5">
-        <span className="flex items-baseline gap-2 flex-wrap">
-          <span className="text-navy font-medium text-[15px] leading-tight">{row.title}</span>
-          <span className="text-xs text-gold font-medium shrink-0">{row.kicker}</span>
-        </span>
-        <span className="text-[13px] text-charcoal/50 truncate">{row.summary}</span>
-      </span>
-      <span className="flex items-center gap-3 shrink-0">
-        <span className="hidden sm:inline font-mono text-[11px] text-charcoal/40 whitespace-nowrap">{row.meta}</span>
-        <span className="text-gold"><IconChevronRight /></span>
-      </span>
-    </button>
+      <button onClick={onView} className={`h-16 shrink-0 bg-linear-to-br ${gradientFor(exp.id)} flex items-center justify-between px-3.5 text-left`}>
+        <span className="text-cream/70 text-[9.5px] font-bold uppercase tracking-widest truncate">{exp.destination}</span>
+        {typeof exp.match_score === 'number' && (
+          <span className="shrink-0 ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-gold text-navy shadow-sm">{exp.match_score}% match</span>
+        )}
+      </button>
+      <button onClick={onView} className="flex-1 text-left px-3.5 pt-3 pb-2">
+        <span className="text-[10px] font-bold text-gold uppercase tracking-widest">Direction {index + 1}</span>
+        <h4 className="text-navy font-semibold text-[14.5px] leading-snug mt-0.5 mb-1.5">{exp.name}</h4>
+        {blurb && <p className="text-charcoal/50 text-[12.5px] leading-relaxed line-clamp-2 mb-2">{blurb}</p>}
+        <div className="flex items-center justify-between text-sm pt-2 border-t border-navy/6">
+          <span className="font-bold text-navy text-[13px]">{priceLabel(exp)}</span>
+          {durationLabel(exp) && <span className="text-charcoal/40 text-[11px]">{durationLabel(exp)}</span>}
+        </div>
+      </button>
+      <div className="px-3.5 pb-3.5 pt-1">
+        <button
+          onClick={onBook}
+          className="w-full bg-gold text-navy font-semibold py-2.5 rounded-full text-[12.5px] hover:bg-gold/90 transition-colors"
+        >
+          Book This Journey
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -278,10 +270,6 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
 }
 
 // ── Detail panel ─────────────────────────────────────────────────────────
-
-function OverviewPanel({ text }: { text: string }) {
-  return <div className="px-1">{renderMessageText(text)}</div>
-}
 
 function ExperiencePanel({ exp, onAsk, onBook }: { exp: Experience; onAsk: (q: string) => void; onBook: () => void }) {
   const asks = [
@@ -469,7 +457,7 @@ export default function EnginePage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [experiences, setExperiences] = useState<Experience[] | null>(null)
-  const [selectedKey, setSelectedKey] = useState<RowKey | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [recentChats, setRecentChats] = useState<{ id: string; title: string }[]>([])
   const [podOpen, setPodOpen] = useState(true)
   const [navOpen, setNavOpen] = useState(false)
@@ -640,33 +628,6 @@ export default function EnginePage() {
 
   const lastAssistantText = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? ''
 
-  const rows: SheetRowData[] = useMemo(() => {
-    const out: SheetRowData[] = []
-    if (lastAssistantText) {
-      out.push({
-        key: 'overview',
-        badge: '✦',
-        badgeCls: 'bg-navy/8 text-gold',
-        title: 'Trip overview',
-        kicker: 'What we recommend',
-        summary: lastAssistantText.replace(/\n+/g, ' ').slice(0, 90),
-        meta: '',
-      })
-    }
-    (experiences ?? []).forEach((exp, i) => {
-      out.push({
-        key: exp.id,
-        badge: String(i + 1),
-        badgeCls: 'bg-gold text-navy',
-        title: exp.name,
-        kicker: exp.destination,
-        summary: exp.ideal_for?.length ? `Ideal for ${exp.ideal_for.slice(0, 2).join(', ')}` : (exp.key_activities?.[0] ?? ''),
-        meta: [priceLabel(exp), durationLabel(exp)].filter(Boolean).join(' · '),
-      })
-    })
-    return out
-  }, [lastAssistantText, experiences])
-
   const selectedExp = experiences?.find((e) => e.id === selectedKey) ?? null
   const panelOpen = selectedKey !== null
 
@@ -788,7 +749,7 @@ export default function EnginePage() {
 
         {/* First response still in flight — nothing to show yet, so give this
             its own reassuring state rather than an almost-empty sheet card. */}
-        {hasTrip && rows.length === 0 && (
+        {hasTrip && !lastAssistantText && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 pb-16 text-center">
             <LoadingDots className="w-3 h-3 bg-gold" />
             <p className="text-navy text-lg font-medium">{LOADING_STAGES[loadingStage]}</p>
@@ -800,11 +761,11 @@ export default function EnginePage() {
         )}
 
         {/* Sheet */}
-        {hasTrip && rows.length > 0 && (
+        {hasTrip && lastAssistantText && (
           <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: `0 ${mobile ? '13.2px' : '26.4px'} 200px` }}>
-            <div className="max-w-2xl mx-auto bg-white/60 rounded-3xl shadow-lg overflow-hidden mt-2">
+            <div className="max-w-3xl mx-auto bg-white/60 rounded-3xl shadow-lg overflow-hidden mt-2">
 
-              <div className={`bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'} flex items-center justify-center`} style={{ height: mobile ? 130 : 180 }}>
+              <div className={`bg-linear-to-br ${stats ? gradientFor(stats.destinations.join('')) : 'from-slate to-navy'} flex items-center justify-center`} style={{ height: mobile ? 110 : 140 }}>
                 <span className="text-cream/50 text-xs font-medium tracking-widest uppercase">
                   {stats ? stats.destinations.join(' · ') : 'Curating your journey'}
                 </span>
@@ -837,18 +798,45 @@ export default function EnginePage() {
                 )}
               </div>
 
-              <div className="px-3 pb-4 flex flex-col">
-                {rows.map((row, i) => (
-                  <SheetRow key={row.key} row={row} selected={selectedKey === row.key} onClick={() => { setSelectedKey(row.key); setPodOpen(false) }} delay={i * 60} />
-                ))}
-                {loading && (
-                  <div className="flex items-center gap-3 px-3 py-4">
-                    <LoadingDots className="w-1.5 h-1.5 bg-gold" />
-                    <span className="text-gold text-sm">{LOADING_STAGES[loadingStage]}</span>
-                    <span className="ml-auto font-mono text-xs text-navy/30">{elapsed}s</span>
-                  </div>
-                )}
+              {/* AI reasoning — always visible, never hidden behind a click */}
+              <div className="px-6 pb-2">
+                <div className="bg-gold/8 border border-gold/20 rounded-2xl p-4">
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gold mb-1.5">
+                    ✦ Why we recommend this
+                  </span>
+                  {renderMessageText(lastAssistantText)}
+                </div>
               </div>
+
+              {experiences && experiences.length > 0 && (
+                <div className="px-6 pb-2 pt-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">
+                    {experiences.length} verified {experiences.length === 1 ? 'direction' : 'directions'}
+                  </span>
+                </div>
+              )}
+
+              <div className="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(experiences ?? []).map((exp, i) => (
+                  <ItineraryCard
+                    key={exp.id}
+                    exp={exp}
+                    index={i}
+                    selected={selectedKey === exp.id}
+                    onView={() => { setSelectedKey(exp.id); setPodOpen(false) }}
+                    onBook={() => setBookingExp(exp)}
+                    delay={i * 60}
+                  />
+                ))}
+              </div>
+
+              {loading && (
+                <div className="flex items-center gap-3 px-6 pb-6">
+                  <LoadingDots className="w-1.5 h-1.5 bg-gold" />
+                  <span className="text-gold text-sm">{LOADING_STAGES[loadingStage]}</span>
+                  <span className="ml-auto font-mono text-xs text-navy/30">{elapsed}s</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -885,26 +873,22 @@ export default function EnginePage() {
             <div className="sticky top-0 bg-sand z-10 flex items-start gap-3 px-5 py-4 border-b border-navy/8">
               <div className="flex-1 min-w-0">
                 <p className="text-[10.5px] font-bold uppercase tracking-widest text-navy/35">
-                  {selectedKey === 'overview' ? 'AI recommendation' : `Direction ${(experiences ?? []).findIndex((e) => e.id === selectedKey) + 1}`}
+                  Direction {(experiences ?? []).findIndex((e) => e.id === selectedKey) + 1}
                 </p>
-                <p className="text-navy text-xl font-medium mt-0.5 truncate">
-                  {selectedKey === 'overview' ? 'Trip overview' : selectedExp?.name}
-                </p>
+                <p className="text-navy text-xl font-medium mt-0.5 truncate">{selectedExp?.name}</p>
               </div>
               <button onClick={() => setSelectedKey(null)} className="w-8 h-8 rounded-full bg-navy/8 flex items-center justify-center text-navy shrink-0">
                 <IconX />
               </button>
             </div>
             <div className="p-5">
-              {selectedKey === 'overview' ? (
-                <OverviewPanel text={lastAssistantText} />
-              ) : selectedExp ? (
+              {selectedExp && (
                 <ExperiencePanel
                   exp={selectedExp}
                   onAsk={(q) => { setSelectedKey(null); sendMessage(q) }}
                   onBook={() => setBookingExp(selectedExp)}
                 />
-              ) : null}
+              )}
             </div>
           </aside>
         </>
