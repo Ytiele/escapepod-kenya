@@ -246,7 +246,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
     >
       <button onClick={onView} className="relative h-36 shrink-0 block w-full">
         {img ? (
-          <Image src={img} alt={exp.destination} fill sizes="(min-width: 768px) 320px, 100vw" loading="lazy" className="object-cover object-top" />
+          <Image src={img} alt={exp.destination} fill sizes="(min-width: 768px) 320px, 100vw" loading="lazy" className="object-cover object-bottom" />
         ) : (
           <div className={`absolute inset-0 bg-linear-to-br ${gradientFor(exp.id)}`} />
         )}
@@ -988,7 +988,7 @@ export default function EnginePage() {
                     alt={stats ? stats.destinations.join(', ') : 'Kenya'}
                     fill
                     sizes="(min-width: 768px) 768px, 100vw"
-                    className="object-cover object-top"
+                    className="object-cover object-bottom"
                     priority
                   />
                 )}
