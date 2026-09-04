@@ -24,6 +24,22 @@ function gradientFor(key: string) {
   return GRADIENTS[hash % GRADIENTS.length]
 }
 
+// Real EscapePod photography, mapped only where we're confident it actually
+// depicts the destination — everything else falls back to the gradient
+// rather than showing a photo of somewhere else as if it were this trip.
+const DESTINATION_IMAGES: Record<string, string> = {
+  'Maasai Mara': '/images/mara.jpg',
+  'Samburu': '/images/journals/samburu.jpg',
+  'Mount Kenya': '/images/mt kenya.jpg',
+  'Lamu': '/images/lamu-sunset.jpg',
+}
+function imageForDestination(destination: string): string | null {
+  for (const [key, src] of Object.entries(DESTINATION_IMAGES)) {
+    if (destination.includes(key)) return src
+  }
+  return null
+}
+
 function priceLabel(exp: Experience) {
   const { price_usd_pp_min: min, price_usd_pp_max: max } = exp
   if (min && max && min !== max) return `$${min.toLocaleString()}–$${max.toLocaleString()}`
@@ -138,6 +154,13 @@ function IconX() {
     </svg>
   )
 }
+function IconClock() {
+  return (
+    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+}
 function IconPin() {
   return (
     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -162,34 +185,50 @@ function IconSpinner() {
 function ItineraryCard({ exp, index, selected, onView, onBook, delay }: {
   exp: Experience; index: number; selected: boolean; onView: () => void; onBook: () => void; delay: number
 }) {
-  const blurb = exp.ideal_for?.length ? `Ideal for ${exp.ideal_for.slice(0, 2).join(', ')}` : (exp.key_activities?.[0] ?? '')
+  const img = imageForDestination(exp.destination)
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
       className={`animate-row-in flex flex-col bg-white rounded-2xl border overflow-hidden transition-colors ${selected ? 'border-gold/50 ring-1 ring-gold/30' : 'border-navy/8 hover:border-gold/30'}`}
     >
-      <button onClick={onView} className={`h-16 shrink-0 bg-linear-to-br ${gradientFor(exp.id)} flex items-center justify-between px-3.5 text-left`}>
-        <span className="text-cream/70 text-[9.5px] font-bold uppercase tracking-widest truncate">{exp.destination}</span>
-        {typeof exp.match_score === 'number' && (
-          <span className="shrink-0 ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-gold text-navy shadow-sm">{exp.match_score}% match</span>
+      <button onClick={onView} className="relative h-36 shrink-0 block w-full">
+        {img ? (
+          <Image src={img} alt={exp.destination} fill sizes="(min-width: 768px) 320px, 100vw" loading="lazy" className="object-cover" />
+        ) : (
+          <div className={`absolute inset-0 bg-linear-to-br ${gradientFor(exp.id)}`} />
         )}
+        <div className="absolute inset-0 bg-linear-to-t from-navy/55 via-navy/5 to-transparent" />
+        {durationLabel(exp) && (
+          <span className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold text-navy text-[11px] font-bold px-3 py-1.5 rounded-full shadow-sm">
+            <IconClock /> {durationLabel(exp)}
+          </span>
+        )}
+        {typeof exp.match_score === 'number' && (
+          <span className="absolute top-3 right-3 text-[11px] font-bold px-2.5 py-1 rounded-full bg-navy/75 text-gold backdrop-blur-sm">
+            {exp.match_score}% match
+          </span>
+        )}
+        <span className="absolute bottom-2.5 left-3 text-cream/60 text-[9.5px] font-bold uppercase tracking-widest">Direction {index + 1}</span>
       </button>
-      <button onClick={onView} className="flex-1 text-left px-3.5 pt-3 pb-2">
-        <span className="text-[10px] font-bold text-gold uppercase tracking-widest">Direction {index + 1}</span>
-        <h4 className="text-navy font-semibold text-[14.5px] leading-snug mt-0.5 mb-1.5">{exp.name}</h4>
-        {blurb && <p className="text-charcoal/50 text-[12.5px] leading-relaxed line-clamp-2 mb-2">{blurb}</p>}
-        <div className="flex items-center justify-between text-sm pt-2 border-t border-navy/6">
-          <span className="font-bold text-navy text-[13px]">{priceLabel(exp)}</span>
-          {durationLabel(exp) && <span className="text-charcoal/40 text-[11px]">{durationLabel(exp)}</span>}
-        </div>
-      </button>
-      <div className="px-3.5 pb-3.5 pt-1">
-        <button
-          onClick={onBook}
-          className="w-full bg-gold text-navy font-semibold py-2.5 rounded-full text-[12.5px] hover:bg-gold/90 transition-colors"
-        >
-          Book This Journey
+      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5">
+        <button onClick={onView} className="text-left">
+          <h4 className="text-navy font-semibold text-[15px] leading-snug mb-1.5">{exp.name}</h4>
         </button>
+        <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-3">
+          <IconPin /><span className="truncate">{exp.destination}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-navy/6">
+          <div className="flex flex-col leading-tight">
+            <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide">Starting from</span>
+            <span className="text-gold font-bold text-[15px]">{priceLabel(exp)}</span>
+          </div>
+          <button
+            onClick={onBook}
+            className="shrink-0 flex items-center gap-1 bg-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
+          >
+            Book Now <span aria-hidden>→</span>
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -798,16 +837,6 @@ export default function EnginePage() {
                 )}
               </div>
 
-              {/* AI reasoning — always visible, never hidden behind a click */}
-              <div className="px-6 pb-2">
-                <div className="bg-gold/8 border border-gold/20 rounded-2xl p-4">
-                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gold mb-1.5">
-                    ✦ Why we recommend this
-                  </span>
-                  {renderMessageText(lastAssistantText)}
-                </div>
-              </div>
-
               {experiences && experiences.length > 0 && (
                 <div className="px-6 pb-2 pt-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">
@@ -816,7 +845,7 @@ export default function EnginePage() {
                 </div>
               )}
 
-              <div className="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="px-6 pb-4 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(experiences ?? []).map((exp, i) => (
                   <ItineraryCard
                     key={exp.id}
@@ -831,12 +860,23 @@ export default function EnginePage() {
               </div>
 
               {loading && (
-                <div className="flex items-center gap-3 px-6 pb-6">
+                <div className="flex items-center gap-3 px-6 pb-4">
                   <LoadingDots className="w-1.5 h-1.5 bg-gold" />
                   <span className="text-gold text-sm">{LOADING_STAGES[loadingStage]}</span>
                   <span className="ml-auto font-mono text-xs text-navy/30">{elapsed}s</span>
                 </div>
               )}
+
+              {/* AI reasoning — always visible below the cards, never hidden
+                  behind a click */}
+              <div className="px-6 pb-6">
+                <div className="bg-gold/8 border border-gold/20 rounded-2xl p-4">
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gold mb-1.5">
+                    ✦ Why we recommend this
+                  </span>
+                  {renderMessageText(lastAssistantText)}
+                </div>
+              </div>
             </div>
           </div>
         )}
