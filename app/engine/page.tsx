@@ -70,10 +70,18 @@ function renderInline(text: string) {
   })
 }
 
+function parseTableRow(line: string): string[] {
+  return line.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim())
+}
+function isTableSeparatorRow(cells: string[]): boolean {
+  return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c))
+}
+
 function renderMessageText(text: string) {
   return text.split(/\n{2,}/).map((block, bi) => {
     const nodes: React.ReactNode[] = []
     let bullets: string[] = []
+    let tableRows: string[][] = []
 
     const flushBullets = () => {
       if (bullets.length === 0) return
@@ -90,9 +98,47 @@ function renderMessageText(text: string) {
       bullets = []
     }
 
+    // Claude sometimes builds an actual GFM table (e.g. a side-by-side
+    // comparison) — render it as a real <table>, not literal pipe characters.
+    const flushTable = () => {
+      if (tableRows.length === 0) return
+      const [header, ...rows] = tableRows
+      nodes.push(
+        <div key={`tbl-${nodes.length}`} className="overflow-x-auto my-3 rounded-xl border border-navy/10">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-navy/5">
+                {header.map((h, i) => (
+                  <th key={i} className="text-left font-semibold text-navy px-3 py-2 border-b border-navy/10 whitespace-nowrap">{renderInline(h)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} className="border-t border-navy/8">
+                  {row.map((c, ci) => (
+                    <td key={ci} className="px-3 py-2 text-charcoal/75 align-top">{renderInline(c)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+      tableRows = []
+    }
+
     for (const rawLine of block.split('\n')) {
       const line = rawLine.trim()
       if (!line) continue
+      if (/^\|.*\|$/.test(line)) {
+        const cells = parseTableRow(line)
+        if (isTableSeparatorRow(cells)) continue // the |---|---| divider row — not data
+        flushBullets()
+        tableRows.push(cells)
+        continue
+      }
+      flushTable()
       if (/^-{3,}$/.test(line)) { flushBullets(); nodes.push(<hr key={`hr-${nodes.length}`} className="border-navy/10 my-3" />); continue }
       if (/^#{1,6}\s+/.test(line)) {
         flushBullets()
@@ -103,6 +149,7 @@ function renderMessageText(text: string) {
       flushBullets()
       nodes.push(<p key={`p-${nodes.length}`} className="text-sm text-charcoal/80 leading-relaxed">{renderInline(line)}</p>)
     }
+    flushTable()
     flushBullets()
 
     return <div key={bi} className="mb-1">{nodes}</div>
@@ -182,14 +229,14 @@ function IconSpinner() {
 
 // ── Itinerary card — compact, match-score-forward, books directly ────────
 
-function ItineraryCard({ exp, index, selected, onView, onBook, delay }: {
-  exp: Experience; index: number; selected: boolean; onView: () => void; onBook: () => void; delay: number
+function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, delay }: {
+  exp: Experience; index: number; selected: boolean; isCompareAnchor: boolean; onView: () => void; onBook: () => void; delay: number
 }) {
   const img = imageForDestination(exp.destination)
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
-      className={`animate-row-in flex flex-col bg-white rounded-2xl border overflow-hidden transition-colors ${selected ? 'border-gold/50 ring-1 ring-gold/30' : 'border-navy/8 hover:border-gold/30'}`}
+      className={`animate-row-in flex flex-col bg-white rounded-2xl border overflow-hidden transition-colors ${isCompareAnchor ? 'border-gold ring-2 ring-gold/40' : selected ? 'border-gold/50 ring-1 ring-gold/30' : 'border-navy/8 hover:border-gold/30'}`}
     >
       <button onClick={onView} className="relative h-36 shrink-0 block w-full">
         {img ? (
@@ -208,7 +255,9 @@ function ItineraryCard({ exp, index, selected, onView, onBook, delay }: {
             {exp.match_score}% match
           </span>
         )}
-        <span className="absolute bottom-2.5 left-3 text-cream/60 text-[9.5px] font-bold uppercase tracking-widest">Direction {index + 1}</span>
+        <span className="absolute bottom-2.5 left-3 text-cream/60 text-[9.5px] font-bold uppercase tracking-widest">
+          {isCompareAnchor ? 'Your current pick' : `Direction ${index + 1}`}
+        </span>
       </button>
       <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5">
         <button onClick={onView} className="text-left">
@@ -318,10 +367,9 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
 
 // ── Detail panel ─────────────────────────────────────────────────────────
 
-function ExperiencePanel({ exp, onAsk, onBook }: { exp: Experience; onAsk: (q: string) => void; onBook: () => void }) {
+function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; onAsk: (q: string) => void; onCompare: () => void; onBook: () => void }) {
   const asks = [
     `Tell me more about ${exp.name}`,
-    'Compare this with the other options',
     'Adjust the budget for this one',
   ]
 
@@ -392,6 +440,12 @@ function ExperiencePanel({ exp, onAsk, onBook }: { exp: Experience; onAsk: (q: s
       <div className="flex flex-col gap-2 pt-3 border-t border-navy/8">
         <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Ask about this</span>
         <div className="flex flex-col gap-1.5">
+          <button
+            onClick={onCompare}
+            className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
+          >
+            Compare this with the other options
+          </button>
           {asks.map((q) => (
             <button
               key={q}
@@ -520,6 +574,11 @@ export default function EnginePage() {
   const [loading, setLoading] = useState(false)
   const [experiences, setExperiences] = useState<Experience[] | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  // The card the traveler was viewing when they asked to "compare this with
+  // the other options" — kept marked through the reply so both the initial
+  // pick and every alternative stay visible and bookable side by side,
+  // instead of the comparison losing track of which one was "the initial."
+  const [compareAnchorId, setCompareAnchorId] = useState<string | null>(null)
   const [recentChats, setRecentChats] = useState<RecentChat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -615,6 +674,14 @@ export default function EnginePage() {
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [podOpen])
 
+  // If the card set changes (a swap, a new search) and the compare anchor
+  // no longer exists in it, drop it rather than leave a stale badge.
+  useEffect(() => {
+    if (compareAnchorId && !(experiences ?? []).some((e) => e.id === compareAnchorId)) {
+      setCompareAnchorId(null)
+    }
+  }, [experiences, compareAnchorId])
+
   function flash(msg: string) {
     setToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)
@@ -638,13 +705,13 @@ export default function EnginePage() {
 
   function startNewChat() {
     setMessages([]); setInput(''); setExperiences(null); setSelectedKey(null)
-    setCurrentChatId(null); setSuggestions([])
+    setCurrentChatId(null); setSuggestions([]); setCompareAnchorId(null)
     setPodOpen(true); setNavOpen(false)
   }
 
   function loadRecentChat(c: RecentChat) {
     setMessages(c.messages); setExperiences(c.experiences); setCurrentChatId(c.id)
-    setSelectedKey(null); setSuggestions([]); setInput('')
+    setSelectedKey(null); setSuggestions([]); setInput(''); setCompareAnchorId(null)
     setPodOpen(false); setNavOpen(false)
   }
 
@@ -925,6 +992,7 @@ export default function EnginePage() {
                     exp={exp}
                     index={i}
                     selected={selectedKey === exp.id}
+                    isCompareAnchor={compareAnchorId === exp.id}
                     onView={() => { setSelectedKey(exp.id); setPodOpen(false) }}
                     onBook={() => setBookingExp(exp)}
                     delay={i * 60}
@@ -941,11 +1009,14 @@ export default function EnginePage() {
               )}
 
               {/* AI reasoning — always visible below the cards, never hidden
-                  behind a click */}
+                  behind a click. When this turn was a comparison, the
+                  "Your current pick" card above stays badged so both sides
+                  of the comparison — the initial pick and the alternatives —
+                  are visible and bookable while the traveler reads it. */}
               <div className="px-6 pb-6">
                 <div className="bg-gold/8 border border-gold/20 rounded-2xl p-4">
                   <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gold mb-1.5">
-                    ✦ Why we recommend this
+                    ✦ {compareAnchorId ? 'Comparing your options' : 'Why we recommend this'}
                   </span>
                   {renderMessageText(lastAssistantText)}
                 </div>
@@ -1000,6 +1071,11 @@ export default function EnginePage() {
                 <ExperiencePanel
                   exp={selectedExp}
                   onAsk={(q) => { setSelectedKey(null); sendMessage(q) }}
+                  onCompare={() => {
+                    setCompareAnchorId(selectedExp.id)
+                    setSelectedKey(null)
+                    sendMessage('Compare this with the other options')
+                  }}
                   onBook={() => setBookingExp(selectedExp)}
                 />
               )}
