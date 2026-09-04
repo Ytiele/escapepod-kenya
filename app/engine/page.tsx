@@ -250,7 +250,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         ) : (
           <div className={`absolute inset-0 bg-linear-to-br ${gradientFor(exp.id)}`} />
         )}
-        <div className="absolute inset-0 bg-linear-to-t from-navy/55 via-navy/5 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent" />
         {durationLabel(exp) && (
           <span className="absolute top-3 left-3 flex items-center gap-1.5 bg-gold text-navy text-[11px] font-bold px-3 py-1.5 rounded-full shadow-sm">
             <IconClock /> {durationLabel(exp)}
@@ -269,9 +269,15 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         <button onClick={onView} className="text-left">
           <h4 className="text-navy font-semibold text-[15px] leading-snug mb-1.5">{exp.name}</h4>
         </button>
-        <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-3">
+        <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-2.5">
           <IconPin /><span className="truncate">{exp.destination}</span>
         </div>
+        <button
+          onClick={onView}
+          className="self-start flex items-center gap-1 text-navy/60 text-[12px] font-medium hover:text-gold transition-colors mb-3"
+        >
+          See more details <span aria-hidden>→</span>
+        </button>
         <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-navy/6">
           <div className="flex flex-col leading-tight">
             <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide">Starting from</span>
@@ -382,12 +388,12 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
   const img = imageForDestination(exp.destination)
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className={`h-32 rounded-2xl overflow-hidden flex items-end p-4 relative ${img ? '' : `bg-linear-to-br ${gradientFor(exp.id)}`}`}>
+    <div className="flex flex-col gap-6">
+      <div className={`h-40 rounded-2xl overflow-hidden flex items-end p-4 relative shadow-sm ${img ? '' : `bg-linear-to-br ${gradientFor(exp.id)}`}`}>
         {img && (
           <>
             <Image src={img} alt={exp.destination} fill sizes="420px" className="object-cover" />
-            <div className="absolute inset-0 bg-linear-to-t from-navy/55 via-navy/5 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent" />
           </>
         )}
         {typeof exp.match_score === 'number' && (
@@ -398,18 +404,18 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
         <span className="relative text-cream/70 text-[10px] font-medium tracking-widest uppercase">{exp.destination}</span>
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-charcoal/60 pb-4 border-b border-navy/8">
+      <div className="flex items-center gap-4 text-sm text-charcoal/60 pb-5 border-b border-navy/8">
         <div className="flex items-center gap-1.5"><IconPin /><span>{exp.destination}</span></div>
         {durationLabel(exp) && <span>{durationLabel(exp)}</span>}
         <span className="font-semibold text-navy ml-auto">{priceLabel(exp)}</span>
       </div>
 
       {exp.key_activities && exp.key_activities.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Key Activities</span>
-          <ul className="flex flex-col">
+          <ul className="flex flex-col bg-cream/70 border border-navy/8 rounded-2xl overflow-hidden">
             {exp.key_activities.map((a, i) => (
-              <li key={i} className="flex gap-3 text-sm text-charcoal/70 py-2 border-t border-navy/8 first:border-t-0">
+              <li key={i} className="flex gap-3 text-sm text-charcoal/75 px-3.5 py-2.5 border-t border-navy/8 first:border-t-0">
                 <span className="text-gold shrink-0">✦</span>{a}
               </li>
             ))}
@@ -418,21 +424,21 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
       )}
 
       {(exp.accommodation?.length || exp.travel_style || exp.weather) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {exp.accommodation && exp.accommodation.length > 0 && (
-            <div className="bg-navy/4 rounded-xl p-3.5 flex flex-col gap-1">
+            <div className="bg-cream/70 border border-navy/8 rounded-2xl p-3.5 flex flex-col gap-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Accommodation</span>
               <span className="text-[13px] text-charcoal/75 leading-relaxed">{exp.accommodation.join(', ')}</span>
             </div>
           )}
           {exp.travel_style && Object.entries(exp.travel_style).map(([k, v]) => (
-            <div key={k} className="bg-navy/4 rounded-xl p-3.5 flex flex-col gap-1">
+            <div key={k} className="bg-cream/70 border border-navy/8 rounded-2xl p-3.5 flex flex-col gap-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">{k.replace('_', ' ')}</span>
               <span className="text-[13px] text-charcoal/75 leading-relaxed capitalize">{v}</span>
             </div>
           ))}
           {exp.weather && (
-            <div className="bg-navy/4 rounded-xl p-3.5 flex flex-col gap-1">
+            <div className="bg-cream/70 border border-navy/8 rounded-2xl p-3.5 flex flex-col gap-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Weather</span>
               <span className="text-[13px] text-charcoal/75 leading-relaxed">{exp.weather}</span>
             </div>
@@ -441,22 +447,22 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
       )}
 
       {exp.ideal_for && exp.ideal_for.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Ideal For</span>
           <div className="flex flex-wrap gap-1.5">
             {exp.ideal_for.map((item, i) => (
-              <span key={i} className="text-xs bg-navy/5 text-charcoal/60 border border-navy/8 px-2.5 py-1 rounded-full">{item}</span>
+              <span key={i} className="text-xs bg-cream/70 text-charcoal/60 border border-navy/8 px-2.5 py-1 rounded-full">{item}</span>
             ))}
           </div>
         </div>
       )}
 
-      <div className="flex flex-col gap-2 pt-3 border-t border-navy/8">
+      <div className="flex flex-col gap-2.5 pt-4 border-t border-navy/8">
         <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Ask about this</span>
         <div className="flex flex-col gap-1.5">
           <button
             onClick={onCompare}
-            className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
+            className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 bg-gold/5 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
           >
             Compare this with the other options
           </button>
@@ -464,7 +470,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
             <button
               key={q}
               onClick={() => onAsk(q)}
-              className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
+              className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 bg-gold/5 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
             >
               {q}
             </button>
@@ -474,7 +480,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
 
       <button
         onClick={onBook}
-        className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full hover:bg-gold/90 transition-colors text-sm"
+        className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full hover:bg-gold/90 transition-colors text-sm shadow-sm"
       >
         Book This Journey
       </button>
@@ -1103,11 +1109,11 @@ export default function EnginePage() {
         <>
           {narrow && <div onClick={() => setSelectedKey(null)} className="fixed inset-0 z-70 bg-navy/35" />}
           <aside className={[
-            'animate-panel-slide bg-sand border-l border-navy/10 overflow-y-auto',
-            narrow ? 'fixed inset-y-0 right-0 z-72 w-[min(420px,86vw)] shadow-lg' : 'relative',
+            'animate-panel-slide bg-white border-l border-navy/10 overflow-y-auto',
+            narrow ? 'fixed inset-y-0 right-0 z-72 w-[min(420px,86vw)] shadow-2xl' : 'relative',
             mobile ? 'w-full' : '',
           ].join(' ')}>
-            <div className="sticky top-0 bg-sand z-10 flex items-start gap-3 px-5 py-4 border-b border-navy/8">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 flex items-start gap-3 px-5 py-4 border-b border-navy/8">
               <div className="flex-1 min-w-0">
                 <p className="text-[10.5px] font-bold uppercase tracking-widest text-navy/35">
                   Direction {(experiences ?? []).findIndex((e) => e.id === selectedKey) + 1}
@@ -1118,7 +1124,7 @@ export default function EnginePage() {
                 <IconX />
               </button>
             </div>
-            <div className="p-5">
+            <div className="p-6">
               {selectedExp && (
                 <ExperiencePanel
                   exp={selectedExp}
