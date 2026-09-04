@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { scoreExperiences, diversify } from '@/lib/scoring';
 import { resolveSession, setSessionCookies } from '@/lib/session';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { filterVerified } from '@/lib/catalogue';
 
 const SYSTEM_PROMPT = `
 You are the intelligence layer of the EscapePod Kenya Curation Engine.
@@ -28,6 +29,14 @@ INVENTORY INTEGRITY
 Never invent an experience, property, price, availability, or transfer
 time. Always retrieve it via a tool. If something isn't available, say so
 internally and route to a verified alternative.
+
+Never proactively name or suggest a destination that isn't in the verified
+catalogue (confirmed via search_experiences/generate_directions/
+get_experience in THIS conversation) — not in your own reply text, and
+never as a quick-reply suggestion (see QUICK REPLIES below). Exploring
+somewhere unverified should only ever start from the traveler typing it
+themselves, not from you offering it as a tappable option. If the traveler
+brings one up, follow UNAVAILABLE EXPERIENCES below.
 
 UNAVAILABLE EXPERIENCES (e.g. Lamu, or anything search_experiences doesn't
 return)
@@ -68,6 +77,11 @@ Rules:
 - If your reply presents directions/options rather than asking a question,
   the suggestions should be the natural next moves (e.g. picking one of the
   named directions, adjusting a stated constraint).
+- Never name a destination or experience in a suggestion unless it's
+  already been confirmed via a tool call in this conversation. Don't use
+  this line to float somewhere unverified (e.g. a coastal town that's not
+  in the catalogue) as a tappable idea — that only ever comes from the
+  traveler typing it themselves.
 - Never include this line while you still intend to call a tool this turn.
 - This line is stripped before the traveler ever sees it — write it as if
   it were internal metadata, not part of your message.
@@ -419,8 +433,14 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
       if (input.duration_max_days) query = query.lte('duration_days', input.duration_max_days);
       if (input.budget_max_usd_pp) query = query.lte('price_usd_pp_min', input.budget_max_usd_pp);
 
-      const { data: candidates } = await query;
-      if (!candidates || candidates.length === 0) return [];
+      const { data: rawCandidates } = await query;
+      if (!rawCandidates || rawCandidates.length === 0) return [];
+
+      // Exclude destinations that aren't actually ready to auto-suggest
+      // yet (see lib/catalogue.ts) — Claude never sees them, so it treats
+      // a request for one exactly like anything else not in the catalogue.
+      const candidates = filterVerified(rawCandidates);
+      if (candidates.length === 0) return [];
 
       const { data: traveler } = await supabaseAdmin
         .from('travelers')
@@ -435,12 +455,18 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
 
     case 'get_experience': {
       const { data } = await supabaseAdmin.from('experiences').select('*').eq('id', input.id).single();
+      if (data && !filterVerified([data]).length) return null;
       return data;
     }
 
     case 'generate_directions': {
-      const { data } = await supabaseAdmin.from('experiences').select('*').in('id', input.candidate_ids);
-      if (!data || data.length === 0) return [];
+      const { data: rawData } = await supabaseAdmin.from('experiences').select('*').in('id', input.candidate_ids);
+      if (!rawData || rawData.length === 0) return [];
+      // Defensive — candidate_ids should only ever come from a prior
+      // search_experiences call, which already excludes these, but never
+      // let one through here either.
+      const data = filterVerified(rawData);
+      if (data.length === 0) return [];
 
       // Attach the same real match_score used by search_experiences, so the
       // frontend always has a number to show — this previously only rode
