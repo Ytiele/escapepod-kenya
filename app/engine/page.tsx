@@ -246,7 +246,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
     >
       <button onClick={onView} className="relative h-36 shrink-0 block w-full">
         {img ? (
-          <Image src={img} alt={exp.destination} fill sizes="(min-width: 768px) 320px, 100vw" loading="lazy" className="object-cover object-bottom" />
+          <Image src={img} alt={exp.destination} fill sizes="(min-width: 768px) 320px, 100vw" loading="lazy" className="object-cover" />
         ) : (
           <div className={`absolute inset-0 bg-linear-to-br ${gradientFor(exp.id)}`} />
         )}
@@ -379,15 +379,23 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
     'Adjust the budget for this one',
   ]
 
+  const img = imageForDestination(exp.destination)
+
   return (
     <div className="flex flex-col gap-5">
-      <div className={`h-32 rounded-2xl bg-linear-to-br ${gradientFor(exp.id)} flex items-end p-4 relative`}>
+      <div className={`h-32 rounded-2xl overflow-hidden flex items-end p-4 relative ${img ? '' : `bg-linear-to-br ${gradientFor(exp.id)}`}`}>
+        {img && (
+          <>
+            <Image src={img} alt={exp.destination} fill sizes="420px" className="object-cover" />
+            <div className="absolute inset-0 bg-linear-to-t from-navy/55 via-navy/5 to-transparent" />
+          </>
+        )}
         {typeof exp.match_score === 'number' && (
           <span className="absolute top-3 left-3 text-[10px] px-2.5 py-0.5 rounded-full font-semibold border bg-gold/20 text-gold border-gold/35 backdrop-blur-sm">
             {exp.match_score}% match
           </span>
         )}
-        <span className="text-cream/70 text-[10px] font-medium tracking-widest uppercase">{exp.destination}</span>
+        <span className="relative text-cream/70 text-[10px] font-medium tracking-widest uppercase">{exp.destination}</span>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-charcoal/60 pb-4 border-b border-navy/8">
@@ -988,7 +996,7 @@ export default function EnginePage() {
                     alt={stats ? stats.destinations.join(', ') : 'Kenya'}
                     fill
                     sizes="(min-width: 768px) 768px, 100vw"
-                    className="object-cover object-bottom"
+                    className="object-cover"
                     priority
                   />
                 )}
