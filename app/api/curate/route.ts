@@ -6,6 +6,29 @@ import { scoreExperiences, diversify } from '@/lib/scoring';
 import { resolveSession, setSessionCookies } from '@/lib/session';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
 import { filterVerified } from '@/lib/catalogue';
+import { checkRateLimit, clip, RATE_LIMIT_MESSAGE } from '@/lib/security';
+
+// Hard caps on the incoming conversation, applied before anything is sent
+// to Anthropic. Without these, an authenticated user could send an
+// unbounded `messages` array (or a single huge message) on every request —
+// a cost-DoS against the Sonnet/Opus calls in the loop below, not an authz
+// break, but real money per request.
+const MAX_MESSAGES = 40;
+const MAX_MESSAGE_CHARS = 4000;
+
+// Matches lib/types.ts ChatMessage exactly — the client only ever sends
+// plain-string turns. Structured content (tool_use/tool_result blocks) is
+// built server-side inside the agent loop below and never round-trips
+// through the client, so a request carrying it here is rejected outright.
+function validateMessages(messages: unknown): messages is Anthropic.MessageParam[] {
+  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) return false;
+  return messages.every((m) => {
+    if (!m || typeof m !== 'object') return false;
+    const { role, content } = m as { role?: unknown; content?: unknown };
+    if (role !== 'user' && role !== 'assistant') return false;
+    return typeof content === 'string' && content.length > 0 && content.length <= MAX_MESSAGE_CHARS;
+  });
+}
 
 const SYSTEM_PROMPT = `
 You are the intelligence layer of the EscapePod Kenya Curation Engine.
@@ -270,6 +293,26 @@ function extractSuggestions(text: string): { text: string; suggestions: string[]
   return { text, suggestions: [] };
 }
 
+// ── Opening-message cache ────────────────────────────────────────────────
+// A traveler's very first message, sent against a brand-new (empty) profile,
+// is the one case where two different travelers can hit this route with
+// genuinely identical input — same system prompt, no profile, one message.
+// The starter chips on the empty chat box (app/engine/page.tsx) are the main
+// source of repeats, but any literal first message qualifies. We cache the
+// full response the first time a given opening line is seen and serve it
+// straight back on every repeat, skipping Haiku + Sonnet entirely. Nothing
+// past turn one ever touches this — profiles diverge on the very next turn,
+// so reuse would no longer be safe.
+function normalizePrompt(text: string): string {
+  return text.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+interface CachedCurateResponse {
+  text: string;
+  payload: { type: string; data: unknown } | null;
+  suggestions: string[];
+}
+
 function maxPriceIn(result: unknown): number {
   const rows = Array.isArray(result) ? result : [result];
   let max = 0;
@@ -289,7 +332,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Please sign in to use the Curation Engine.' }, { status: 401 });
   }
 
-  const { messages } = await req.json();
+  // Per-traveler cap on how often the (Sonnet/Opus-backed) pipeline can be
+  // invoked — the real cost driver on this route.
+  if (!(await checkRateLimit(`curate:user:${user.id}`, 300, 30))) {
+    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
+
+  let body: { messages?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
+
+  if (!validateMessages(body.messages)) {
+    return NextResponse.json({ error: 'Invalid conversation payload.' }, { status: 400 });
+  }
+  const messages = body.messages;
 
   // The traveler id is always the authenticated user's own id — never
   // whatever a client sends — so nobody can read or steer another
@@ -307,6 +366,31 @@ export async function POST(req: NextRequest) {
 
   if (!traveler) {
     return NextResponse.json({ error: 'Could not initialize traveler profile.' }, { status: 500 });
+  }
+
+  // Only the traveler's literal first message, against a still-empty
+  // profile, is eligible for the cache — see comment above normalizePrompt.
+  const firstMessage = messages.length === 1 && messages[0]?.role === 'user' ? messages[0].content : null;
+  const isCacheableOpener = typeof firstMessage === 'string' && firstMessage.trim() && Object.keys(traveler.profile ?? {}).length === 0;
+  const cacheKey = isCacheableOpener ? normalizePrompt(firstMessage as string) : null;
+
+  if (cacheKey) {
+    const { data: cached } = await supabaseAdmin
+      .from('starter_cache')
+      .select('response, hits')
+      .eq('prompt', cacheKey)
+      .maybeSingle();
+    if (cached?.response) {
+      console.log(`[curate] opener cache hit — skipping AI engine ("${cacheKey.slice(0, 60)}")`);
+      supabaseAdmin
+        .from('starter_cache')
+        .update({ hits: (cached.hits ?? 1) + 1, updated_at: new Date().toISOString() })
+        .eq('prompt', cacheKey)
+        .then(() => {}, () => {});
+      const response = NextResponse.json(cached.response as CachedCurateResponse);
+      if (refreshed) setSessionCookies(response, refreshed);
+      return response;
+    }
   }
 
   // Run the cheap Haiku extraction on the latest user message and merge any
@@ -389,7 +473,16 @@ export async function POST(req: NextRequest) {
   }
 
   const { text: cleanText, suggestions } = extractSuggestions(finalText);
-  const response = NextResponse.json({ text: cleanText, payload: uiPayload, suggestions });
+  const responseBody: CachedCurateResponse = { text: cleanText, payload: uiPayload, suggestions };
+
+  if (cacheKey) {
+    supabaseAdmin
+      .from('starter_cache')
+      .upsert({ prompt: cacheKey, response: responseBody }, { onConflict: 'prompt' })
+      .then(() => {}, (err) => console.error('[curate] failed to cache opener response', err));
+  }
+
+  const response = NextResponse.json(responseBody);
   if (refreshed) setSessionCookies(response, refreshed);
   return response;
 }
@@ -514,24 +607,30 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
         .eq('id', travelerId)
         .single();
 
+      // Plain-text email (no `html` field), so the risk here isn't markup
+      // injection — it's an unbounded LLM-influenced field ballooning the
+      // outbound email. Cap it regardless.
+      const destination = clip(String(input.destination ?? '—'), 200);
+      const summary = clip(String(input.summary ?? '—'), 3000);
+
       try {
         await transport.sendMail({
           from: `"EscapePod Curation Engine" <${process.env.SMTP_USER}>`,
           to: BOOKING_RECIPIENT,
           replyTo: ctx.email,
-          subject: `Custom Itinerary Request — ${input.destination} — ${ctx.name}`,
+          subject: `Custom Itinerary Request — ${destination} — ${ctx.name}`,
           text: [
             `A traveler asked for a destination/experience not in the verified catalogue.`,
             ``,
             `Traveler: ${ctx.name} <${ctx.email}>`,
             `Persona: ${traveler?.persona ?? 'unknown'}`,
-            `Requested destination: ${input.destination}`,
+            `Requested destination: ${destination}`,
             `Duration: ${input.duration_days ?? '—'} days`,
             `Party size: ${input.party_size ?? '—'}`,
             `Budget level: ${input.budget_level ?? traveler?.profile?.budget_level ?? '—'}`,
             ``,
             `Brief (from Claude):`,
-            input.summary,
+            summary,
             ``,
             `Full traveler profile: ${JSON.stringify(traveler?.profile ?? {}, null, 2)}`,
           ].join('\n'),

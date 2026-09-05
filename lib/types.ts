@@ -51,3 +51,43 @@ export interface CurateResponse {
   // didn't produce any (the client falls back to generic chips).
   suggestions?: string[]
 }
+
+// Shape of a row in the Supabase `bookings` table — see
+// scripts/bookings-schema.sql. package_name/destination/duration_days/
+// accommodation/included_activities are a SNAPSHOT taken at booking time,
+// not a live join against `experiences`, so a booking stays accurate even
+// if the underlying listing changes later. payment_status and the
+// timeline shown on the dashboard are both derived from amount_paid_usd/
+// total_price_usd and booking_status — see lib/bookings.ts — rather than
+// stored directly, so there's nothing to drift out of sync.
+export type BookingStatus = 'created' | 'confirmed' | 'itinerary_ready' | 'trip_ready' | 'completed' | 'cancelled'
+export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
+
+export interface PaymentHistoryEntry {
+  date: string
+  amount: number
+  method: string
+  note?: string
+}
+
+export interface Booking {
+  id: string
+  reference: string
+  traveler_id: string
+  experience_id: string | null
+  package_name: string
+  destination: string
+  duration_days: number | null
+  num_travelers: number
+  start_date: string | null
+  end_date: string | null
+  accommodation: string[]
+  included_activities: string[]
+  total_price_usd: number
+  amount_paid_usd: number
+  next_payment_due_date: string | null
+  booking_status: BookingStatus
+  payment_history: PaymentHistoryEntry[]
+  created_at: string
+  updated_at: string
+}

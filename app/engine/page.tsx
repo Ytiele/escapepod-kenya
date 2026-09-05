@@ -207,6 +207,13 @@ function IconEdit() {
     </svg>
   )
 }
+function IconBooking() {
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  )
+}
 function IconMenu() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -505,8 +512,12 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
 // ── Booking confirmation dialog ──────────────────────────────────────────
 
 function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () => void; onSent: (msg: string) => void }) {
-  const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
+  const router = useRouter()
+  const [status, setStatus] = useState<'idle' | 'sending' | 'error' | 'done'>('idle')
   const [error, setError] = useState('')
+  const [numTravelers, setNumTravelers] = useState(1)
+  const [startDate, setStartDate] = useState('')
+  const [reference, setReference] = useState('')
 
   async function confirm() {
     setStatus('sending')
@@ -514,16 +525,43 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
       const res = await fetch('/api/book-experience', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experienceId: exp.id }),
+        body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong.')
-      onSent('Booking request sent — a travel designer will confirm within 24 hours.')
-      onClose()
+      setReference(data.reference)
+      setStatus('done')
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     }
+  }
+
+  if (status === 'done') {
+    return (
+      <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
+        <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 text-center">
+          <h3 className="text-navy text-2xl font-medium">Booking created</h3>
+          <p className="text-sm text-charcoal/60 leading-relaxed">
+            Your booking has been created. Your booking reference is{' '}
+            <span className="font-semibold text-navy">{reference}</span>. A travel designer will confirm
+            availability, pricing, and every detail within 24 hours.
+          </p>
+          <button
+            onClick={() => {
+              onSent('Booking created — view it anytime from My Bookings.')
+              router.push(`/bookings/${reference}`)
+            }}
+            className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors mt-2"
+          >
+            View Booking &amp; Make Payment
+          </button>
+          <button onClick={onClose} className="w-full border border-navy/15 text-navy font-medium py-3 rounded-full text-sm hover:bg-navy/5 transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -539,6 +577,30 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
           {durationLabel(exp) && <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Duration</span><span className="font-medium text-navy">{durationLabel(exp)}</span></div>}
           <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Price</span><span className="font-medium text-navy">{priceLabel(exp)}</span></div>
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1 text-[11.5px] text-charcoal/50">
+            Travelers
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={numTravelers}
+              onChange={(e) => setNumTravelers(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+              className="border border-navy/15 rounded-lg px-3 py-2 text-navy text-sm bg-white"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[11.5px] text-charcoal/50">
+            Preferred start date (optional)
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-navy/15 rounded-lg px-3 py-2 text-navy text-sm bg-white"
+            />
+          </label>
+        </div>
+
         {status === 'error' && <p className="text-xs text-red-600">{error}</p>}
         <div className="flex gap-2 mt-2">
           <button onClick={onClose} className="flex-1 border border-navy/15 text-navy font-medium py-3 rounded-full text-sm hover:bg-navy/5 transition-colors">
@@ -933,6 +995,13 @@ export default function EnginePage() {
         >
           <IconEdit /> New trip
         </button>
+
+        <Link
+          href="/bookings"
+          className="flex items-center gap-2.5 w-full py-2.5 px-3 rounded-xl text-cream/70 text-[13.5px] font-medium hover:bg-white/6 hover:text-cream/90 transition-colors"
+        >
+          <IconBooking /> My Bookings
+        </Link>
 
         <div className="flex-1 min-h-0 flex flex-col gap-2">
           <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2">Recent plans</span>
