@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // ── HTML escaping ───────────────────────────────────────────────────────
@@ -47,3 +47,16 @@ export async function checkRateLimit(key: string, windowSeconds: number, max: nu
 }
 
 export const RATE_LIMIT_MESSAGE = 'Too many requests — please wait a few minutes and try again.';
+
+// ── No-store for per-user responses ─────────────────────────────────────
+// Next's own Route Handlers aren't cached by default, but a CDN/WAF sitting
+// in front of the deployment (proxies, edge caches) may still cache a GET
+// JSON response unless the origin explicitly says not to — which would
+// serve one traveler's personalized data (bookings, chats, session) to
+// whoever hits that edge node next, or serve a stale copy that misses a
+// just-created row. Apply to every route that returns data scoped to the
+// requesting session.
+export function noStore(response: NextResponse): NextResponse {
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  return response;
+}

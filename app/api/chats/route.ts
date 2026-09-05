@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { resolveSession, setSessionCookies } from '@/lib/session';
+import { noStore } from '@/lib/security';
+
+// Never prerendered/cached at the Next.js level, and explicitly no-store
+// on the response — see lib/security.ts noStore().
+export const dynamic = 'force-dynamic';
 
 // Recent chat history, tied to the authenticated traveler — not the
 // device. Replaces the old localStorage-based "Recent plans", which
@@ -11,7 +16,7 @@ import { resolveSession, setSessionCookies } from '@/lib/session';
 export async function GET(req: NextRequest) {
   const { user, refreshed } = await resolveSession(req);
   if (!user) {
-    return NextResponse.json({ error: 'Please sign in.' }, { status: 401 });
+    return noStore(NextResponse.json({ error: 'Please sign in.' }, { status: 401 }));
   }
 
   const { data, error } = await supabaseAdmin
@@ -23,12 +28,12 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error('[chats] list failed', error);
-    return NextResponse.json({ error: 'Could not load chat history.' }, { status: 500 });
+    return noStore(NextResponse.json({ error: 'Could not load chat history.' }, { status: 500 }));
   }
 
   const response = NextResponse.json({ chats: data ?? [] });
   if (refreshed) setSessionCookies(response, refreshed);
-  return response;
+  return noStore(response);
 }
 
 // PUT — upsert a chat (create on first message, update on every exchange

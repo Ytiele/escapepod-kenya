@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { resolveSession, setSessionCookies } from '@/lib/session';
+import { noStore } from '@/lib/security';
+
+// Never prerendered/cached at the Next.js level, and explicitly no-store
+// on the response — see lib/security.ts noStore().
+export const dynamic = 'force-dynamic';
 
 // GET — every booking for the authenticated traveler, newest first.
 // Powers the "My Bookings" list (app/bookings/page.tsx). Booking creation
@@ -8,7 +13,7 @@ import { resolveSession, setSessionCookies } from '@/lib/session';
 export async function GET(req: NextRequest) {
   const { user, refreshed } = await resolveSession(req);
   if (!user) {
-    return NextResponse.json({ error: 'Please sign in.' }, { status: 401 });
+    return noStore(NextResponse.json({ error: 'Please sign in.' }, { status: 401 }));
   }
 
   const { data, error } = await supabaseAdmin
@@ -19,10 +24,10 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error('[bookings] list failed', error);
-    return NextResponse.json({ error: 'Could not load your bookings.' }, { status: 500 });
+    return noStore(NextResponse.json({ error: 'Could not load your bookings.' }, { status: 500 }));
   }
 
   const response = NextResponse.json({ bookings: data ?? [] });
   if (refreshed) setSessionCookies(response, refreshed);
-  return response;
+  return noStore(response);
 }

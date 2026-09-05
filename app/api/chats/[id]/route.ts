@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { resolveSession, setSessionCookies } from '@/lib/session';
+import { noStore } from '@/lib/security';
+
+// Never prerendered/cached at the Next.js level, and explicitly no-store
+// on the response — see lib/security.ts noStore().
+export const dynamic = 'force-dynamic';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -12,7 +17,7 @@ interface Params {
 export async function GET(req: NextRequest, { params }: Params) {
   const { user, refreshed } = await resolveSession(req);
   if (!user) {
-    return NextResponse.json({ error: 'Please sign in.' }, { status: 401 });
+    return noStore(NextResponse.json({ error: 'Please sign in.' }, { status: 401 }));
   }
 
   const { id } = await params;
@@ -24,10 +29,10 @@ export async function GET(req: NextRequest, { params }: Params) {
     .maybeSingle();
 
   if (error || !data) {
-    return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+    return noStore(NextResponse.json({ error: 'Chat not found.' }, { status: 404 }));
   }
 
   const response = NextResponse.json({ chat: data });
   if (refreshed) setSessionCookies(response, refreshed);
-  return response;
+  return noStore(response);
 }
