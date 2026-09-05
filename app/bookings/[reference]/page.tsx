@@ -5,7 +5,9 @@ import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Booking } from '@/lib/types'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, type User } from '@/lib/auth'
+import { imageForDestination } from '@/lib/destinations'
+import PhotoCredit from '@/components/PhotoCredit'
 import {
   BOOKING_STATUS_LABELS,
   formatDate,
@@ -37,12 +39,14 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 export default function BookingDetailPage() {
   const params = useParams<{ reference: string }>()
   const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
   const [booking, setBooking] = useState<Booking | null>(null)
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     getCurrentUser().then((u) => {
       if (!u) { router.replace('/login'); return }
+      setUser(u)
       fetch(`/api/bookings/${params.reference}`)
         .then((res) => {
           if (res.status === 404) { setNotFound(true); return null }
@@ -79,6 +83,7 @@ export default function BookingDetailPage() {
   const percentage = paymentPercentage(booking)
   const balance = booking.total_price_usd - booking.amount_paid_usd
   const steps = timelineSteps(booking)
+  const coverImage = imageForDestination(booking.destination)
 
   return (
     <div className="min-h-screen bg-cream text-charcoal">
@@ -87,15 +92,39 @@ export default function BookingDetailPage() {
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
             <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
           </Link>
-          <Link href="/bookings" className="text-sm text-cream/60 hover:text-cream transition-colors whitespace-nowrap">
-            ← My Bookings
-          </Link>
+          {/* Shows who's signed in, in place of the old "← My Bookings" text
+              link — that link read as cream-on-navy at low contrast and was
+              easy to miss. The actual back navigation now lives as a clearly
+              visible button at the top-left of the content below. */}
+          {user && (
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm text-cream/85 font-medium truncate max-w-[140px] hidden sm:inline">{user.name}</span>
+              <span className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-gold font-semibold text-xs shrink-0">
+                {user.name[0]?.toUpperCase()}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24 flex flex-col gap-5">
-        {/* Booking Header */}
-        <section className="bg-navy text-cream rounded-3xl p-6 flex flex-col gap-4">
+        <Link
+          href="/bookings"
+          className="self-start flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-navy/70 transition-colors"
+        >
+          ← My Bookings
+        </Link>
+
+        {/* Booking Header — cover photo for the trip's destination behind
+            the reference/status, same treatment as the suggestion cards. */}
+        <section className="relative rounded-3xl overflow-hidden text-cream flex flex-col justify-end gap-4 p-6 min-h-[180px]">
+          {coverImage ? (
+            <Image src={coverImage} alt={booking.destination} fill sizes="768px" className="object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-navy" />
+          )}
+          <div className="absolute inset-0 bg-linear-to-t from-navy via-navy/60 to-navy/20" />
+          <PhotoCredit src={coverImage} />
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-gold">Booking Reference</p>
