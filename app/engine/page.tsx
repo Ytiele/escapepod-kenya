@@ -101,13 +101,35 @@ function topTierHighlights(exp: Experience): string[] {
 // click through just to know roughly what's on offer. Top Tier keeps its
 // premium-justification framing (topTierHighlights); everything else gets
 // a plain summary of what the experience actually involves, straight from
-// its own verified key_activities.
+// its own verified key_activities. Capped at 100 characters everywhere so
+// every card's description takes up the same amount of space.
+const CARD_GLANCE_MAX_CHARS = 100
+
+// Joins `parts` with `sep`, stopping before any item that would push the
+// result past `max` characters — never cuts a whole detail off mid-word.
+// Only hard-truncates (with an ellipsis) if even the first item alone
+// exceeds the limit.
+function joinWithinLimit(parts: string[], sep: string, max: number): string {
+  let result = ''
+  for (const part of parts) {
+    const candidate = result ? `${result}${sep}${part}` : part
+    if (candidate.length > max) {
+      if (result) break
+      return `${part.slice(0, Math.max(0, max - 1)).trimEnd()}…`
+    }
+    result = candidate
+  }
+  return result
+}
+
 function cardGlance(exp: Experience): string {
   if (isTopTier(exp)) {
     const highlights = topTierHighlights(exp)
-    return highlights.length > 0 ? `What that gets you: ${highlights.join(', ')}` : ''
+    if (highlights.length === 0) return ''
+    const prefix = 'What that gets you: '
+    return prefix + joinWithinLimit(highlights, ', ', CARD_GLANCE_MAX_CHARS - prefix.length)
   }
-  return (exp.key_activities ?? []).slice(0, 3).join(' · ')
+  return joinWithinLimit(exp.key_activities ?? [], ' · ', CARD_GLANCE_MAX_CHARS)
 }
 
 // Minimal, dependency-free renderer for Claude's markdown-flavored replies.
