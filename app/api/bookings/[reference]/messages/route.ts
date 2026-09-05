@@ -44,7 +44,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const { data, error } = await supabaseAdmin
     .from('booking_messages')
-    .select('id, message, created_at')
+    .select('id, message, sender, created_at')
     .eq('booking_id', booking.id)
     .order('created_at', { ascending: true });
 
@@ -105,8 +105,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   for (let attempt = 0; attempt < 3 && !saved; attempt++) {
     const { data, error } = await supabaseAdmin
       .from('booking_messages')
-      .insert({ booking_id: booking.id, traveler_id: user.id, message })
-      .select('id, message, created_at')
+      .insert({ booking_id: booking.id, traveler_id: user.id, message, sender: 'traveler' })
+      .select('id, message, sender, created_at')
       .single();
     if (data) { saved = data; break; }
     insertError = error;
