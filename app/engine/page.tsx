@@ -96,6 +96,20 @@ function topTierHighlights(exp: Experience): string[] {
   return highlights.slice(0, 2)
 }
 
+// At-a-glance description shown under the destination on every card, not
+// just Top Tier ones — a traveler comparing directions shouldn't have to
+// click through just to know roughly what's on offer. Top Tier keeps its
+// premium-justification framing (topTierHighlights); everything else gets
+// a plain summary of what the experience actually involves, straight from
+// its own verified key_activities.
+function cardGlance(exp: Experience): string {
+  if (isTopTier(exp)) {
+    const highlights = topTierHighlights(exp)
+    return highlights.length > 0 ? `What that gets you: ${highlights.join(', ')}` : ''
+  }
+  return (exp.key_activities ?? []).slice(0, 3).join(' · ')
+}
+
 // Minimal, dependency-free renderer for Claude's markdown-flavored replies.
 // The system prompt tells Claude not to use emoji at all, but this strips
 // any that slip through anyway — belt and braces, since a stray emoji is a
@@ -330,21 +344,19 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-2.5">
           <IconPin /><span className="truncate">{exp.destination}</span>
         </div>
-        {/* Fixed-height slot whether or not this card is Top Tier, so a
+        {/* Fixed-height slot on every card (not just Top Tier), so a
             Top Tier card and a standard one in the same row don't push
             their buttons to different heights. */}
         <div className="min-h-16 mb-3 flex flex-col gap-1">
           {isTopTier(exp) && (
-            <>
-              <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
-                Top Tier
-              </span>
-              {topTierHighlights(exp).length > 0 && (
-                <p className="text-[11.5px] text-charcoal/55 leading-snug line-clamp-2">
-                  What that gets you: {topTierHighlights(exp).join(', ')}
-                </p>
-              )}
-            </>
+            <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
+              Top Tier
+            </span>
+          )}
+          {cardGlance(exp) && (
+            <p className="text-[11.5px] text-charcoal/55 leading-snug line-clamp-2">
+              {cardGlance(exp)}
+            </p>
           )}
         </div>
         {/* Bottom-anchored as one block, so "See more details" and the
