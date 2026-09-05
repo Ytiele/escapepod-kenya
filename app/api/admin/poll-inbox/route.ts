@@ -104,6 +104,17 @@ async function handlePoll(req: NextRequest) {
         if (msg.uid <= state.last_uid) continue; // '*' can echo the last existing message even above range
         if (msg.uid > maxUidSeen) maxUidSeen = msg.uid;
 
+        // This same mailbox also receives every outbound notification this
+        // site sends (BOOKING_RECIPIENT is this account's own address), so
+        // a booking's own "Booking Request"/"Booking Message" notification
+        // shows up right back in this inbox — and its subject also
+        // contains the reference. Without this check, our own outbound
+        // email would get re-imported and shown to the traveler as if
+        // support had replied to themselves. A genuine reply, from any
+        // real mail client, always sets In-Reply-To/References; a fresh
+        // notification we just sent never does.
+        if (!msg.envelope?.inReplyTo) { skipped.push(`uid ${msg.uid}: not a reply (no In-Reply-To) — likely our own outbound notification`); continue; }
+
         const subject = msg.envelope?.subject ?? '';
         const refMatch = subject.match(REFERENCE_RE);
         if (!refMatch) { skipped.push(`uid ${msg.uid}: no booking reference in subject`); continue; }

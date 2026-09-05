@@ -13,7 +13,7 @@ export async function GET() {
     .order('destination');
 
   if (error) {
-    console.error('[experiences]', error);
+    console.error('[experiences]', JSON.stringify(error));
     return Response.json({ error: 'Could not load experiences.' }, { status: 500 });
   }
 
