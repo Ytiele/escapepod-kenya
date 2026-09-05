@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -13,11 +14,11 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const name = body.name?.trim();
+  const name = body.name?.trim() ? clip(body.name.trim(), 120) : undefined;
   const email = body.email?.trim();
-  const phone = body.phone?.trim();
-  const guideType = body.guideType?.trim();
-  const otherDescription = body.otherDescription?.trim();
+  const phone = body.phone?.trim() ? clip(body.phone.trim(), 40) : undefined;
+  const guideType = body.guideType?.trim() ? clip(body.guideType.trim(), 60) : undefined;
+  const otherDescription = body.otherDescription?.trim() ? clip(body.otherDescription.trim(), 500) : undefined;
 
   if (!name || !email || !guideType) {
     return Response.json({ error: 'Name, email, and type of guide are all required.' }, { status: 400 });
@@ -27,6 +28,11 @@ export async function POST(request: NextRequest) {
   }
   if (guideType === 'Other' && !otherDescription) {
     return Response.json({ error: 'Please describe the kind of guide you need.' }, { status: 400 });
+  }
+
+  const ip = getClientIp(request);
+  if (!(await checkRateLimit(`request-guide:ip:${ip}`, 600, 5))) {
+    return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
 
   const transport = getMailTransport();
@@ -58,10 +64,10 @@ export async function POST(request: NextRequest) {
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
           <h2 style="color: #0A1F3C;">New Private Guide Request</h2>
           <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${name}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${email}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Phone / WhatsApp</td><td style="padding: 8px 0;">${phone || '—'}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Type of Guide</td><td style="padding: 8px 0; font-weight: 600;">${guideDescription}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(email)}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Phone / WhatsApp</td><td style="padding: 8px 0;">${escapeHtml(phone || '—')}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Type of Guide</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(guideDescription)}</td></tr>
           </table>
         </div>
       `,

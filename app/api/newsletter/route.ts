@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -19,6 +20,11 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidEmail(email)) {
     return Response.json({ error: 'Please provide a valid email address.' }, { status: 400 });
+  }
+
+  const ip = getClientIp(request);
+  if (!(await checkRateLimit(`newsletter:ip:${ip}`, 3600, 5))) {
+    return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
 
   const transport = getMailTransport();
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
         <div style="font-family: sans-serif; max-width: 420px; margin: 0 auto;">
           <h2 style="color: #0A1F3C;">New Newsletter Signup</h2>
           <p style="color: #333;">A visitor joined the Inner Circle dispatch from the homepage.</p>
-          <p style="margin-top: 12px;"><strong>Email:</strong> ${email}</p>
+          <p style="margin-top: 12px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
         </div>
       `,
     });

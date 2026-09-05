@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -23,13 +24,13 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const name = body.name?.trim();
+  const name = body.name?.trim() ? clip(body.name.trim(), 120) : undefined;
   const email = body.email?.trim();
-  const carType = body.carType?.trim();
+  const carType = body.carType?.trim() ? clip(body.carType.trim(), 80) : undefined;
   const serviceType = body.serviceType;
-  const pickupLocation = body.pickupLocation?.trim();
-  const pickupTime = body.pickupTime?.trim();
-  const dropoffLocation = body.dropoffLocation?.trim();
+  const pickupLocation = body.pickupLocation?.trim() ? clip(body.pickupLocation.trim(), 200) : undefined;
+  const pickupTime = body.pickupTime?.trim() ? clip(body.pickupTime.trim(), 40) : undefined;
+  const dropoffLocation = body.dropoffLocation?.trim() ? clip(body.dropoffLocation.trim(), 200) : undefined;
 
   if (!name || !email || !carType || !serviceType) {
     return Response.json({ error: 'Name, email, type of car, and service type are all required.' }, { status: 400 });
@@ -42,6 +43,11 @@ export async function POST(request: NextRequest) {
   }
   if (serviceType === 'taxi' && (!pickupLocation || !pickupTime || !dropoffLocation)) {
     return Response.json({ error: 'Pickup location, pickup time, and drop-off location are all required for a taxi.' }, { status: 400 });
+  }
+
+  const ip = getClientIp(request);
+  if (!(await checkRateLimit(`request-transport:ip:${ip}`, 600, 5))) {
+    return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
 
   const transport = getMailTransport();
@@ -64,18 +70,18 @@ export async function POST(request: NextRequest) {
     `Service: ${serviceLabel}`,
   ];
   const tableRows = [
-    `<tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${name}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${email}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Type of Car</td><td style="padding: 8px 0; font-weight: 600;">${carType}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Service</td><td style="padding: 8px 0; font-weight: 600;">${serviceLabel}</td></tr>`,
+    `<tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td></tr>`,
+    `<tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(email)}</td></tr>`,
+    `<tr><td style="padding: 8px 0; color: #888;">Type of Car</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(carType)}</td></tr>`,
+    `<tr><td style="padding: 8px 0; color: #888;">Service</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(serviceLabel)}</td></tr>`,
   ];
 
   if (serviceType === 'taxi') {
     textLines.push(`Pickup location: ${pickupLocation}`, `Pickup time: ${pickupTime}`, `Drop-off location: ${dropoffLocation}`);
     tableRows.push(
-      `<tr><td style="padding: 8px 0; color: #888;">Pickup Location</td><td style="padding: 8px 0; font-weight: 600;">${pickupLocation}</td></tr>`,
-      `<tr><td style="padding: 8px 0; color: #888;">Pickup Time</td><td style="padding: 8px 0; font-weight: 600;">${pickupTime}</td></tr>`,
-      `<tr><td style="padding: 8px 0; color: #888;">Drop-off Location</td><td style="padding: 8px 0; font-weight: 600;">${dropoffLocation}</td></tr>`
+      `<tr><td style="padding: 8px 0; color: #888;">Pickup Location</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(pickupLocation!)}</td></tr>`,
+      `<tr><td style="padding: 8px 0; color: #888;">Pickup Time</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(pickupTime!)}</td></tr>`,
+      `<tr><td style="padding: 8px 0; color: #888;">Drop-off Location</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(dropoffLocation!)}</td></tr>`
     );
   }
 

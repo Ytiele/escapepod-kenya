@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail'
+import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security'
 
 type BookingBody = {
   name?: string
@@ -20,16 +21,21 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const name = body.name?.trim()
+  const name = body.name?.trim() ? clip(body.name.trim(), 120) : undefined
   const email = body.email?.trim()
   const date = body.date?.trim()
-  const time = body.time?.trim()
+  const time = body.time?.trim() ? clip(body.time.trim(), 40) : undefined
 
   if (!name || !email || !date || !time) {
     return Response.json({ error: 'Name, email, date, and time are all required.' }, { status: 400 })
   }
   if (!isValidEmail(email)) {
     return Response.json({ error: 'Please provide a valid email address.' }, { status: 400 })
+  }
+
+  const ip = getClientIp(request)
+  if (!(await checkRateLimit(`book-time:ip:${ip}`, 600, 5))) {
+    return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
   }
 
   const transport = getMailTransport()
@@ -60,10 +66,10 @@ export async function POST(request: NextRequest) {
           <h2 style="color: #0A1F3C;">New Consultation Booking</h2>
           <p style="color: #333;">A new 20-minute consultation request was submitted on the Contact page.</p>
           <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
-            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${name}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${email}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Requested Date</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${formattedDate}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Requested Time</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${time}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(name)}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(email)}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Requested Date</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(formattedDate)}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Requested Time</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(time)}</td></tr>
           </table>
         </div>
       `,
