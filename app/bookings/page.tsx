@@ -78,19 +78,20 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-cream text-charcoal">
       <header className="bg-navy">
-        <div className="flex items-center justify-between gap-4 px-6 py-5 max-w-5xl mx-auto">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-7 w-auto object-contain brightness-0 invert opacity-90" />
+        <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4 sm:py-5 max-w-5xl mx-auto">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
+            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
           </Link>
-          <Link href="/engine" className="text-sm text-cream/60 hover:text-cream transition-colors">
-            ← Back to Curation Engine
+          <Link href="/engine" className="text-sm text-cream/60 hover:text-cream transition-colors whitespace-nowrap">
+            <span className="hidden sm:inline">← Back to Curation Engine</span>
+            <span className="sm:hidden">← Back</span>
           </Link>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pb-24">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24">
         <h1 className="text-[11px] font-bold uppercase tracking-widest text-navy/40 mb-1">My Bookings</h1>
-        <p className="text-navy text-3xl font-medium mb-8">Your trips with EscapePod</p>
+        <p className="text-navy text-2xl sm:text-3xl font-medium mb-8">Your trips with EscapePod</p>
 
         {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
 

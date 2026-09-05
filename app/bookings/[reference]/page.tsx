@@ -83,17 +83,17 @@ export default function BookingDetailPage() {
   return (
     <div className="min-h-screen bg-cream text-charcoal">
       <header className="bg-navy">
-        <div className="flex items-center justify-between gap-4 px-6 py-5 max-w-3xl mx-auto">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-7 w-auto object-contain brightness-0 invert opacity-90" />
+        <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4 sm:py-5 max-w-3xl mx-auto">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
+            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
           </Link>
-          <Link href="/bookings" className="text-sm text-cream/60 hover:text-cream transition-colors">
+          <Link href="/bookings" className="text-sm text-cream/60 hover:text-cream transition-colors whitespace-nowrap">
             ← My Bookings
           </Link>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 pb-24 flex flex-col gap-5">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24 flex flex-col gap-5">
         {/* Booking Header */}
         <section className="bg-navy text-cream rounded-3xl p-6 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -115,12 +115,12 @@ export default function BookingDetailPage() {
 
         {/* Package */}
         <SectionCard title="Package">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Package" value={booking.package_name} />
             <Field label="Destination" value={booking.destination} />
             <Field label="Duration" value={booking.duration_days ? `${booking.duration_days} ${booking.duration_days === 1 ? 'day' : 'days'}` : '—'} />
             <Field label="Travelers" value={booking.num_travelers} />
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <Field label="Selected Travel Dates" value={booking.start_date && booking.end_date ? `${formatDate(booking.start_date)} – ${formatDate(booking.end_date)}` : 'To be confirmed'} />
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function BookingDetailPage() {
 
         {/* Payment */}
         <SectionCard title="Payment">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Field label="Total Price" value={formatUsd(booking.total_price_usd)} />
             <Field label="Amount Paid" value={formatUsd(booking.amount_paid_usd)} />
             <Field label="Amount Remaining" value={formatUsd(balance)} />
@@ -147,9 +147,9 @@ export default function BookingDetailPage() {
             ) : (
               <div className="flex flex-col gap-1.5">
                 {booking.payment_history.map((p, i) => (
-                  <div key={i} className="flex justify-between items-center text-[13.5px] bg-navy/5 rounded-lg px-3.5 py-2.5">
+                  <div key={i} className="flex flex-wrap justify-between items-center gap-x-3 gap-y-1 text-[13.5px] bg-navy/5 rounded-lg px-3.5 py-2.5">
                     <span className="text-charcoal/60">{formatDate(p.date)} · {p.method}{p.note ? ` · ${p.note}` : ''}</span>
-                    <span className="font-semibold text-navy">{formatUsd(p.amount)}</span>
+                    <span className="font-semibold text-navy shrink-0">{formatUsd(p.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -167,15 +167,15 @@ export default function BookingDetailPage() {
 
         {/* Trip Details */}
         <SectionCard title="Trip Details">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Start Date" value={formatDate(booking.start_date)} />
             <Field label="End Date" value={formatDate(booking.end_date)} />
             <Field label="Travelers" value={booking.num_travelers} />
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1">Accommodation</p>
               <p className="text-navy text-[15px]">{booking.accommodation.length > 0 ? booking.accommodation.join(', ') : 'To be confirmed'}</p>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1">Included Experiences / Activities</p>
               <p className="text-navy text-[15px]">{booking.included_activities.length > 0 ? booking.included_activities.join(', ') : 'To be confirmed'}</p>
             </div>
