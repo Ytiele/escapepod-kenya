@@ -82,13 +82,15 @@ export default function BookingDetailPage() {
 
   return (
     <div className="min-h-screen bg-cream text-charcoal">
-      <header className="flex items-center justify-between gap-4 px-6 py-5 max-w-3xl mx-auto">
-        <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-7 w-auto object-contain" />
-        </Link>
-        <Link href="/bookings" className="text-sm text-navy/60 hover:text-navy transition-colors">
-          ← My Bookings
-        </Link>
+      <header className="bg-navy">
+        <div className="flex items-center justify-between gap-4 px-6 py-5 max-w-3xl mx-auto">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-7 w-auto object-contain brightness-0 invert opacity-90" />
+          </Link>
+          <Link href="/bookings" className="text-sm text-cream/60 hover:text-cream transition-colors">
+            ← My Bookings
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-6 pb-24 flex flex-col gap-5">
