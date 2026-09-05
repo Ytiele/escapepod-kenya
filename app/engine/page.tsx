@@ -66,6 +66,36 @@ function durationLabel(exp: Experience) {
   return `${exp.duration_days} ${exp.duration_days === 1 ? 'day' : 'days'}`
 }
 
+// "Top Tier" is a real internal catalogue distinction (see source_doc on
+// these rows), not a marketing label we're inventing — but a traveler
+// with no context sees "Mt Kenya Top Tier" repeated across suggestions
+// and has no way to tell why it costs more. Surface what actually makes
+// it top tier straight from the experience's own verified key_activities
+// (chef-prepared meals, private guides, helicopter, etc.) rather than
+// asserting anything generic about the tier itself.
+function isTopTier(exp: Experience) {
+  return exp.name.toLowerCase().includes('top tier')
+}
+// Accommodation name and travel_style.privacy are present and meaningful
+// across every Top Tier row checked; key_activities are the fallback since
+// they're not always distinctly "premium"-reading on their own (e.g. "morning
+// runs, mountain bike safari" doesn't say why something costs more).
+function topTierHighlights(exp: Experience): string[] {
+  const highlights: string[] = []
+  if (exp.accommodation && exp.accommodation.length > 0) {
+    highlights.push(exp.accommodation[0])
+  }
+  const privacy = exp.travel_style?.privacy
+  if (privacy === 'exclusive' || privacy === 'private') {
+    highlights.push(`${privacy} access`)
+  }
+  for (const activity of exp.key_activities ?? []) {
+    if (highlights.length >= 2) break
+    highlights.push(activity)
+  }
+  return highlights.slice(0, 2)
+}
+
 // Minimal, dependency-free renderer for Claude's markdown-flavored replies.
 // The system prompt tells Claude not to use emoji at all, but this strips
 // any that slip through anyway — belt and braces, since a stray emoji is a
@@ -300,6 +330,18 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-2.5">
           <IconPin /><span className="truncate">{exp.destination}</span>
         </div>
+        {isTopTier(exp) && (
+          <div className="flex flex-col gap-1 mb-3">
+            <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
+              Top Tier
+            </span>
+            {topTierHighlights(exp).length > 0 && (
+              <p className="text-[11.5px] text-charcoal/55 leading-snug">
+                What that gets you: {topTierHighlights(exp).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
         <button
           onClick={onView}
           className="self-start shrink-0 flex items-center gap-1 border-[3px] border-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/10 transition-colors mb-3"
@@ -435,12 +477,19 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
       <div className="flex items-center gap-4 text-sm text-charcoal/60 pb-5 border-b border-navy/8">
         <div className="flex items-center gap-1.5"><IconPin /><span>{exp.destination}</span></div>
         {durationLabel(exp) && <span>{durationLabel(exp)}</span>}
+        {isTopTier(exp) && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
+            Top Tier
+          </span>
+        )}
         <span className="font-semibold text-navy ml-auto">{priceLabel(exp)}</span>
       </div>
 
       {exp.key_activities && exp.key_activities.length > 0 && (
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Key Activities</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">
+            {isTopTier(exp) ? 'What Top Tier Includes' : 'Key Activities'}
+          </span>
           <ul className="flex flex-col bg-cream/70 border border-navy/8 rounded-2xl overflow-hidden">
             {exp.key_activities.map((a, i) => (
               <li key={i} className="flex gap-3 text-sm text-charcoal/75 px-3.5 py-2.5 border-t border-navy/8 first:border-t-0">
