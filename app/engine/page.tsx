@@ -214,6 +214,13 @@ function IconBooking() {
     </svg>
   )
 }
+function IconTrash() {
+  return (
+    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0-1 13a1 1 0 01-1 1H8a1 1 0 01-1-1L6 7h12z" />
+    </svg>
+  )
+}
 function IconMenu() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -849,6 +856,34 @@ export default function EnginePage() {
     }
   }
 
+  async function deleteChat(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!window.confirm('Delete this plan? This can’t be undone.')) return
+    try {
+      const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('delete failed')
+      setRecentChats((prev) => prev.filter((c) => c.id !== id))
+      if (currentChatId === id) startNewChat()
+      flash('Plan deleted.')
+    } catch {
+      flash("Couldn't delete that plan — please try again.")
+    }
+  }
+
+  async function clearAllChats() {
+    if (recentChats.length === 0) return
+    if (!window.confirm('Clear all recent plans? This can’t be undone.')) return
+    try {
+      const res = await fetch('/api/chats', { method: 'DELETE' })
+      if (!res.ok) throw new Error('clear failed')
+      setRecentChats([])
+      if (currentChatId) startNewChat()
+      flash('All plans cleared.')
+    } catch {
+      flash("Couldn't clear your plans — please try again.")
+    }
+  }
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return
     const userMsg: ChatMessage = { role: 'user', content: text.trim() }
@@ -1007,20 +1042,42 @@ export default function EnginePage() {
           <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2">Recent plans</span>
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5">
             {recentChats.map((c) => (
-              <button
+              <div
                 key={c.id}
-                onClick={() => loadRecentChat(c)}
-                className={`text-left px-3 py-2.5 rounded-xl text-[13.5px] transition-colors truncate ${
-                  c.id === currentChatId ? 'bg-white/10 text-cream' : 'text-cream/60 hover:bg-white/6 hover:text-cream/85'
+                className={`flex items-center rounded-xl transition-colors ${
+                  c.id === currentChatId ? 'bg-white/10' : 'hover:bg-white/6'
                 }`}
               >
-                {c.title}
-              </button>
+                <button
+                  onClick={() => loadRecentChat(c)}
+                  className={`flex-1 min-w-0 text-left px-3 py-2.5 text-[13.5px] truncate transition-colors ${
+                    c.id === currentChatId ? 'text-cream' : 'text-cream/60 hover:text-cream/85'
+                  }`}
+                >
+                  {c.title}
+                </button>
+                <button
+                  onClick={(e) => deleteChat(c.id, e)}
+                  aria-label="Delete this plan"
+                  title="Delete this plan"
+                  className="shrink-0 p-2 mr-0.5 rounded-lg text-cream/25 hover:text-cream/80 hover:bg-white/10 transition-colors"
+                >
+                  <IconTrash />
+                </button>
+              </div>
             ))}
             {recentChats.length === 0 && (
               <p className="px-3 py-2 text-xs text-cream/25 italic">No recent chats yet</p>
             )}
           </div>
+          {recentChats.length > 0 && (
+            <button
+              onClick={clearAllChats}
+              className="text-left px-3 py-2 text-[12px] text-cream/35 hover:text-cream/70 transition-colors"
+            >
+              Clear all chats
+            </button>
+          )}
         </div>
 
         {user && (

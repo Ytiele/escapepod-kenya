@@ -36,3 +36,29 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (refreshed) setSessionCookies(response, refreshed);
   return noStore(response);
 }
+
+// DELETE — remove one chat. Scoped to traveler_id in the query itself
+// (not a separate ownership check) so this can never delete a row that
+// isn't the caller's, no matter what id is guessed.
+export async function DELETE(req: NextRequest, { params }: Params) {
+  const { user, refreshed } = await resolveSession(req);
+  if (!user) {
+    return noStore(NextResponse.json({ error: 'Please sign in.' }, { status: 401 }));
+  }
+
+  const { id } = await params;
+  const { error } = await supabaseAdmin
+    .from('chats')
+    .delete()
+    .eq('id', id)
+    .eq('traveler_id', user.id);
+
+  if (error) {
+    console.error('[chats] delete failed', error);
+    return noStore(NextResponse.json({ error: 'Could not delete that plan.' }, { status: 500 }));
+  }
+
+  const response = NextResponse.json({ ok: true });
+  if (refreshed) setSessionCookies(response, refreshed);
+  return noStore(response);
+}

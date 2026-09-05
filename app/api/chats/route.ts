@@ -91,3 +91,24 @@ export async function PUT(req: NextRequest) {
   if (refreshed) setSessionCookies(response, refreshed);
   return response;
 }
+
+// DELETE — clear every chat for the authenticated traveler ("Clear all
+// chats" in the sidebar). Scoped to traveler_id, so this can only ever
+// wipe the caller's own history.
+export async function DELETE(req: NextRequest) {
+  const { user, refreshed } = await resolveSession(req);
+  if (!user) {
+    return noStore(NextResponse.json({ error: 'Please sign in.' }, { status: 401 }));
+  }
+
+  const { error } = await supabaseAdmin.from('chats').delete().eq('traveler_id', user.id);
+
+  if (error) {
+    console.error('[chats] clear all failed', error);
+    return noStore(NextResponse.json({ error: 'Could not clear your chat history.' }, { status: 500 }));
+  }
+
+  const response = NextResponse.json({ ok: true });
+  if (refreshed) setSessionCookies(response, refreshed);
+  return noStore(response);
+}
