@@ -325,40 +325,50 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
       </button>
       <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5">
         <button onClick={onView} className="text-left">
-          <h4 className="text-navy font-semibold text-[15px] leading-snug mb-1.5">{exp.name}</h4>
+          <h4 className="text-navy font-semibold text-[15px] leading-snug mb-1.5 line-clamp-2">{exp.name}</h4>
         </button>
         <div className="flex items-center gap-1.5 text-charcoal/50 text-[12.5px] mb-2.5">
           <IconPin /><span className="truncate">{exp.destination}</span>
         </div>
-        {isTopTier(exp) && (
-          <div className="flex flex-col gap-1 mb-3">
-            <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
-              Top Tier
-            </span>
-            {topTierHighlights(exp).length > 0 && (
-              <p className="text-[11.5px] text-charcoal/55 leading-snug">
-                What that gets you: {topTierHighlights(exp).join(', ')}
-              </p>
-            )}
-          </div>
-        )}
-        <button
-          onClick={onView}
-          className="w-full flex items-center justify-center gap-1 border-[3px] border-gold text-navy font-semibold text-[12.5px] px-4 py-2.5 rounded-full hover:bg-gold/10 transition-colors mb-3"
-        >
-          See more details <span aria-hidden>→</span>
-        </button>
-        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-navy/6">
-          <div className="flex flex-col leading-tight">
-            <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide">Starting from</span>
-            <span className="text-gold font-bold text-[15px]">{priceLabel(exp)}</span>
-          </div>
+        {/* Fixed-height slot whether or not this card is Top Tier, so a
+            Top Tier card and a standard one in the same row don't push
+            their buttons to different heights. */}
+        <div className="min-h-16 mb-3 flex flex-col gap-1">
+          {isTopTier(exp) && (
+            <>
+              <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
+                Top Tier
+              </span>
+              {topTierHighlights(exp).length > 0 && (
+                <p className="text-[11.5px] text-charcoal/55 leading-snug line-clamp-2">
+                  What that gets you: {topTierHighlights(exp).join(', ')}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+        {/* Bottom-anchored as one block, so "See more details" and the
+            price/Book Now row line up across cards regardless of how much
+            title/highlight text sits above them. */}
+        <div className="mt-auto flex flex-col">
           <button
-            onClick={onBook}
-            className="shrink-0 flex items-center gap-1 bg-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
+            onClick={onView}
+            className="w-full flex items-center justify-center gap-1 border-[3px] border-gold text-navy font-semibold text-[12.5px] px-4 py-2.5 rounded-full hover:bg-gold/10 transition-colors mb-3"
           >
-            Book Now <span aria-hidden>→</span>
+            See more details <span aria-hidden>→</span>
           </button>
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-navy/6">
+            <div className="flex flex-col leading-tight">
+              <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide">Starting from</span>
+              <span className="text-gold font-bold text-[15px]">{priceLabel(exp)}</span>
+            </div>
+            <button
+              onClick={onBook}
+              className="shrink-0 flex items-center gap-1 bg-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
+            >
+              Book Now <span aria-hidden>→</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
