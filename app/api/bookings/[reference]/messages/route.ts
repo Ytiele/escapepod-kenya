@@ -129,10 +129,16 @@ export async function POST(req: NextRequest, { params }: Params) {
     // sent once I sent another one"). The message is already saved above
     // regardless of whether this succeeds.
     try {
+      // No replyTo here, deliberately — unlike every other notification
+      // email this site sends, this one must NOT reply-to the traveler.
+      // Hitting "Reply" needs to land back in this same inbox (the "from"
+      // address below) so app/api/admin/poll-inbox can pick it up and
+      // sync it into the chat; a replyTo here would send the reply
+      // straight to the traveler instead, silently bypassing the chat
+      // entirely — which is exactly what happened before this was fixed.
       await transport.sendMail({
         from: `"EscapePod Support" <${process.env.SMTP_USER}>`,
         to: BOOKING_RECIPIENT,
-        replyTo: user.email,
         subject: `Booking Message — ${booking.reference} — ${user.name}`,
         text: [
           `New message about a booking from the support chat.`,
@@ -141,6 +147,9 @@ export async function POST(req: NextRequest, { params }: Params) {
           `Traveler: ${user.name} <${user.email}>`,
           ``,
           message,
+          ``,
+          `Reply to this email to respond in the chat — it'll sync back automatically.`,
+          `(To email ${user.name} directly instead, outside the chat, use ${user.email}.)`,
         ].join('\n'),
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
@@ -148,7 +157,7 @@ export async function POST(req: NextRequest, { params }: Params) {
             <p style="margin: 0 0 4px;"><strong>${escapeHtml(user.name)}</strong> — ${escapeHtml(user.email)}</p>
             <p style="margin: 0 0 12px; color: #666;">Re: ${escapeHtml(booking.package_name)}</p>
             <p style="background: #f4f4f4; padding: 12px; border-radius: 8px; white-space: pre-wrap;">${escapeHtml(message)}</p>
-            <p style="color: #888; font-size: 12px; margin-top: 16px;">Reply directly to this email to respond to ${escapeHtml(user.name)}.</p>
+            <p style="color: #888; font-size: 12px; margin-top: 16px;">Reply to this email to respond in the chat — it'll sync back automatically. To email ${escapeHtml(user.name)} directly instead, outside the chat, use ${escapeHtml(user.email)}.</p>
           </div>
         `,
       });
