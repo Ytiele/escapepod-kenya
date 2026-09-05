@@ -60,11 +60,13 @@ export async function POST(request: NextRequest) {
   await supabaseAdmin.from('travelers').upsert({ id: created.user.id, profile: {} }, { onConflict: 'id' });
 
   // Notify the team of every new profile, same as booking/guide/transport
-  // requests. Never lets a mail hiccup fail the signup itself.
+  // requests. Never lets a mail hiccup fail the signup itself — but this
+  // is still awaited (not fire-and-forget) because on serverless hosting
+  // an unawaited send can get killed the instant the response goes out.
   const transport = getMailTransport();
   if (transport) {
-    transport
-      .sendMail({
+    try {
+      await transport.sendMail({
         from: `"EscapePod Sign-ups" <${process.env.SMTP_USER}>`,
         to: BOOKING_RECIPIENT,
         replyTo: email,
@@ -86,8 +88,10 @@ export async function POST(request: NextRequest) {
             </table>
           </div>
         `,
-      })
-      .catch((err) => console.error('[signup] failed to send new-profile notification', err));
+      });
+    } catch (err) {
+      console.error('[signup] failed to send new-profile notification', err);
+    }
   } else {
     console.error('[signup] SMTP is not configured — skipping new-profile notification');
   }

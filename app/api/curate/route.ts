@@ -458,11 +458,12 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (cached?.response) {
       console.log(`[curate] opener cache hit — skipping AI engine ("${cacheKey.slice(0, 60)}")`);
-      supabaseAdmin
+      // Awaited (not fire-and-forget) — on serverless hosting an unawaited
+      // write here can get killed the instant the response below goes out.
+      await supabaseAdmin
         .from('starter_cache')
         .update({ hits: (cached.hits ?? 1) + 1, updated_at: new Date().toISOString() })
-        .eq('prompt', cacheKey)
-        .then(() => {}, () => {});
+        .eq('prompt', cacheKey);
       const response = NextResponse.json(cached.response as CachedCurateResponse);
       if (refreshed) setSessionCookies(response, refreshed);
       return response;
@@ -557,10 +558,14 @@ export async function POST(req: NextRequest) {
   const responseBody: CachedCurateResponse = { text: cleanText, payload: uiPayload, suggestions };
 
   if (cacheKey) {
-    supabaseAdmin
+    // Awaited (not fire-and-forget) — on serverless hosting an unawaited
+    // write here can get killed the instant the response below goes out,
+    // silently defeating the whole point of this cache. The extra latency
+    // is negligible next to the multi-turn AI pipeline this follows.
+    const { error: cacheWriteError } = await supabaseAdmin
       .from('starter_cache')
-      .upsert({ prompt: cacheKey, response: responseBody }, { onConflict: 'prompt' })
-      .then(() => {}, (err) => console.error('[curate] failed to cache opener response', err));
+      .upsert({ prompt: cacheKey, response: responseBody }, { onConflict: 'prompt' });
+    if (cacheWriteError) console.error('[curate] failed to cache opener response', JSON.stringify(cacheWriteError));
   }
 
   const response = NextResponse.json(responseBody);

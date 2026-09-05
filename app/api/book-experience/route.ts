@@ -68,8 +68,14 @@ export async function POST(request: NextRequest) {
   const totalPriceUsd = perPersonPrice * numTravelers;
   const endDate = startDate && experience.duration_days ? addDays(startDate, experience.duration_days - 1) : null;
 
-  // Retry on the rare reference collision (unique_violation) rather than
-  // failing the booking over it.
+  // Retry on the rare reference collision (unique_violation), and on
+  // '42501' (row-level security violation) — empirically, that one has
+  // shown up transiently a couple of times against this project's Supabase
+  // instance even though supabaseAdmin uses the service key, which should
+  // always bypass RLS; a short retry clears it, consistent with a
+  // connection-pooler hiccup rather than a real permission problem. Any
+  // other error is a genuine failure — stop immediately rather than
+  // masking it with retries.
   let booking = null;
   let insertError: { code?: string; message?: string } | null = null;
   for (let attempt = 0; attempt < 5 && !booking; attempt++) {
@@ -93,7 +99,11 @@ export async function POST(request: NextRequest) {
       .single();
     if (data) { booking = data; break; }
     insertError = error;
-    if (error?.code !== '23505') break; // anything but a reference collision — stop retrying
+    if (error?.code !== '23505' && error?.code !== '42501') break;
+    if (error.code === '42501') {
+      console.error(`[book-experience] transient RLS error on attempt ${attempt + 1}, retrying`);
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+    }
   }
 
   if (!booking) {
@@ -109,8 +119,12 @@ export async function POST(request: NextRequest) {
 
   const transport = getMailTransport();
   if (transport) {
-    transport
-      .sendMail({
+    // Awaited deliberately — on serverless hosting, a fire-and-forget send
+    // here can get killed mid-flight the instant this response goes out.
+    // The booking is already saved above regardless of whether this
+    // notification succeeds.
+    try {
+      await transport.sendMail({
         from: `"EscapePod Curation Engine" <${process.env.SMTP_USER}>`,
         to: BOOKING_RECIPIENT,
         replyTo: user.email,
@@ -153,8 +167,10 @@ export async function POST(request: NextRequest) {
             </table>
           </div>
         `,
-      })
-      .catch((err) => console.error('[book-experience] failed to send notification email', err));
+      });
+    } catch (err) {
+      console.error('[book-experience] failed to send notification email', err);
+    }
   } else {
     console.error('[book-experience] SMTP is not configured — skipping notification email');
   }

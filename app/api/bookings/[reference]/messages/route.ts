@@ -95,21 +95,41 @@ export async function POST(req: NextRequest, { params }: Params) {
     return noStore(NextResponse.json({ error: 'Booking not found.' }, { status: 404 }));
   }
 
-  const { data: saved, error } = await supabaseAdmin
-    .from('booking_messages')
-    .insert({ booking_id: booking.id, traveler_id: user.id, message })
-    .select('id, message, created_at')
-    .single();
+  // Retries on '42501' (row-level security violation) specifically — this
+  // has shown up transiently a couple of times against this project's
+  // Supabase instance even though supabaseAdmin uses the service key,
+  // which should always bypass RLS; looks like a connection-pooler hiccup
+  // rather than a real permission problem, and a short retry clears it.
+  let saved = null;
+  let insertError: { code?: string } | null = null;
+  for (let attempt = 0; attempt < 3 && !saved; attempt++) {
+    const { data, error } = await supabaseAdmin
+      .from('booking_messages')
+      .insert({ booking_id: booking.id, traveler_id: user.id, message })
+      .select('id, message, created_at')
+      .single();
+    if (data) { saved = data; break; }
+    insertError = error;
+    if (error?.code !== '42501') break;
+    console.error(`[booking-messages] transient RLS error on attempt ${attempt + 1}, retrying`);
+    await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+  }
 
-  if (error || !saved) {
-    console.error('[booking-messages] insert failed', JSON.stringify(error));
+  if (!saved) {
+    console.error('[booking-messages] insert failed', JSON.stringify(insertError));
     return noStore(NextResponse.json({ error: 'Could not send your message.' }, { status: 500 }));
   }
 
   const transport = getMailTransport();
   if (transport) {
-    transport
-      .sendMail({
+    // Awaited deliberately — on serverless hosting, a fire-and-forget send
+    // here can get killed mid-flight the instant this response goes out,
+    // and only happen to complete later if the same warm container gets
+    // reused for a subsequent request (surfacing as "my last message only
+    // sent once I sent another one"). The message is already saved above
+    // regardless of whether this succeeds.
+    try {
+      await transport.sendMail({
         from: `"EscapePod Support" <${process.env.SMTP_USER}>`,
         to: BOOKING_RECIPIENT,
         replyTo: user.email,
@@ -131,8 +151,10 @@ export async function POST(req: NextRequest, { params }: Params) {
             <p style="color: #888; font-size: 12px; margin-top: 16px;">Reply directly to this email to respond to ${escapeHtml(user.name)}.</p>
           </div>
         `,
-      })
-      .catch((err) => console.error('[booking-messages] failed to send notification email', err));
+      });
+    } catch (err) {
+      console.error('[booking-messages] failed to send notification email', err);
+    }
   } else {
     console.error('[booking-messages] SMTP is not configured — message saved but not emailed');
   }
