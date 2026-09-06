@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
 import NewsletterSidebar from '@/components/stories/NewsletterSidebar'
+import { T } from '@/components/i18n/T'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -66,7 +67,7 @@ export default async function StoryPage({ params }: Props) {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                The Journals
+                <T>The Journals</T>
               </Link>
               {post.category && (
                 <>
@@ -100,13 +101,13 @@ export default async function StoryPage({ params }: Props) {
                 if (para.startsWith('**') && para.endsWith('**')) {
                   return (
                     <h3 key={i} className="text-navy font-medium text-xl mt-10 mb-4">
-                      {para.replace(/\*\*/g, '')}
+                      <T>{para.replace(/\*\*/g, '')}</T>
                     </h3>
                   )
                 }
                 return (
                   <p key={i} className="mb-6 text-charcoal/70 leading-relaxed">
-                    {para}
+                    <T>{para}</T>
                   </p>
                 )
               })}
@@ -116,7 +117,7 @@ export default async function StoryPage({ params }: Props) {
                   href="/engine"
                   className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors"
                 >
-                  Curate a similar journey
+                  <T>Curate a similar journey</T>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -127,14 +128,14 @@ export default async function StoryPage({ params }: Props) {
             <aside className="space-y-8">
               <div className="bg-navy rounded-2xl p-6">
                 <h4 className="text-cream text-sm font-medium uppercase tracking-wider mb-4">
-                  Categories
+                  <T>Categories</T>
                 </h4>
                 <CategoriesSelect current={post.category} />
               </div>
 
               <div className="bg-navy rounded-2xl p-6">
                 <h4 className="text-cream text-sm font-medium uppercase tracking-wider mb-5">
-                  Latest Posts
+                  <T>Latest Posts</T>
                 </h4>
                 <div className="space-y-4">
                   {related.map((rel) => (
@@ -178,7 +179,7 @@ export default async function StoryPage({ params }: Props) {
       <section className="bg-sand py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <h3 className="text-navy text-sm font-medium tracking-widest uppercase mb-8">
-            Related Posts
+            <T>Related Posts</T>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             {related.map((rel) => (

@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { T, useTranslated } from '@/components/i18n/T'
 
 
 function FounderSection() {
   const [isExpanded, setIsExpanded] = useState(false)
+  const founderAlt = useTranslated('Rose Kagucia, Founder of EscapePod Kenya')
 
   return (
     <section className="bg-sand py-24 lg:py-32">
@@ -15,7 +17,7 @@ function FounderSection() {
           <div className="rounded-3xl min-h-[600px] flex items-center justify-center relative overflow-hidden">
             <Image
               src="/images/rose kagushia.png"
-              alt="Rose Kagucia, Founder of EscapePod Kenya"
+              alt={founderAlt}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               loading="lazy"
@@ -24,38 +26,37 @@ function FounderSection() {
           </div>
 
           <div>
-            <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">The Founder</span>
-            <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight">The Architect</h2>
+            <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>The Founder</T></span>
+            <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight"><T>The Architect</T></h2>
             <div className="mt-6">
               <p className="text-gold text-8xl font-semibold italic leading-none">&ldquo;</p>
               <p className="text-navy text-lg italic leading-relaxed mt-2">
-                As co-host of Baiskeli Stories, Rose has spent years exploring narratives of
-                resilience, purpose, and reinvention.
+                <T>As co-host of Baiskeli Stories, Rose has spent years exploring narratives of
+                resilience, purpose, and reinvention.</T>
               </p>
             </div>
             <p className="mt-6 text-charcoal/70 text-base leading-relaxed">
-              Escape Pod is the vision of{' '}
-              <strong className="text-navy">Rose Kagucia</strong> — a curator of journeys defined
-              by intention, depth, and absolute privacy.
+              <T>Escape Pod is the vision of Rose Kagucia — a curator of journeys defined
+              by intention, depth, and absolute privacy.</T>
             </p>
             <p className="mt-4 text-charcoal/70 text-base leading-relaxed">
-              Shaped by a career at the highest levels of corporate leadership, Rose applies
+              <T>Shaped by a career at the highest levels of corporate leadership, Rose applies
               uncompromising precision to the art of travel design. Her approach strips away
-              everything unnecessary and leaves only what is meaningful.
+              everything unnecessary and leaves only what is meaningful.</T>
             </p>
             <p className="mt-4 text-charcoal/70 text-base leading-relaxed">
-              Her years co-hosting Baiskeli Stories — exploring Kenya&rsquo;s landscapes on two
+              <T>Her years co-hosting Baiskeli Stories — exploring Kenya&rsquo;s landscapes on two
               wheels and in conversation with the people who inhabit them — gave her an intimacy
-              with the country&rsquo;s quieter truths that no guidebook could provide.
+              with the country&rsquo;s quieter truths that no guidebook could provide.</T>
             </p>
 
             {isExpanded && (
               <div className="mt-4 space-y-4">
                 <p className="text-charcoal/70 text-base leading-relaxed">
-                  It is from these spaces in between—the untamed landscapes and the unfiltered cultural encounters—that the soul of EscapePod emerged. Every detail is engineered to awaken a deeper sense of presence, ensuring that your journey is immersive yet effortless. Refined yet grounded.
+                  <T>It is from these spaces in between—the untamed landscapes and the unfiltered cultural encounters—that the soul of EscapePod emerged. Every detail is engineered to awaken a deeper sense of presence, ensuring that your journey is immersive yet effortless. Refined yet grounded.</T>
                 </p>
                 <p className="text-charcoal/70 text-base leading-relaxed">
-                  This is travel as it should be: intentional, intimate, and quietly extraordinary.
+                  <T>This is travel as it should be: intentional, intimate, and quietly extraordinary.</T>
                 </p>
               </div>
             )}
@@ -64,7 +65,7 @@ function FounderSection() {
               onClick={() => setIsExpanded(!isExpanded)}
               className="mt-6 inline-flex items-center gap-2 text-gold font-medium text-sm hover:gap-3 transition-all"
             >
-              {isExpanded ? 'Read Less' : 'Read More'}
+              {isExpanded ? <T>Read Less</T> : <T>Read More</T>}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -97,12 +98,12 @@ export default function AboutPage() {
           }}
         />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
-          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">Who We Are</span>
+          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Who We Are</T></span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight max-w-3xl">
-            Discover Our Journey &amp; What Drives Us.
+            <T>Discover Our Journey &amp; What Drives Us.</T>
           </h1>
           <p className="mt-6 text-cream/60 text-lg max-w-xl leading-relaxed">
-            Most trips feel the same. We&rsquo;re here for the people who want something different.
+            <T>Most trips feel the same. We&rsquo;re here for the people who want something different.</T>
           </p>
         </div>
       </section>
@@ -111,28 +112,28 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
-              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">Our Philosophy</span>
+              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Our Philosophy</T></span>
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
-                The Luxury of Intention
+                <T>The Luxury of Intention</T>
               </h2>
             </div>
             <div className="space-y-5 text-charcoal/70 text-base leading-relaxed">
               <p>
-                Escape Pod Kenya was not built to sell itineraries. It was built to eliminate friction.
+                <T>Escape Pod Kenya was not built to sell itineraries. It was built to eliminate friction.
                 We architect bespoke environments so you can bypass the research and focus entirely on
-                the experience.
+                the experience.</T>
               </p>
               <p>
-                You define the rhythm. You select the company. We orchestrate the execution —{' '}
-                <em>quietly and completely</em> — ensuring the journey stays with you long after you
-                return.
+                <T>You define the rhythm. You select the company. We orchestrate the execution — quietly and completely — ensuring
+                the journey stays with you long after you
+                return.</T>
               </p>
               <div className="pt-2">
                 <Link
                   href="/engine"
                   className="inline-flex items-center gap-2 bg-navy text-cream font-medium px-7 py-3.5 rounded-full text-sm hover:bg-navy/80 transition-colors"
                 >
-                  Design Your Experience
+                  <T>Design Your Experience</T>
                 </Link>
               </div>
             </div>
@@ -147,9 +148,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
-              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">Credentials</span>
+              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Credentials</T></span>
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight">
-                Operational Integrity
+                <T>Operational Integrity</T>
               </h2>
 
               <Image
@@ -164,17 +165,17 @@ export default function AboutPage() {
 
             <div className="space-y-5 text-charcoal/70 text-base leading-relaxed">
               <p>
-                Peace of mind is built on vetted excellence and verified accountability. EscapePod
-                Kenya is fully accredited and officially licensed by the Travel and Tourism Authority.
+                <T>Peace of mind is built on vetted excellence and verified accountability. EscapePod
+                Kenya is fully accredited and officially licensed by the Travel and Tourism Authority.</T>
               </p>
               <p>
-                For us, this certification is merely the baseline. It guarantees that our operations,
+                <T>For us, this certification is merely the baseline. It guarantees that our operations,
                 our on-the-ground network, and our financial practices meet the strictest national
-                standards for safety and reliability.
+                standards for safety and reliability.</T>
               </p>
               <p>
-                You travel with the quiet confidence that every logistical detail of your journey is
-                formally protected and flawlessly executed.
+                <T>You travel with the quiet confidence that every logistical detail of your journey is
+                formally protected and flawlessly executed.</T>
               </p>
             </div>
           </div>
@@ -186,9 +187,9 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
-              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">Transport</span>
+              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Transport</T></span>
               <h2 className="mt-4 text-cream text-4xl font-medium tracking-tight">
-                The Architecture of Movement
+                <T>The Architecture of Movement</T>
               </h2>
 
               <Image
@@ -203,20 +204,19 @@ export default function AboutPage() {
 
             <div className="space-y-5 text-cream/60 text-base leading-relaxed">
               <p>
-                True privacy requires absolute control over your environment — especially in transit.
+                <T>True privacy requires absolute control over your environment — especially in transit.
                 To guarantee zero friction on the ground, EscapePod operates in an exclusive
-                partnership with{' '}
-                <strong className="text-gold">Motogari</strong>, Kenya&rsquo;s premier private
-                transport network.
+                partnership with Motogari, Kenya&rsquo;s premier private
+                transport network.</T>
               </p>
               <p>
-                We do not rely on shared transfers, public waiting rooms, or outsourced, unpredictable
+                <T>We do not rely on shared transfers, public waiting rooms, or outsourced, unpredictable
                 logistics. Every driver is meticulously background-checked and trained to our precise
-                service standards.
+                service standards.</T>
               </p>
               <p>
-                From the moment you land, your vehicle is private, secure, and entirely dedicated to
-                your rhythm. Your movement through the landscape remains completely seamless.
+                <T>From the moment you land, your vehicle is private, secure, and entirely dedicated to
+                your rhythm. Your movement through the landscape remains completely seamless.</T>
               </p>
             </div>
           </div>
@@ -226,18 +226,18 @@ export default function AboutPage() {
       <section className="bg-navy py-20 lg:py-28">
         <div className="max-w-4xl mx-auto px-6 lg:px-10 text-center">
           <h2 className="text-cream text-4xl md:text-5xl font-medium tracking-tight leading-[1.1]">
-            The Next Step is Yours
+            <T>The Next Step is Yours</T>
           </h2>
           <p className="mt-5 text-cream/70 text-lg leading-relaxed">
-            The destination is only the backdrop; the true luxury is how you feel while you are there.
+            <T>The destination is only the backdrop; the true luxury is how you feel while you are there.
             Tell us who you are traveling with and how you want to feel. We will handle the invisible
-            logistics to make it a reality.
+            logistics to make it a reality.</T>
           </p>
           <Link
             href="/engine"
             className="mt-8 inline-flex items-center gap-3 bg-gold text-navy font-medium px-8 py-4 rounded-full text-base hover:bg-gold/90 transition-colors"
           >
-            Define Your Rhythm
+            <T>Define Your Rhythm</T>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>

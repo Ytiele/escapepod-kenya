@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { T } from '@/components/i18n/T'
 
 const categories = ['Solo', 'Couples', 'Family', 'Adventure', 'Cultural']
 
@@ -28,11 +29,11 @@ export default function CategoriesSelect({ current, onChange }: Props) {
         className="w-full appearance-none bg-navy border border-white/20 rounded-xl px-4 py-2.5 pr-9 text-white text-sm focus:outline-none focus:border-gold cursor-pointer"
       >
         <option value="" style={{ background: '#011627', color: '#ffffff' }}>
-          All
+          <T>All</T>
         </option>
         {categories.map((c) => (
           <option key={c} value={c} style={{ background: '#011627', color: '#ffffff' }}>
-            {c}
+            <T>{c}</T>
           </option>
         ))}
       </select>

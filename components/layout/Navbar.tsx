@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { T } from '@/components/i18n/T'
 
 const links = [
   { label: 'Home', href: '/' },
@@ -29,7 +30,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-9 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled || menuOpen ? 'bg-navy shadow-lg' : 'bg-transparent'
       }`}
     >
@@ -56,7 +57,7 @@ export default function Navbar() {
                   : 'text-cream/80 hover:text-cream'
               }`}
             >
-              {link.label}
+              <T>{link.label}</T>
             </Link>
           ))}
         </nav>
@@ -66,7 +67,7 @@ export default function Navbar() {
             href="/engine"
             className="bg-gold text-navy text-sm font-medium px-5 py-2.5 rounded-full hover:bg-gold/90 transition-colors"
           >
-            Design Your Experience
+            <T>Design Your Experience</T>
           </Link>
         </div>
 
@@ -94,14 +95,14 @@ export default function Navbar() {
                   pathname === link.href ? 'text-gold' : 'text-cream/80'
                 }`}
               >
-                {link.label}
+                <T>{link.label}</T>
               </Link>
             ))}
             <Link
               href="/engine"
               className="mt-2 bg-gold text-navy text-sm font-medium px-5 py-3 rounded-full text-center"
             >
-              Design Your Experience
+              <T>Design Your Experience</T>
             </Link>
           </nav>
         </div>

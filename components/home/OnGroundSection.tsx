@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear, ease } from '@/lib/motion'
+import { T, useTranslated } from '@/components/i18n/T'
 
 // For fields that mount conditionally (after the parent's whileInView has
 // already resolved) — `variants` alone won't animate them in, since they
@@ -37,19 +38,20 @@ const selectCls = 'w-full bg-sand border border-navy/20 rounded-xl px-4 py-3 tex
 // ── Success / error feedback, shared by both forms ─────────────────────────
 
 function FormFeedback({ status, errorMessage, onReset }: { status: FormStatus; errorMessage: string; onReset: () => void }) {
+  const translatedError = useTranslated(errorMessage)
   if (status === 'success') {
     return (
       <div className="bg-gold/10 border border-gold/30 rounded-xl px-5 py-4 text-center">
-        <p className="text-navy font-medium text-sm">Request sent.</p>
-        <p className="text-charcoal/60 text-xs mt-1">We&apos;ll be in touch shortly.</p>
+        <p className="text-navy font-medium text-sm"><T>Request sent.</T></p>
+        <p className="text-charcoal/60 text-xs mt-1"><T>We&apos;ll be in touch shortly.</T></p>
         <button onClick={onReset} className="mt-3 text-xs text-gold font-medium hover:underline">
-          Send another request
+          <T>Send another request</T>
         </button>
       </div>
     )
   }
   if (status === 'error') {
-    return <p className="text-xs text-red-600">{errorMessage}</p>
+    return <p className="text-xs text-red-600">{translatedError}</p>
   }
   return null
 }
@@ -64,6 +66,11 @@ function GuideForm() {
   const [otherDescription, setOtherDescription] = useState('')
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  const namePlaceholder = useTranslated('Your Name')
+  const emailPlaceholder = useTranslated('Email Address')
+  const phonePlaceholder = useTranslated('Phone / WhatsApp')
+  const otherPlaceholder = useTranslated('Describe the kind of guide you need')
 
   function reset() {
     setName(''); setEmail(''); setPhone(''); setGuideType(''); setOtherDescription('')
@@ -98,17 +105,17 @@ function GuideForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
       <motion.input {...revealIn}
-        type="text" placeholder="Your Name" required disabled={isSubmitting}
+        type="text" placeholder={namePlaceholder} required disabled={isSubmitting}
         value={name} onChange={(e) => setName(e.target.value)}
         className={inputCls}
       />
       <motion.input {...revealIn}
-        type="email" placeholder="Email Address" required disabled={isSubmitting}
+        type="email" placeholder={emailPlaceholder} required disabled={isSubmitting}
         value={email} onChange={(e) => setEmail(e.target.value)}
         className={inputCls}
       />
       <motion.input {...revealIn}
-        type="tel" placeholder="Phone / WhatsApp" disabled={isSubmitting}
+        type="tel" placeholder={phonePlaceholder} disabled={isSubmitting}
         value={phone} onChange={(e) => setPhone(e.target.value)}
         className={inputCls}
       />
@@ -116,17 +123,17 @@ function GuideForm() {
         value={guideType} onChange={(e) => setGuideType(e.target.value)}
         className={selectCls}
       >
-        <option value="">Type of Guide Needed</option>
-        <option>Wildlife Photography</option>
-        <option>Cultural Heritage</option>
-        <option>Multi-Day Expedition</option>
-        <option>Birding Specialist</option>
-        <option>Other</option>
+        <option value=""><T>Type of Guide Needed</T></option>
+        <option value="Wildlife Photography"><T>Wildlife Photography</T></option>
+        <option value="Cultural Heritage"><T>Cultural Heritage</T></option>
+        <option value="Multi-Day Expedition"><T>Multi-Day Expedition</T></option>
+        <option value="Birding Specialist"><T>Birding Specialist</T></option>
+        <option value="Other"><T>Other</T></option>
       </motion.select>
 
       {guideType === 'Other' && (
         <motion.textarea {...revealIn}
-          placeholder="Describe the kind of guide you need" required disabled={isSubmitting}
+          placeholder={otherPlaceholder} required disabled={isSubmitting}
           value={otherDescription} onChange={(e) => setOtherDescription(e.target.value)}
           rows={3}
           className={`${inputCls} resize-none`}
@@ -138,7 +145,7 @@ function GuideForm() {
         disabled={isSubmitting}
         className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? 'Sending…' : 'Request a Private Guide'}
+        {isSubmitting ? <T>Sending…</T> : <T>Request a Private Guide</T>}
       </motion.button>
 
       {status === 'error' && <FormFeedback status={status} errorMessage={errorMessage} onReset={reset} />}
@@ -158,6 +165,12 @@ function TransportForm() {
   const [dropoffLocation, setDropoffLocation] = useState('')
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  const namePlaceholder = useTranslated('Your Name')
+  const emailPlaceholder = useTranslated('Email Address')
+  const pickupLocationPlaceholder = useTranslated('Pickup Location')
+  const pickupTimePlaceholder = useTranslated('Pickup Time')
+  const dropoffLocationPlaceholder = useTranslated('Drop-off Location')
 
   function reset() {
     setCarType(''); setServiceType(null); setName(''); setEmail('')
@@ -197,8 +210,8 @@ function TransportForm() {
         onChange={(e) => { setCarType(e.target.value); setServiceType(null) }}
         className={selectCls}
       >
-        <option value="">Type of Car</option>
-        {CAR_TYPES.map((t) => <option key={t}>{t}</option>)}
+        <option value=""><T>Type of Car</T></option>
+        {CAR_TYPES.map((t) => <option key={t} value={t}><T>{t}</T></option>)}
       </motion.select>
 
       {carType && (
@@ -213,7 +226,7 @@ function TransportForm() {
                 serviceType === opt ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
               }`}
             >
-              {opt === 'rent' ? 'Rent a Car' : 'Hire a Taxi'}
+              {opt === 'rent' ? <T>Rent a Car</T> : <T>Hire a Taxi</T>}
             </button>
           ))}
         </motion.div>
@@ -222,12 +235,12 @@ function TransportForm() {
       {serviceType && (
         <>
           <motion.input {...revealIn}
-            type="text" placeholder="Your Name" required disabled={isSubmitting}
+            type="text" placeholder={namePlaceholder} required disabled={isSubmitting}
             value={name} onChange={(e) => setName(e.target.value)}
             className={inputCls}
           />
           <motion.input {...revealIn}
-            type="email" placeholder="Email Address" required disabled={isSubmitting}
+            type="email" placeholder={emailPlaceholder} required disabled={isSubmitting}
             value={email} onChange={(e) => setEmail(e.target.value)}
             className={inputCls}
           />
@@ -235,17 +248,17 @@ function TransportForm() {
           {serviceType === 'taxi' && (
             <>
               <motion.input {...revealIn}
-                type="text" placeholder="Pickup Location" required disabled={isSubmitting}
+                type="text" placeholder={pickupLocationPlaceholder} required disabled={isSubmitting}
                 value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)}
                 className={inputCls}
               />
               <motion.input {...revealIn}
-                type="datetime-local" placeholder="Pickup Time" required disabled={isSubmitting}
+                type="datetime-local" placeholder={pickupTimePlaceholder} required disabled={isSubmitting}
                 value={pickupTime} onChange={(e) => setPickupTime(e.target.value)}
                 className={inputCls}
               />
               <motion.input {...revealIn}
-                type="text" placeholder="Drop-off Location" required disabled={isSubmitting}
+                type="text" placeholder={dropoffLocationPlaceholder} required disabled={isSubmitting}
                 value={dropoffLocation} onChange={(e) => setDropoffLocation(e.target.value)}
                 className={inputCls}
               />
@@ -257,7 +270,7 @@ function TransportForm() {
             disabled={isSubmitting}
             className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 transition-colors text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Sending…' : 'Request Transport'}
+            {isSubmitting ? <T>Sending…</T> : <T>Request Transport</T>}
           </motion.button>
         </>
       )}
@@ -272,6 +285,7 @@ function TransportForm() {
 export default function OnGroundSection() {
   const [activePanel, setActivePanel] = useState<'guide' | 'transport'>('guide')
   const current = panels[activePanel]
+  const currentTitle = useTranslated(current.title)
 
   return (
     <section className="bg-sand py-24 lg:py-32">
@@ -289,13 +303,13 @@ export default function OnGroundSection() {
             variants={scaleIn}
             className="text-gold text-xs font-medium tracking-[0.2em] uppercase bg-gold/10 px-3 py-1.5 rounded-full inline-block"
           >
-            Already in Kenya?
+            <T>Already in Kenya?</T>
           </motion.span>
           <motion.h2 variants={slideUp} className="mt-6 text-navy text-4xl md:text-5xl font-medium tracking-tight">
-            On-The-Ground Access
+            <T>On-The-Ground Access</T>
           </motion.h2>
           <motion.p variants={fadeUp} className="mt-4 text-charcoal/60 text-lg max-w-xl mx-auto">
-            Let us refine your stay. Immediate, vetted access to Kenya&apos;s leading guides and private transport network.
+            <T>Let us refine your stay. Immediate, vetted access to Kenya&apos;s leading guides and private transport network.</T>
           </motion.p>
         </motion.div>
 
@@ -313,7 +327,7 @@ export default function OnGroundSection() {
               activePanel === 'guide' ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
             }`}
           >
-            Request a Private Guide
+            <T>Request a Private Guide</T>
           </button>
           <button
             onClick={() => setActivePanel('transport')}
@@ -321,7 +335,7 @@ export default function OnGroundSection() {
               activePanel === 'transport' ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:text-navy'
             }`}
           >
-            Request Trusted Transport
+            <T>Request Trusted Transport</T>
           </button>
         </motion.div>
 
@@ -337,7 +351,7 @@ export default function OnGroundSection() {
           <div className="relative min-h-72 lg:min-h-full transition-all duration-700">
             <Image
               src={current.image}
-              alt={current.title}
+              alt={currentTitle}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               loading="lazy"
@@ -347,7 +361,7 @@ export default function OnGroundSection() {
             <div className="absolute inset-0 bg-linear-to-t from-navy/60 via-navy/10 to-transparent" />
             <div className="absolute bottom-6 left-6">
               <span className="text-cream/70 text-[10px] font-medium tracking-[0.18em] uppercase">
-                {activePanel === 'guide' ? 'Your guide awaits' : 'Your vehicle awaits'}
+                {activePanel === 'guide' ? <T>Your guide awaits</T> : <T>Your vehicle awaits</T>}
               </span>
             </div>
           </div>
@@ -360,8 +374,8 @@ export default function OnGroundSection() {
             whileInView="visible"
             viewport={viewportNear}
           >
-            <motion.h3 variants={fadeUpSoft} className="text-navy text-xl font-medium mb-2">{current.title}</motion.h3>
-            <motion.p variants={fadeUpSoft} className="text-charcoal/60 text-sm mb-7 leading-relaxed">{current.description}</motion.p>
+            <motion.h3 variants={fadeUpSoft} className="text-navy text-xl font-medium mb-2"><T>{current.title}</T></motion.h3>
+            <motion.p variants={fadeUpSoft} className="text-charcoal/60 text-sm mb-7 leading-relaxed"><T>{current.description}</T></motion.p>
 
             {/* Both forms stay mounted the whole time — only visibility
                 toggles. This is what lets a "Request sent" state survive

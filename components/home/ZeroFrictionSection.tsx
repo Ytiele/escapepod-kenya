@@ -1,6 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import { stagger, fadeUp, slideUp, viewport } from '@/lib/motion'
+import { T } from '@/components/i18n/T'
 
 const features = [
   {
@@ -49,14 +50,14 @@ export default function ZeroFrictionSection() {
           viewport={viewport}
         >
           <motion.span variants={fadeUp} className="text-gold text-xs font-medium tracking-[0.2em] uppercase">
-            Our Standard
+            <T>Our Standard</T>
           </motion.span>
           <motion.h2 variants={slideUp} className="mt-4 text-navy text-4xl md:text-5xl font-medium tracking-tight">
-            The Luxury of Zero Friction
+            <T>The Luxury of Zero Friction</T>
           </motion.h2>
           <motion.p variants={fadeUp} className="mt-4 text-navy/50 text-lg max-w-2xl mx-auto">
-            We believe the greatest luxury is the absence of concern. Our operational standard is
-            absolute invisibility.
+            <T>We believe the greatest luxury is the absence of concern. Our operational standard is
+            absolute invisibility.</T>
           </motion.p>
         </motion.div>
 
@@ -76,8 +77,8 @@ export default function ZeroFrictionSection() {
               className="bg-navy/5 border border-navy/10 rounded-2xl p-8 hover:border-gold/30 transition-colors"
             >
               <div className="text-gold mb-5">{f.icon}</div>
-              <h3 className="text-navy text-xl font-medium mb-3">{f.title}</h3>
-              <p className="text-navy/50 text-sm leading-relaxed">{f.description}</p>
+              <h3 className="text-navy text-xl font-medium mb-3"><T>{f.title}</T></h3>
+              <p className="text-navy/50 text-sm leading-relaxed"><T>{f.description}</T></p>
             </motion.div>
           ))}
         </div>

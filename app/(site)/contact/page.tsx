@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import BookingForm from '@/components/contact/BookingForm'
+import { T } from '@/components/i18n/T'
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -18,9 +19,9 @@ export default function ContactPage() {
           }}
         />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
-          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">Get In Touch</span>
+          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Get In Touch</T></span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl font-medium leading-[1.1] tracking-tight max-w-2xl">
-            Contact Us
+            <T>Contact Us</T>
           </h1>
         </div>
       </section>
@@ -30,15 +31,15 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
               <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">
-                Schedule a Consultation
+                <T>Schedule a Consultation</T>
               </span>
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
-                A 20-minute, zero-commitment conversation.
+                <T>A 20-minute, zero-commitment conversation.</T>
               </h2>
               <p className="mt-6 text-charcoal/70 text-base leading-relaxed">
-                Tell us what you want to achieve, and we will immediately outline the geography,
+                <T>Tell us what you want to achieve, and we will immediately outline the geography,
                 logistics, and pacing required to make it happen. Via Google Meet — at a time that
-                suits you entirely.
+                suits you entirely.</T>
               </p>
 
               <BookingForm />
@@ -47,11 +48,11 @@ export default function ContactPage() {
             <div className="space-y-8">
               <div>
                 <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">
-                  Direct Access
+                  <T>Direct Access</T>
                 </span>
                 <p className="mt-3 text-charcoal/60 text-sm leading-relaxed">
-                  For immediate inquiries, partner requests, or travelers already in Kenya requiring
-                  trusted on-the-ground support.
+                  <T>For immediate inquiries, partner requests, or travelers already in Kenya requiring
+                  trusted on-the-ground support.</T>
                 </p>
               </div>
 
@@ -68,7 +69,7 @@ export default function ContactPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">WhatsApp &amp; Voice</p>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider"><T>WhatsApp &amp; Voice</T></p>
                     <p className="text-navy font-medium">+254 117 335 858</p>
                   </div>
                 </a>
@@ -83,7 +84,7 @@ export default function ContactPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Private Email</p>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider"><T>Private Email</T></p>
                     <p className="text-navy font-medium">sales@escapepodkenya.com</p>
                   </div>
                 </a>
@@ -96,9 +97,9 @@ export default function ContactPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Office</p>
-                    <p className="text-navy font-medium">Zamani Business Park, Nairobi</p>
-                    <p className="text-charcoal/50 text-sm">Mon – Friday</p>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider"><T>Office</T></p>
+                    <p className="text-navy font-medium"><T>Zamani Business Park, Nairobi</T></p>
+                    <p className="text-charcoal/50 text-sm"><T>Mon – Friday</T></p>
                   </div>
                 </div>
               </div>

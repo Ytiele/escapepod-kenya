@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { signIn, signUp, getCurrentUser } from '@/lib/auth'
+import { T, useTranslated } from '@/components/i18n/T'
 
 type Mode = 'signin' | 'signup'
 
@@ -17,6 +18,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Pre-translated validation messages (fixed set of literals — see setError calls below)
+  const emailRequiredMsg = useTranslated('Please enter your email address.')
+  const passwordRequiredMsg = useTranslated('Please enter your password.')
+  const nameRequiredMsg = useTranslated('Please enter your name.')
+  const passwordLengthMsg = useTranslated('Password must be at least 6 characters.')
+  const fullNamePlaceholder = useTranslated('Full Name')
+  const emailPlaceholder = useTranslated('Email Address')
+  const passwordSignupPlaceholder = useTranslated('Password (min 6 chars)')
+  const passwordSigninPlaceholder = useTranslated('Password')
 
   // Already logged in — go straight to engine
   useEffect(() => {
@@ -34,12 +45,12 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
-    if (!email.trim()) { setError('Please enter your email address.'); return }
-    if (!password) { setError('Please enter your password.'); return }
+    if (!email.trim()) { setError(emailRequiredMsg); return }
+    if (!password) { setError(passwordRequiredMsg); return }
 
     if (mode === 'signup') {
-      if (!name.trim()) { setError('Please enter your name.'); return }
-      if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
+      if (!name.trim()) { setError(nameRequiredMsg); return }
+      if (password.length < 6) { setError(passwordLengthMsg); return }
     }
 
     setLoading(true)
@@ -81,13 +92,13 @@ export default function LoginPage() {
           </Link>
           <div>
             <p className="text-gold/70 text-xs font-medium tracking-[0.25em] uppercase mb-5">
-              The Luxury of Zero Friction
+              <T>The Luxury of Zero Friction</T>
             </p>
             <h2 className="text-cream text-4xl font-medium leading-[1.2] mb-6">
-              Your journey starts<br />with a single sentence.
+              <T>Your journey starts with a single sentence.</T>
             </h2>
             <p className="text-cream/40 text-sm leading-relaxed max-w-xs">
-              Tell us what you&rsquo;re imagining. Our curation engine does the rest.
+              <T>Tell us what you&rsquo;re imagining. Our curation engine does the rest.</T>
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -96,7 +107,7 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
               </svg>
             </div>
-            <p className="text-cream/30 text-xs">Powered by EscapePod Intelligence</p>
+            <p className="text-cream/30 text-xs"><T>Powered by EscapePod Intelligence</T></p>
           </div>
         </div>
       </div>
@@ -131,18 +142,18 @@ export default function LoginPage() {
                     : 'text-cream/50 hover:text-cream'
                 }`}
               >
-                {m === 'signin' ? 'Sign In' : 'Create Account'}
+                <T>{m === 'signin' ? 'Sign In' : 'Create Account'}</T>
               </button>
             ))}
           </div>
 
           <h1 className="text-cream text-2xl font-medium mb-1">
-            {mode === 'signin' ? 'Welcome back' : 'Start your journey'}
+            <T>{mode === 'signin' ? 'Welcome back' : 'Start your journey'}</T>
           </h1>
           <p className="text-cream/40 text-sm mb-8">
-            {mode === 'signin'
+            <T>{mode === 'signin'
               ? 'Sign in to continue to EscapePod'
-              : 'Create an account to save and curate your trips'}
+              : 'Create an account to save and curate your trips'}</T>
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -152,7 +163,7 @@ export default function LoginPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Full Name"
+                  placeholder={fullNamePlaceholder}
                   autoComplete="name"
                   className="w-full bg-cream/5 border border-cream/15 rounded-xl px-4 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold/60 transition-colors"
                 />
@@ -164,7 +175,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
+                placeholder={emailPlaceholder}
                 autoComplete="email"
                 className="w-full bg-cream/5 border border-cream/15 rounded-xl px-4 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold/60 transition-colors"
               />
@@ -175,7 +186,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'signup' ? 'Password (min 6 chars)' : 'Password'}
+                placeholder={mode === 'signup' ? passwordSignupPlaceholder : passwordSigninPlaceholder}
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 className="w-full bg-cream/5 border border-cream/15 rounded-xl px-4 py-3.5 pr-12 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold/60 transition-colors"
               />
@@ -200,7 +211,7 @@ export default function LoginPage() {
             {mode === 'signin' && (
               <div className="flex justify-end">
                 <button type="button" className="text-gold/70 text-xs hover:text-gold transition-colors">
-                  Forgot password?
+                  <T>Forgot password?</T>
                 </button>
               </div>
             )}
@@ -219,10 +230,10 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
-                  {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
+                  <T>{mode === 'signin' ? 'Signing in...' : 'Creating account...'}</T>
                 </>
               ) : (
-                mode === 'signin' ? 'Sign In' : 'Create Account'
+                <T>{mode === 'signin' ? 'Sign In' : 'Create Account'}</T>
               )}
             </button>
           </form>
@@ -232,7 +243,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-cream/10" />
             </div>
             <div className="relative flex justify-center text-xs text-cream/30 px-4">
-              <span className="bg-navy px-4">or continue with</span>
+              <span className="bg-navy px-4"><T>or continue with</T></span>
             </div>
           </div>
 
@@ -246,14 +257,14 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Continue with Google
+            <T>Continue with Google</T>
           </button>
 
           <p className="mt-6 text-center text-cream/30 text-xs">
-            By continuing, you agree to our{' '}
-            <Link href="/terms" className="text-gold/60 hover:text-gold transition-colors">Terms</Link>
+            <T>By continuing, you agree to our</T>{' '}
+            <Link href="/terms" className="text-gold/60 hover:text-gold transition-colors"><T>Terms</T></Link>
             {' & '}
-            <Link href="/privacy" className="text-gold/60 hover:text-gold transition-colors">Privacy Policy</Link>
+            <Link href="/privacy" className="text-gold/60 hover:text-gold transition-colors"><T>Privacy Policy</T></Link>
           </p>
         </div>
       </div>

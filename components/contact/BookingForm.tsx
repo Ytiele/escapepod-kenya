@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { T, useTranslated } from '@/components/i18n/T'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -11,6 +12,8 @@ export default function BookingForm() {
   const [time, setTime] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const translatedError = useTranslated(errorMessage)
+  const namePlaceholder = useTranslated('Your full name')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,15 +46,15 @@ export default function BookingForm() {
   if (status === 'success') {
     return (
       <div className="mt-8 bg-gold/10 border border-gold/30 rounded-2xl px-8 py-6">
-        <p className="text-navy font-medium text-lg">Request sent.</p>
+        <p className="text-navy font-medium text-lg"><T>Request sent.</T></p>
         <p className="text-charcoal/60 text-sm mt-1">
-          We&apos;ve received your booking request and will confirm your consultation time by email shortly.
+          <T>We&apos;ve received your booking request and will confirm your consultation time by email shortly.</T>
         </p>
         <button
           onClick={() => setStatus('idle')}
           className="mt-4 text-sm text-gold font-medium hover:underline"
         >
-          Book another time
+          <T>Book another time</T>
         </button>
       </div>
     )
@@ -61,7 +64,7 @@ export default function BookingForm() {
     <form onSubmit={handleSubmit} className="mt-8 space-y-4 max-w-md">
       <div>
         <label htmlFor="name" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-          Name
+          <T>Name</T>
         </label>
         <input
           id="name"
@@ -69,14 +72,14 @@ export default function BookingForm() {
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your full name"
+          placeholder={namePlaceholder}
           className="w-full bg-navy/5 border border-navy/10 rounded-full px-6 py-3.5 text-navy placeholder-charcoal/30 text-sm focus:outline-none focus:border-gold transition-colors"
         />
       </div>
 
       <div>
         <label htmlFor="email" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-          Email
+          <T>Email</T>
         </label>
         <input
           id="email"
@@ -92,7 +95,7 @@ export default function BookingForm() {
       <div className="flex gap-4">
         <div className="flex-1">
           <label htmlFor="date" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-            Date
+            <T>Date</T>
           </label>
           <input
             id="date"
@@ -106,7 +109,7 @@ export default function BookingForm() {
         </div>
         <div className="flex-1">
           <label htmlFor="time" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-            Time
+            <T>Time</T>
           </label>
           <input
             id="time"
@@ -120,7 +123,7 @@ export default function BookingForm() {
       </div>
 
       {status === 'error' && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-sm text-red-600">{translatedError}</p>
       )}
 
       <button
@@ -128,14 +131,14 @@ export default function BookingForm() {
         disabled={status === 'submitting'}
         className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-8 py-4 rounded-full text-base hover:bg-gold/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {status === 'submitting' ? 'Sending…' : 'Book A Time'}
+        {status === 'submitting' ? <T>Sending…</T> : <T>Book A Time</T>}
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
         </svg>
       </button>
 
       <p className="text-charcoal/40 text-xs pt-1">
-        We&apos;ll confirm your requested time by email — this is not an automated calendar booking.
+        <T>We&apos;ll confirm your requested time by email — this is not an automated calendar booking.</T>
       </p>
     </form>
   )

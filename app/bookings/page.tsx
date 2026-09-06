@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import type { Booking } from '@/lib/types'
 import { getCurrentUser } from '@/lib/auth'
 import { formatDateRange, formatUsd, paymentStatus, PAYMENT_STATUS_LABELS } from '@/lib/bookings'
+import { T, useTranslated } from '@/components/i18n/T'
 
 const STATUS_STYLES: Record<string, string> = {
   unpaid: 'bg-navy/8 text-navy/60',
@@ -17,6 +18,9 @@ const STATUS_STYLES: Record<string, string> = {
 function BookingCard({ booking }: { booking: Booking }) {
   const status = paymentStatus(booking)
   const balance = booking.total_price_usd - booking.amount_paid_usd
+  const dayLabel = useTranslated('Day')
+  const daysLabel = useTranslated('Days')
+  const travelLabel = useTranslated('Travel:')
 
   return (
     <div className="bg-white rounded-3xl border border-navy/8 shadow-sm p-6 flex flex-col gap-4">
@@ -31,21 +35,21 @@ function BookingCard({ booking }: { booking: Booking }) {
       </div>
 
       <div className="text-[13.5px] text-charcoal/60">
-        <p>{booking.duration_days ? `${booking.duration_days} ${booking.duration_days === 1 ? 'Day' : 'Days'} · ` : ''}{booking.destination}</p>
-        <p>Travel: {formatDateRange(booking.start_date, booking.end_date)}</p>
+        <p>{booking.duration_days ? `${booking.duration_days} ${booking.duration_days === 1 ? dayLabel : daysLabel} · ` : ''}{booking.destination}</p>
+        <p>{travelLabel} {formatDateRange(booking.start_date, booking.end_date)}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-2 bg-navy/5 rounded-xl px-4 py-3">
         <div>
-          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40">Total</p>
+          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40"><T>Total</T></p>
           <p className="text-navy font-semibold text-[15px]">{formatUsd(booking.total_price_usd)}</p>
         </div>
         <div>
-          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40">Paid</p>
+          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40"><T>Paid</T></p>
           <p className="text-navy font-semibold text-[15px]">{formatUsd(booking.amount_paid_usd)}</p>
         </div>
         <div>
-          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40">Balance</p>
+          <p className="text-[10.5px] uppercase tracking-wide text-charcoal/40"><T>Balance</T></p>
           <p className="text-navy font-semibold text-[15px]">{formatUsd(balance)}</p>
         </div>
       </div>
@@ -54,7 +58,7 @@ function BookingCard({ booking }: { booking: Booking }) {
         href={`/bookings/${booking.reference}`}
         className="text-center bg-gold text-navy font-semibold py-3 rounded-full text-sm hover:bg-gold/90 transition-colors"
       >
-        View Booking
+        <T>View Booking</T>
       </Link>
     </div>
   )
@@ -64,6 +68,7 @@ export default function BookingsPage() {
   const router = useRouter()
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [error, setError] = useState('')
+  const loadErrorMsg = useTranslated('Could not load your bookings — please try again.')
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -71,9 +76,9 @@ export default function BookingsPage() {
       fetch('/api/bookings')
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((data) => setBookings(Array.isArray(data.bookings) ? data.bookings : []))
-        .catch(() => setError('Could not load your bookings — please try again.'))
+        .catch(() => setError(loadErrorMsg))
     })
-  }, [router])
+  }, [router, loadErrorMsg])
 
   return (
     <div className="min-h-screen bg-cream text-charcoal">
@@ -83,30 +88,30 @@ export default function BookingsPage() {
             <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
           </Link>
           <Link href="/engine" className="text-sm text-cream/60 hover:text-cream transition-colors whitespace-nowrap">
-            <span className="hidden sm:inline">← Back to Curation Engine</span>
-            <span className="sm:hidden">← Back</span>
+            <span className="hidden sm:inline">← <T>Back to Curation Engine</T></span>
+            <span className="sm:hidden">← <T>Back</T></span>
           </Link>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24">
-        <h1 className="text-[11px] font-bold uppercase tracking-widest text-navy/40 mb-1">My Bookings</h1>
-        <p className="text-navy text-2xl sm:text-3xl font-medium mb-8">Your trips with EscapePod</p>
+        <h1 className="text-[11px] font-bold uppercase tracking-widest text-navy/40 mb-1"><T>My Bookings</T></h1>
+        <p className="text-navy text-2xl sm:text-3xl font-medium mb-8"><T>Your trips with EscapePod</T></p>
 
         {error && <p className="text-sm text-red-600 mb-6">{error}</p>}
 
         {bookings === null && !error && (
-          <p className="text-sm text-charcoal/50">Loading your bookings…</p>
+          <p className="text-sm text-charcoal/50"><T>Loading your bookings…</T></p>
         )}
 
         {bookings && bookings.length === 0 && (
           <div className="bg-white rounded-3xl border border-navy/8 p-10 text-center flex flex-col items-center gap-3">
-            <p className="text-navy font-medium">No bookings yet</p>
+            <p className="text-navy font-medium"><T>No bookings yet</T></p>
             <p className="text-sm text-charcoal/50 max-w-sm">
-              When you book a journey through the Curation Engine, it&apos;ll show up here with its reference, dates, and payment status.
+              <T>When you book a journey through the Curation Engine, it&apos;ll show up here with its reference, dates, and payment status.</T>
             </p>
             <Link href="/engine" className="mt-2 bg-gold text-navy font-semibold px-6 py-3 rounded-full text-sm hover:bg-gold/90 transition-colors">
-              Start planning a trip
+              <T>Start planning a trip</T>
             </Link>
           </div>
         )}

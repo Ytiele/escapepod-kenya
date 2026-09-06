@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { stagger, fadeUp, slideUp, scaleIn, scaleFade, viewport } from '@/lib/motion'
+import { T, useTranslated } from '@/components/i18n/T'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -10,6 +11,8 @@ export default function NewsletterSection() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const translatedError = useTranslated(errorMessage)
+  const emailPlaceholder = useTranslated('Your email address')
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -45,14 +48,14 @@ export default function NewsletterSection() {
           viewport={viewport}
         >
           <motion.span variants={fadeUp} className="text-gold text-xs font-medium tracking-[0.2em] uppercase">
-            The Inner Circle
+            <T>The Inner Circle</T>
           </motion.span>
           <motion.h2 variants={slideUp} className="mt-4 text-cream text-4xl md:text-5xl font-medium tracking-tight leading-[1.1]">
-            Join our private editorial dispatch.
+            <T>Join our private editorial dispatch.</T>
           </motion.h2>
           <motion.p variants={fadeUp} className="mt-5 text-cream/50 text-lg leading-relaxed">
-            Receive rare destinations, unreleased itineraries, and travel philosophy delivered
-            elegantly to your inbox.
+            <T>Receive rare destinations, unreleased itineraries, and travel philosophy delivered
+            elegantly to your inbox.</T>
           </motion.p>
         </motion.div>
 
@@ -64,9 +67,9 @@ export default function NewsletterSection() {
             animate="visible"
             className="mt-10 bg-gold/10 border border-gold/30 rounded-2xl px-8 py-6"
           >
-            <p className="text-gold font-medium text-lg">You&apos;re on the list.</p>
+            <p className="text-gold font-medium text-lg"><T>You&apos;re on the list.</T></p>
             <p className="text-cream/60 text-sm mt-1">
-              Expect something worth reading — never noise.
+              <T>Expect something worth reading — never noise.</T>
             </p>
           </motion.div>
         ) : (
@@ -84,7 +87,7 @@ export default function NewsletterSection() {
               disabled={isSubmitting}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your email address"
+              placeholder={emailPlaceholder}
               className="flex-1 bg-cream/10 border border-cream/20 rounded-full px-6 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold transition-colors disabled:opacity-60"
             />
             <button
@@ -92,13 +95,13 @@ export default function NewsletterSection() {
               disabled={isSubmitting}
               className="bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Sending…' : 'Subscribe'}
+              {isSubmitting ? <T>Sending…</T> : <T>Subscribe</T>}
             </button>
           </motion.form>
         )}
 
         {status === 'error' && (
-          <p className="mt-3 text-sm text-red-400">{errorMessage}</p>
+          <p className="mt-3 text-sm text-red-400">{translatedError}</p>
         )}
 
         <motion.p
@@ -108,7 +111,7 @@ export default function NewsletterSection() {
           whileInView="visible"
           viewport={viewport}
         >
-          We respect your privacy. Unsubscribe at any time.
+          <T>We respect your privacy. Unsubscribe at any time.</T>
         </motion.p>
 
       </div>

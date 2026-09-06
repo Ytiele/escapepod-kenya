@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import type { JournalPost } from '@/lib/types'
 import { stagger, fromLeft, fromRight, slideUp, scaleFade, viewport } from '@/lib/motion'
+import { T } from '@/components/i18n/T'
 
 interface Props {
   posts: JournalPost[]
@@ -30,10 +31,10 @@ export default function JournalsSection({ posts }: Props) {
         >
           <div>
             <motion.span variants={fromLeft} className="text-gold text-xs font-medium tracking-[0.2em] uppercase">
-              The Journals
+              <T>The Journals</T>
             </motion.span>
             <motion.h2 variants={slideUp} className="mt-4 text-navy text-4xl md:text-5xl font-medium tracking-tight leading-[1.1]">
-              Immersive stories from<br className="hidden md:block" /> the edge of Kenya.
+              <T>Immersive stories from the edge of Kenya.</T>
             </motion.h2>
           </div>
           <motion.div variants={fromRight}>
@@ -41,7 +42,7 @@ export default function JournalsSection({ posts }: Props) {
               href="/stories"
               className="text-sm font-medium text-gold flex items-center gap-2 hover:gap-3 transition-all group shrink-0"
             >
-              Read all stories
+              <T>Read all stories</T>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -103,9 +104,9 @@ export default function JournalsSection({ posts }: Props) {
           whileInView="visible"
           viewport={viewport}
         >
-          Read the accounts or{' '}
+          <T>Read the accounts or</T>{' '}
           <Link href="/engine" className="text-gold underline underline-offset-4 hover:text-navy transition-colors">
-            build them into your own journey.
+            <T>build them into your own journey.</T>
           </Link>
         </motion.p>
 

@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { stagger, staggerSlow, fromLeft, slideUp, fadeUp, scaleIn, viewport } from '@/lib/motion'
+import { T } from '@/components/i18n/T'
 
 export default function PhilosophySection() {
   return (
@@ -20,14 +21,14 @@ export default function PhilosophySection() {
               variants={fromLeft}
               className="text-gold text-xs font-medium tracking-[0.2em] uppercase"
             >
-              The Process
+              <T>The Process</T>
             </motion.span>
             <motion.h2
               variants={slideUp}
               className="mt-4 text-navy text-4xl md:text-5xl font-medium leading-[1.15] tracking-tight"
             >
-              Tell us how you want to feel.{' '}
-              <span className="text-gold">We will orchestrate the rest.</span>
+              <T>Tell us how you want to feel.</T>{' '}
+              <span className="text-gold"><T>We will orchestrate the rest.</T></span>
             </motion.h2>
           </motion.div>
 
@@ -40,25 +41,25 @@ export default function PhilosophySection() {
             viewport={viewport}
           >
             <motion.p variants={fadeUp} className="text-charcoal/70 text-lg leading-relaxed">
-              True luxury cannot be found in a static itinerary. It is built around your specific,
-              unspoken rhythm.
+              <T>True luxury cannot be found in a static itinerary. It is built around your specific,
+              unspoken rhythm.</T>
             </motion.p>
             <motion.p variants={fadeUp} className="text-charcoal/70 text-base leading-relaxed">
-              Whether you crave the absolute isolation of an off-grid conservancy, the effortless
+              <T>Whether you crave the absolute isolation of an off-grid conservancy, the effortless
               flow of a fully staffed coastal villa, or the shared thrill of an untamed landscape —
-              your ideal journey begins not with a destination, but with a state of mind.
+              your ideal journey begins not with a destination, but with a state of mind.</T>
             </motion.p>
             <motion.p variants={fadeUp} className="text-charcoal/70 text-base leading-relaxed">
-              Leave the logistics, the research, and the cognitive load behind. Give us a few
+              <T>Leave the logistics, the research, and the cognitive load behind. Give us a few
               intuitive cues and we will architect an entirely unrepeatable Kenyan escape designed
-              exclusively for you.
+              exclusively for you.</T>
             </motion.p>
             <motion.div variants={scaleIn} className="pt-4">
               <Link
                 href="/engine"
                 className="inline-flex items-center gap-3 bg-navy text-cream font-medium px-7 py-3.5 rounded-full text-sm hover:bg-navy/80 transition-colors"
               >
-                Begin The Curation
+                <T>Begin The Curation</T>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

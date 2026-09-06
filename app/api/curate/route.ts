@@ -7,6 +7,7 @@ import { resolveSession, setSessionCookies } from '@/lib/session';
 import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
 import { filterVerified } from '@/lib/catalogue';
 import { checkRateLimit, clip, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { isLocaleCode, localeName } from '@/lib/i18n/languages';
 
 // Hard caps on the incoming conversation, applied before anything is sent
 // to Anthropic. Without these, an authenticated user could send an
@@ -414,7 +415,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
 
-  let body: { messages?: unknown };
+  let body: { messages?: unknown; locale?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -425,6 +426,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid conversation payload.' }, { status: 400 });
   }
   const messages = body.messages;
+  const locale = isLocaleCode(body.locale) ? body.locale : 'en';
 
   // The traveler id is always the authenticated user's own id — never
   // whatever a client sends — so nobody can read or steer another
@@ -447,7 +449,9 @@ export async function POST(req: NextRequest) {
   // Only the traveler's literal first message, against a still-empty
   // profile, is eligible for the cache — see comment above normalizePrompt.
   const firstMessage = messages.length === 1 && messages[0]?.role === 'user' ? messages[0].content : null;
-  const isCacheableOpener = typeof firstMessage === 'string' && firstMessage.trim() && Object.keys(traveler.profile ?? {}).length === 0;
+  // Cached openers were generated in English — never serve one to a
+  // traveler who's asked for another language.
+  const isCacheableOpener = locale === 'en' && typeof firstMessage === 'string' && firstMessage.trim() && Object.keys(traveler.profile ?? {}).length === 0;
   const cacheKey = isCacheableOpener ? normalizePrompt(firstMessage as string) : null;
 
   if (cacheKey) {
@@ -495,7 +499,16 @@ export async function POST(req: NextRequest) {
 
   // Give Sonnet the profile Haiku already extracted, so it doesn't spend a
   // tool round-trip re-discovering it.
-  const systemWithProfile = `${SYSTEM_PROMPT}\n\n---\n\nCURRENT KNOWN TRAVELER PROFILE (already captured — do not re-ask for these):\n${JSON.stringify(traveler.profile ?? {})}`;
+  const languageInstruction =
+    locale === 'en'
+      ? ''
+      : `\n\n---\n\nLANGUAGE: Respond to the traveler entirely in ${localeName(locale)} — write it the way a fluent ` +
+        `native ${localeName(locale)} speaker naturally would, translating for meaning and tone rather than ` +
+        `word-for-word. This applies only to the conversational text you show the traveler. Any tool calls you ` +
+        `make, and every structured data field inside them (destination names, experience names, prices, ids), ` +
+        `must stay exactly as they appear in the catalogue — never translate those, since the app matches them by ` +
+        `exact string.`;
+  const systemWithProfile = `${SYSTEM_PROMPT}\n\n---\n\nCURRENT KNOWN TRAVELER PROFILE (already captured — do not re-ask for these):\n${JSON.stringify(traveler.profile ?? {})}${languageInstruction}`;
 
   // Agent loop: cap tool round-trips so a stuck loop can't run forever.
   // 8, not 5 — the CURATION ORDER instructions above deliberately add a

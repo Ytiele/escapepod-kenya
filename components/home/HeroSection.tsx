@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { T } from '@/components/i18n/T'
 
 const SLIDE_DURATION = 6000
 
@@ -111,7 +112,7 @@ export default function HeroSection() {
               key={active.tag}
               className="text-gold text-xs font-medium tracking-[0.2em] uppercase"
             >
-              {active.tag}
+              <T>{active.tag}</T>
             </span>
           </div>
 
@@ -120,7 +121,7 @@ export default function HeroSection() {
               key={`headline-${activeIndex}`}
               className="text-cream text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight mb-8 max-w-3xl whitespace-pre-line animate-fadeSlideUp"
             >
-              {active.headline}
+              <T>{active.headline}</T>
             </h1>
           </div>
 
@@ -129,14 +130,14 @@ export default function HeroSection() {
             className="text-cream/80 text-lg md:text-xl leading-relaxed max-w-xl mb-12 animate-fadeSlideUp"
             style={{ animationDelay: '80ms' }}
           >
-            {active.sub}
+            <T>{active.sub}</T>
           </p>
 
           <Link
             href="/engine"
             className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-8 py-4 rounded-full text-base hover:bg-gold/90 transition-colors w-fit group"
           >
-            Design Your Experience
+            <T>Design Your Experience</T>
             <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
@@ -167,8 +168,8 @@ export default function HeroSection() {
               <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
               <div className="relative z-10 p-4 h-full flex flex-col justify-end">
-                <p className="text-cream/60 text-[10px] font-medium mb-0.5">{t.cardLabel}</p>
-                <p className="text-cream text-sm font-medium leading-tight">{t.label}</p>
+                <p className="text-cream/60 text-[10px] font-medium mb-0.5"><T>{t.cardLabel}</T></p>
+                <p className="text-cream text-sm font-medium leading-tight"><T>{t.label}</T></p>
               </div>
 
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cream/10">

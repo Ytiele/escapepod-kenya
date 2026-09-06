@@ -8,6 +8,8 @@ import type { ChatMessage, Experience, CurateResponse } from '@/lib/types'
 import { getCurrentUser, signOut, type User } from '@/lib/auth'
 import { imageForDestination } from '@/lib/destinations'
 import PhotoCredit from '@/components/PhotoCredit'
+import { useLocale } from '@/components/i18n/LanguageContext'
+import { T, useTranslated } from '@/components/i18n/T'
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -319,6 +321,9 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
   exp: Experience; index: number; selected: boolean; isCompareAnchor: boolean; onView: () => void; onBook: () => void; delay: number
 }) {
   const img = imageForDestination(exp.destination)
+  const matchSuffix = useTranslated('% match')
+  const yourCurrentPickLabel = useTranslated('Your current pick')
+  const directionWord = useTranslated('Direction')
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
@@ -338,11 +343,11 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         )}
         {typeof exp.match_score === 'number' && (
           <span className="absolute top-3 right-3 text-[11px] font-bold px-2.5 py-1 rounded-full bg-navy/75 text-gold backdrop-blur-sm">
-            {exp.match_score}% match
+            {exp.match_score}{matchSuffix}
           </span>
         )}
         <span className="absolute bottom-2.5 left-3 text-cream/60 text-[9.5px] font-bold uppercase tracking-widest">
-          {isCompareAnchor ? 'Your current pick' : `Direction ${index + 1}`}
+          {isCompareAnchor ? yourCurrentPickLabel : `${directionWord} ${index + 1}`}
         </span>
         <PhotoCredit src={img} />
       </button>
@@ -359,7 +364,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
         <div className="min-h-16 mb-3 flex flex-col gap-1">
           {isTopTier(exp) && (
             <span className="self-start text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
-              Top Tier
+              <T>Top Tier</T>
             </span>
           )}
           {cardGlance(exp) && (
@@ -376,18 +381,18 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
             onClick={onView}
             className="w-full flex items-center justify-center gap-1 border-[3px] border-gold text-navy font-semibold text-[12.5px] px-4 py-2.5 rounded-full hover:bg-gold/10 transition-colors mb-3"
           >
-            See more details <span aria-hidden>→</span>
+            <T>See more details</T> <span aria-hidden>→</span>
           </button>
           <div className="flex items-center justify-between gap-2 pt-2 border-t border-navy/6">
             <div className="flex flex-col leading-tight">
-              <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide">Starting from</span>
+              <span className="text-[9.5px] text-charcoal/40 uppercase tracking-wide"><T>Starting from</T></span>
               <span className="text-gold font-bold text-[15px]">{priceLabel(exp)}</span>
             </div>
             <button
               onClick={onBook}
               className="shrink-0 flex items-center gap-1 bg-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
             >
-              Book Now <span aria-hidden>→</span>
+              <T>Book Now</T> <span aria-hidden>→</span>
             </button>
           </div>
         </div>
@@ -458,7 +463,7 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
         </form>
         {chips.length > 0 && (
           <div className="border-t border-navy/8 bg-navy/3 px-4 py-3 flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Suggested next</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35"><T>Suggested next</T></span>
             <div className="flex gap-2 flex-wrap">
               {chips.map((c) => (
                 <button
@@ -470,7 +475,7 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
                 </button>
               ))}
             </div>
-            <span className="text-[11px] text-navy/30">Enter to send · Esc to dismiss · ⌘K to summon</span>
+            <span className="text-[11px] text-navy/30"><T>Enter to send · Esc to dismiss · ⌘K to summon</T></span>
           </div>
         )}
       </div>
@@ -511,7 +516,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
         {durationLabel(exp) && <span>{durationLabel(exp)}</span>}
         {isTopTier(exp) && (
           <span className="text-[10px] font-bold uppercase tracking-widest text-navy bg-gold/25 px-2.5 py-1 rounded-full">
-            Top Tier
+            <T>Top Tier</T>
           </span>
         )}
         <span className="font-semibold text-navy ml-auto">{priceLabel(exp)}</span>
@@ -520,7 +525,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
       {exp.key_activities && exp.key_activities.length > 0 && (
         <div className="flex flex-col gap-2.5">
           <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">
-            {isTopTier(exp) ? 'What Top Tier Includes' : 'Key Activities'}
+            <T>{isTopTier(exp) ? 'What Top Tier Includes' : 'Key Activities'}</T>
           </span>
           <ul className="flex flex-col bg-cream/70 border border-navy/8 rounded-2xl overflow-hidden">
             {exp.key_activities.map((a, i) => (
@@ -536,7 +541,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {exp.accommodation && exp.accommodation.length > 0 && (
             <div className="bg-cream/70 border border-navy/8 rounded-2xl p-3.5 flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Accommodation</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40"><T>Accommodation</T></span>
               <span className="text-[13px] text-charcoal/75 leading-relaxed">{exp.accommodation.join(', ')}</span>
             </div>
           )}
@@ -548,7 +553,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
           ))}
           {exp.weather && (
             <div className="bg-cream/70 border border-navy/8 rounded-2xl p-3.5 flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Weather</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40"><T>Weather</T></span>
               <span className="text-[13px] text-charcoal/75 leading-relaxed">{exp.weather}</span>
             </div>
           )}
@@ -557,7 +562,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
 
       {exp.ideal_for && exp.ideal_for.length > 0 && (
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Ideal For</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40"><T>Ideal For</T></span>
           <div className="flex flex-wrap gap-1.5">
             {exp.ideal_for.map((item, i) => (
               <span key={i} className="text-xs bg-cream/70 text-charcoal/60 border border-navy/8 px-2.5 py-1 rounded-full">{item}</span>
@@ -567,13 +572,13 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
       )}
 
       <div className="flex flex-col gap-2.5 pt-4 border-t border-navy/8">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40">Ask about this</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-navy/40"><T>Ask about this</T></span>
         <div className="flex flex-col gap-1.5">
           <button
             onClick={onCompare}
             className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 bg-gold/5 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
           >
-            Compare this with the other options
+            <T>Compare this with the other options</T>
           </button>
           {asks.map((q) => (
             <button
@@ -591,7 +596,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
         onClick={onBook}
         className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full hover:bg-gold/90 transition-colors text-sm shadow-sm"
       >
-        Book This Journey
+        <T>Book This Journey</T>
       </button>
     </div>
   )
@@ -606,6 +611,8 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
   const [numTravelers, setNumTravelers] = useState(1)
   const [startDate, setStartDate] = useState('')
   const [reference, setReference] = useState('')
+  const genericErrorMsg = useTranslated('Something went wrong.')
+  const genericErrorRetryMsg = useTranslated('Something went wrong. Please try again.')
 
   async function confirm() {
     setStatus('sending')
@@ -616,12 +623,12 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
         body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Something went wrong.')
+      if (!res.ok) throw new Error(data.error || genericErrorMsg)
       setReference(data.reference)
       setStatus('done')
     } catch (err) {
       setStatus('error')
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof Error ? err.message : genericErrorRetryMsg)
     }
   }
 
@@ -629,11 +636,11 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
     return (
       <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
         <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 text-center">
-          <h3 className="text-navy text-2xl font-medium">Booking created</h3>
+          <h3 className="text-navy text-2xl font-medium"><T>Booking created</T></h3>
           <p className="text-sm text-charcoal/60 leading-relaxed">
-            Your booking has been created. Your booking reference is{' '}
-            <span className="font-semibold text-navy">{reference}</span>. A travel designer will confirm
-            availability, pricing, and every detail within 24 hours.
+            <T>Your booking has been created. Your booking reference is</T>{' '}
+            <span className="font-semibold text-navy">{reference}</span>. <T>A travel designer will confirm
+            availability, pricing, and every detail within 24 hours.</T>
           </p>
           <button
             onClick={() => {
@@ -642,10 +649,10 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
             }}
             className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors mt-2"
           >
-            View Booking &amp; Make Payment
+            <T>View Booking & Make Payment</T>
           </button>
           <button onClick={onClose} className="w-full border border-navy/15 text-navy font-medium py-3 rounded-full text-sm hover:bg-navy/5 transition-colors">
-            Close
+            <T>Close</T>
           </button>
         </div>
       </div>
@@ -655,20 +662,20 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
   return (
     <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col gap-3">
-        <h3 className="text-navy text-2xl font-medium">Book this journey</h3>
+        <h3 className="text-navy text-2xl font-medium"><T>Book this journey</T></h3>
         <p className="text-sm text-charcoal/60 leading-relaxed">
-          Send this to the EscapePod team and a travel designer will confirm availability, pricing, and every detail, then follow up within 24 hours. No payment is taken here.
+          <T>Send this to the EscapePod team and a travel designer will confirm availability, pricing, and every detail, then follow up within 24 hours. No payment is taken here.</T>
         </p>
         <div className="bg-navy/5 rounded-xl px-4 py-3 flex flex-col gap-1.5 mt-1">
-          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Journey</span><span className="font-medium text-navy">{exp.name}</span></div>
-          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Destination</span><span className="font-medium text-navy">{exp.destination}</span></div>
-          {durationLabel(exp) && <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Duration</span><span className="font-medium text-navy">{durationLabel(exp)}</span></div>}
-          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50">Price</span><span className="font-medium text-navy">{priceLabel(exp)}</span></div>
+          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50"><T>Journey</T></span><span className="font-medium text-navy">{exp.name}</span></div>
+          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50"><T>Destination</T></span><span className="font-medium text-navy">{exp.destination}</span></div>
+          {durationLabel(exp) && <div className="flex justify-between text-[13px]"><span className="text-charcoal/50"><T>Duration</T></span><span className="font-medium text-navy">{durationLabel(exp)}</span></div>}
+          <div className="flex justify-between text-[13px]"><span className="text-charcoal/50"><T>Price</T></span><span className="font-medium text-navy">{priceLabel(exp)}</span></div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-[11.5px] text-charcoal/50">
-            Travelers
+            <T>Travelers</T>
             <input
               type="number"
               min={1}
@@ -679,7 +686,7 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
             />
           </label>
           <label className="flex flex-col gap-1 text-[11.5px] text-charcoal/50">
-            Preferred start date (optional)
+            <T>Preferred start date (optional)</T>
             <input
               type="date"
               value={startDate}
@@ -692,14 +699,14 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
         {status === 'error' && <p className="text-xs text-red-600">{error}</p>}
         <div className="flex gap-2 mt-2">
           <button onClick={onClose} className="flex-1 border border-navy/15 text-navy font-medium py-3 rounded-full text-sm hover:bg-navy/5 transition-colors">
-            Not yet
+            <T>Not yet</T>
           </button>
           <button
             onClick={confirm}
             disabled={status === 'sending'}
             className="flex-1 bg-gold text-navy font-semibold py-3 rounded-full text-sm hover:bg-gold/90 disabled:opacity-60 transition-colors"
           >
-            {status === 'sending' ? 'Sending…' : 'Send booking request'}
+            <T>{status === 'sending' ? 'Sending…' : 'Send booking request'}</T>
           </button>
         </div>
       </div>
@@ -726,7 +733,7 @@ function ProfileDialog({ user, onClose, onSignOut }: { user: User; onClose: () =
           onClick={onSignOut}
           className="w-full border border-navy/15 text-navy font-medium py-3 rounded-full text-sm hover:bg-navy/5 transition-colors"
         >
-          Sign out
+          <T>Sign out</T>
         </button>
       </div>
     </div>
@@ -746,6 +753,7 @@ interface RecentChat {
 
 export default function EnginePage() {
   const router = useRouter()
+  const { locale } = useLocale()
   const [user, setUser] = useState<User | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -779,6 +787,33 @@ export default function EnginePage() {
   // viewport width, and a fixed guess previously left the last bit of text
   // sitting underneath it on narrower screens.
   const [composerClearance, setComposerClearance] = useState(140)
+
+  // Pre-translated UI chrome strings — a fixed, known set of literals, so
+  // these are safe to precompute with the useTranslated hook here (hooks
+  // can't be called with a different literal per call site down in
+  // scattered event handlers, e.g. window.confirm / flash()).
+  const deleteChatConfirmMsg = useTranslated('Delete this plan? This can’t be undone.')
+  const clearAllConfirmMsg = useTranslated('Clear all recent plans? This can’t be undone.')
+  const loadingStage0 = useTranslated(LOADING_STAGES[0])
+  const loadingStage1 = useTranslated(LOADING_STAGES[1])
+  const loadingStage2 = useTranslated(LOADING_STAGES[2])
+  const loadingStage3 = useTranslated(LOADING_STAGES[3])
+  const translatedLoadingStages = [loadingStage0, loadingStage1, loadingStage2, loadingStage3]
+  const buildingLabel = useTranslated('Building')
+  const planReadyLabel = useTranslated('Plan ready')
+  const changeSomethingLabel = useTranslated('Change something')
+  const tellMeAboutTripLabel = useTranslated('Tell me about your trip')
+  const composerPlaceholderHasTrip = useTranslated('Swap a direction, shift the budget, add a stop…')
+  const composerPlaceholderEmpty = useTranslated('A week in Kenya for two, safari and beach, September…')
+  const deletePlanLabel = useTranslated('Delete this plan')
+  const verifiedWord = useTranslated('verified')
+  const directionWordLower = useTranslated('direction')
+  const directionsWordLower = useTranslated('directions')
+  const directionWordCap = useTranslated('Direction')
+  const elapsedSuffix = useTranslated('s elapsed')
+  const comparingLabel = useTranslated('Comparing your options')
+  const whyRecommendLabel = useTranslated('Why we recommend this')
+  const yourKenyaJourneyLabel = useTranslated('Your Kenya journey')
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const composerRef = useRef<HTMLDivElement>(null)
@@ -939,7 +974,7 @@ export default function EnginePage() {
 
   async function deleteChat(id: string, e: React.MouseEvent) {
     e.stopPropagation()
-    if (!window.confirm('Delete this plan? This can’t be undone.')) return
+    if (!window.confirm(deleteChatConfirmMsg)) return
     try {
       const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('delete failed')
@@ -953,7 +988,7 @@ export default function EnginePage() {
 
   async function clearAllChats() {
     if (recentChats.length === 0) return
-    if (!window.confirm('Clear all recent plans? This can’t be undone.')) return
+    if (!window.confirm(clearAllConfirmMsg)) return
     try {
       const res = await fetch('/api/chats', { method: 'DELETE' })
       if (!res.ok) throw new Error('clear failed')
@@ -984,7 +1019,7 @@ export default function EnginePage() {
       const res = await fetch('/api/curate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updated }),
+        body: JSON.stringify({ messages: updated, locale }),
       })
       if (res.status === 401) { router.replace('/login'); return }
       if (!res.ok) throw new Error('request failed')
@@ -1012,7 +1047,7 @@ export default function EnginePage() {
         content: 'Something went wrong on our end — please try again in a moment.',
       }])
     } finally { setLoading(false) }
-  }, [messages, loading, router, currentChatId, experiences, saveRecent])
+  }, [messages, loading, router, currentChatId, experiences, saveRecent, locale])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
@@ -1109,18 +1144,18 @@ export default function EnginePage() {
           onClick={startNewChat}
           className="flex items-center justify-center gap-2 w-full py-2.5 px-3.5 rounded-full bg-gold text-navy font-medium text-sm hover:bg-gold/90 transition-colors"
         >
-          <IconEdit /> New trip
+          <IconEdit /> <T>New trip</T>
         </button>
 
         <Link
           href="/bookings"
           className="flex items-center gap-2.5 w-full py-2.5 px-3 rounded-xl text-cream/70 text-[13.5px] font-medium hover:bg-white/6 hover:text-cream/90 transition-colors"
         >
-          <IconBooking /> My Bookings
+          <IconBooking /> <T>My Bookings</T>
         </Link>
 
         <div className="flex-1 min-h-0 flex flex-col gap-2">
-          <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2">Recent plans</span>
+          <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2"><T>Recent plans</T></span>
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5">
             {recentChats.map((c) => (
               <div
@@ -1139,8 +1174,8 @@ export default function EnginePage() {
                 </button>
                 <button
                   onClick={(e) => deleteChat(c.id, e)}
-                  aria-label="Delete this plan"
-                  title="Delete this plan"
+                  aria-label={deletePlanLabel}
+                  title={deletePlanLabel}
                   className="shrink-0 p-2 mr-0.5 rounded-lg text-cream/25 hover:text-cream/80 hover:bg-white/10 transition-colors"
                 >
                   <IconTrash />
@@ -1148,7 +1183,7 @@ export default function EnginePage() {
               </div>
             ))}
             {recentChats.length === 0 && (
-              <p className="px-3 py-2 text-xs text-cream/25 italic">No recent chats yet</p>
+              <p className="px-3 py-2 text-xs text-cream/25 italic"><T>No recent chats yet</T></p>
             )}
           </div>
           {recentChats.length > 0 && (
@@ -1156,7 +1191,7 @@ export default function EnginePage() {
               onClick={clearAllChats}
               className="text-left px-3 py-2 text-[12px] text-cream/35 hover:text-cream/70 transition-colors"
             >
-              Clear all chats
+              <T>Clear all chats</T>
             </button>
           )}
         </div>
@@ -1171,7 +1206,7 @@ export default function EnginePage() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[13.5px] font-medium text-cream/85 truncate">{user.name}</span>
-              <span className="block text-[11px] text-cream/35">Signed in</span>
+              <span className="block text-[11px] text-cream/35"><T>Signed in</T></span>
             </span>
             <span className="text-cream/30 text-sm">›</span>
           </button>
@@ -1194,7 +1229,7 @@ export default function EnginePage() {
           {hasTrip && (
             <span className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${loading ? 'bg-gold/20 text-gold' : 'bg-navy/8 text-navy/70'}`}>
               <span className={`w-1.5 h-1.5 rounded-full bg-current ${loading ? 'animate-status-pulse' : ''}`} />
-              {loading ? `Building · ${elapsed}s` : 'Plan ready'}
+              {loading ? `${buildingLabel} · ${elapsed}s` : planReadyLabel}
             </span>
           )}
         </header>
@@ -1206,9 +1241,9 @@ export default function EnginePage() {
         {!hasTrip && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-4 px-6 overflow-y-auto text-center" style={{ paddingBottom: composerClearance }}>
             <span className="w-13 h-13 rounded-full bg-gold/15 flex items-center justify-center text-gold text-xl">✦</span>
-            <h1 className="text-navy text-4xl md:text-5xl font-medium tracking-tight">Tell me where you&apos;re going.</h1>
+            <h1 className="text-navy text-4xl md:text-5xl font-medium tracking-tight"><T>Tell me where you&apos;re going.</T></h1>
             <p className="text-charcoal/60 text-base max-w-md text-balance">
-              Describe the trip the way you&apos;d describe it to a friend — who&apos;s coming, roughly when, what you want out of it. I&apos;ll search our verified inventory and build real, priced directions.
+              <T>Describe the trip the way you&apos;d describe it to a friend — who&apos;s coming, roughly when, what you want out of it. I&apos;ll search our verified inventory and build real, priced directions.</T>
             </p>
           </div>
         )}
@@ -1218,11 +1253,11 @@ export default function EnginePage() {
         {hasTrip && !lastAssistantText && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-6 overflow-y-auto text-center" style={{ paddingBottom: composerClearance }}>
             <LoadingDots className="w-3 h-3 bg-gold" />
-            <p className="text-navy text-lg font-medium">{LOADING_STAGES[loadingStage]}</p>
+            <p className="text-navy text-lg font-medium">{translatedLoadingStages[loadingStage]}</p>
             <p className="text-charcoal/50 text-sm max-w-sm">
-              This usually takes 20–40 seconds — we&apos;re genuinely searching verified inventory and scoring real matches, not just generating text.
+              <T>This usually takes 20–40 seconds — we&apos;re genuinely searching verified inventory and scoring real matches, not just generating text.</T>
             </p>
-            <p className="font-mono text-xs text-navy/30">{elapsed}s elapsed</p>
+            <p className="font-mono text-xs text-navy/30">{elapsed}{elapsedSuffix}</p>
           </div>
         )}
 
@@ -1258,19 +1293,19 @@ export default function EnginePage() {
                     ))}
                   </div>
                 )}
-                <h2 className="text-navy text-2xl md:text-3xl font-medium tracking-tight">{tripTitle || 'Your Kenya journey'}</h2>
+                <h2 className="text-navy text-2xl md:text-3xl font-medium tracking-tight">{tripTitle || yourKenyaJourneyLabel}</h2>
                 {stats && (
                   <div className="grid grid-cols-2 gap-3 pt-3 border-t border-navy/8">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Options</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35"><T>Options</T></span>
                       <span className="text-sm font-semibold text-navy">{experiences?.length ?? 0}</span>
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Duration</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35"><T>Duration</T></span>
                       <span className="text-sm font-semibold text-navy">{stats.durationRange}</span>
                     </div>
                     <div className="flex flex-col gap-0.5 col-span-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">Price range</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35"><T>Price range</T></span>
                       <span className="text-sm font-semibold text-navy">{stats.priceRange}</span>
                     </div>
                   </div>
@@ -1280,7 +1315,7 @@ export default function EnginePage() {
               {experiences && experiences.length > 0 && (
                 <div className="px-6 pb-2 pt-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35">
-                    {experiences.length} verified {experiences.length === 1 ? 'direction' : 'directions'}
+                    {experiences.length} {verifiedWord} {experiences.length === 1 ? directionWordLower : directionsWordLower}
                   </span>
                 </div>
               )}
@@ -1303,7 +1338,7 @@ export default function EnginePage() {
               {loading && (
                 <div className="flex items-center gap-3 px-6 pb-4">
                   <LoadingDots className="w-1.5 h-1.5 bg-gold" />
-                  <span className="text-gold text-sm">{LOADING_STAGES[loadingStage]}</span>
+                  <span className="text-gold text-sm">{translatedLoadingStages[loadingStage]}</span>
                   <span className="ml-auto font-mono text-xs text-navy/30">{elapsed}s</span>
                 </div>
               )}
@@ -1316,7 +1351,7 @@ export default function EnginePage() {
               <div className="px-6 pb-6">
                 <div className="bg-gold/8 border border-gold/20 rounded-2xl p-4">
                   <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gold mb-1.5">
-                    ✦ {compareAnchorId ? 'Comparing your options' : 'Why we recommend this'}
+                    ✦ {compareAnchorId ? comparingLabel : whyRecommendLabel}
                   </span>
                   {renderMessageText(lastAssistantText)}
                 </div>
@@ -1336,8 +1371,8 @@ export default function EnginePage() {
             onSubmit={() => sendMessage(input)}
             disabled={!input.trim() || loading}
             loading={loading}
-            hint={loading ? `${LOADING_STAGES[loadingStage]} ${elapsed}s` : (hasTrip ? 'Change something' : 'Tell me about your trip')}
-            placeholder={hasTrip ? "Swap a direction, shift the budget, add a stop…" : 'A week in Kenya for two, safari and beach, September…'}
+            hint={loading ? `${translatedLoadingStages[loadingStage]} ${elapsed}s` : (hasTrip ? changeSomethingLabel : tellMeAboutTripLabel)}
+            placeholder={hasTrip ? composerPlaceholderHasTrip : composerPlaceholderEmpty}
             chips={chips}
             onPick={(t) => sendMessage(t)}
             textareaRef={textareaRef}
@@ -1358,7 +1393,7 @@ export default function EnginePage() {
             <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 flex items-start gap-3 px-5 py-4 border-b border-navy/8">
               <div className="flex-1 min-w-0">
                 <p className="text-[10.5px] font-bold uppercase tracking-widest text-navy/35">
-                  Direction {(experiences ?? []).findIndex((e) => e.id === selectedKey) + 1}
+                  {directionWordCap} {(experiences ?? []).findIndex((e) => e.id === selectedKey) + 1}
                 </p>
                 <p className="text-navy text-xl font-medium mt-0.5 truncate">{selectedExp?.name}</p>
               </div>
@@ -1392,7 +1427,7 @@ export default function EnginePage() {
         <BookingDialog exp={bookingExp} onClose={() => setBookingExp(null)} onSent={flash} />
       )}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-95 bg-navy text-cream px-5 py-2.5 rounded-full text-[13.5px] shadow-lg animate-fade-in">
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-95 bg-navy text-cream px-5 py-2.5 rounded-full text-[13.5px] shadow-lg animate-fade-in">
           {toast}
         </div>
       )}

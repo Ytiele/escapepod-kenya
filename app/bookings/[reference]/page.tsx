@@ -18,11 +18,12 @@ import {
   paymentStatus,
   timelineSteps,
 } from '@/lib/bookings'
+import { T, useTranslated } from '@/components/i18n/T'
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="bg-white rounded-3xl border border-navy/8 shadow-sm p-6 flex flex-col gap-4">
-      <h2 className="text-[11px] font-bold uppercase tracking-widest text-navy/40">{title}</h2>
+      <h2 className="text-[11px] font-bold uppercase tracking-widest text-navy/40"><T>{title}</T></h2>
       {children}
     </section>
   )
@@ -31,7 +32,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-charcoal/40">{label}</p>
+      <p className="text-[11px] uppercase tracking-wide text-charcoal/40"><T>{label}</T></p>
       <p className="text-navy font-medium text-[15px] mt-0.5">{value}</p>
     </div>
   )
@@ -43,6 +44,10 @@ export default function BookingDetailPage() {
   const [user, setUser] = useState<User | null>(null)
   const [booking, setBooking] = useState<Booking | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const dayLabel = useTranslated('day')
+  const daysLabel = useTranslated('days')
+  const toBeConfirmed = useTranslated('To be confirmed')
+  const payTooltip = useTranslated('Online payment is coming soon — contact your travel designer to arrange payment for now.')
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -62,10 +67,10 @@ export default function BookingDetailPage() {
     return (
       <div className="min-h-screen bg-cream text-charcoal flex items-center justify-center p-6">
         <div className="text-center flex flex-col items-center gap-3">
-          <p className="text-navy text-xl font-medium">Booking not found</p>
-          <p className="text-sm text-charcoal/50">It may not exist, or it isn&apos;t linked to this account.</p>
+          <p className="text-navy text-xl font-medium"><T>Booking not found</T></p>
+          <p className="text-sm text-charcoal/50"><T>It may not exist, or it isn&apos;t linked to this account.</T></p>
           <Link href="/bookings" className="mt-2 bg-gold text-navy font-semibold px-6 py-3 rounded-full text-sm hover:bg-gold/90 transition-colors">
-            Back to My Bookings
+            <T>Back to My Bookings</T>
           </Link>
         </div>
       </div>
@@ -75,7 +80,7 @@ export default function BookingDetailPage() {
   if (!booking) {
     return (
       <div className="min-h-screen bg-cream text-charcoal flex items-center justify-center p-6">
-        <p className="text-sm text-charcoal/50">Loading your booking…</p>
+        <p className="text-sm text-charcoal/50"><T>Loading your booking…</T></p>
       </div>
     )
   }
@@ -113,7 +118,7 @@ export default function BookingDetailPage() {
           href="/bookings"
           className="self-start inline-flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-navy/70 transition-colors mb-5"
         >
-          ← My Bookings
+          ← <T>My Bookings</T>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
@@ -131,7 +136,7 @@ export default function BookingDetailPage() {
               <PhotoCredit src={coverImage} />
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-gold">Booking Reference</p>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-gold"><T>Booking Reference</T></p>
                   <p className="text-2xl font-medium mt-0.5">{booking.reference}</p>
                 </div>
                 <div className="flex gap-2">
@@ -143,7 +148,7 @@ export default function BookingDetailPage() {
                   </span>
                 </div>
               </div>
-              <p className="text-[13px] text-cream/50">Booked on {formatDate(booking.created_at.slice(0, 10))}</p>
+              <p className="text-[13px] text-cream/50"><T>Booked on</T> {formatDate(booking.created_at.slice(0, 10))}</p>
             </section>
 
             {/* Package */}
@@ -151,10 +156,10 @@ export default function BookingDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Package" value={booking.package_name} />
                 <Field label="Destination" value={booking.destination} />
-                <Field label="Duration" value={booking.duration_days ? `${booking.duration_days} ${booking.duration_days === 1 ? 'day' : 'days'}` : '—'} />
+                <Field label="Duration" value={booking.duration_days ? `${booking.duration_days} ${booking.duration_days === 1 ? dayLabel : daysLabel}` : '—'} />
                 <Field label="Travelers" value={booking.num_travelers} />
                 <div className="sm:col-span-2">
-                  <Field label="Selected Travel Dates" value={booking.start_date && booking.end_date ? `${formatDate(booking.start_date)} – ${formatDate(booking.end_date)}` : 'To be confirmed'} />
+                  <Field label="Selected Travel Dates" value={booking.start_date && booking.end_date ? `${formatDate(booking.start_date)} – ${formatDate(booking.end_date)}` : toBeConfirmed} />
                 </div>
               </div>
             </SectionCard>
@@ -174,9 +179,9 @@ export default function BookingDetailPage() {
               </div>
 
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-2">Payment History</p>
+                <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-2"><T>Payment History</T></p>
                 {booking.payment_history.length === 0 ? (
-                  <p className="text-sm text-charcoal/40 italic">No payments recorded yet.</p>
+                  <p className="text-sm text-charcoal/40 italic"><T>No payments recorded yet.</T></p>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {booking.payment_history.map((p, i) => (
@@ -191,10 +196,10 @@ export default function BookingDetailPage() {
 
               <button
                 disabled
-                title="Online payment is coming soon — contact your travel designer to arrange payment for now."
+                title={payTooltip}
                 className="w-full bg-navy/10 text-navy/40 font-semibold py-3.5 rounded-full text-sm cursor-not-allowed"
               >
-                Pay Now — Coming Soon
+                <T>Pay Now — Coming Soon</T>
               </button>
             </SectionCard>
 
@@ -205,12 +210,12 @@ export default function BookingDetailPage() {
                 <Field label="End Date" value={formatDate(booking.end_date)} />
                 <Field label="Travelers" value={booking.num_travelers} />
                 <div className="sm:col-span-2">
-                  <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1">Accommodation</p>
-                  <p className="text-navy text-[15px]">{booking.accommodation.length > 0 ? booking.accommodation.join(', ') : 'To be confirmed'}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1"><T>Accommodation</T></p>
+                  <p className="text-navy text-[15px]">{booking.accommodation.length > 0 ? booking.accommodation.join(', ') : toBeConfirmed}</p>
                 </div>
                 <div className="sm:col-span-2">
-                  <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1">Included Experiences / Activities</p>
-                  <p className="text-navy text-[15px]">{booking.included_activities.length > 0 ? booking.included_activities.join(', ') : 'To be confirmed'}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-charcoal/40 mb-1"><T>Included Experiences / Activities</T></p>
+                  <p className="text-navy text-[15px]">{booking.included_activities.length > 0 ? booking.included_activities.join(', ') : toBeConfirmed}</p>
                 </div>
               </div>
             </SectionCard>

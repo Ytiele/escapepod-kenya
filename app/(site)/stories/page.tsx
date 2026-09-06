@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
 import NewsletterSidebar from '@/components/stories/NewsletterSidebar'
+import { T } from '@/components/i18n/T'
 
 const gradients = [
   'from-slate to-navy',
@@ -47,9 +48,9 @@ export default function StoriesPage() {
           className="object-cover"
         />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
-          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase">The Journals</span>
+          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>The Journals</T></span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl font-medium leading-[1.1] tracking-tight max-w-2xl">
-            Stories from the edge of Kenya.
+            <T>Stories from the edge of Kenya.</T>
           </h1>
         </div>
       </section>
@@ -78,7 +79,7 @@ export default function StoriesPage() {
             {/* Featured badge */}
             <div className="absolute top-6 left-6">
               <span className="bg-gold text-navy text-xs font-medium px-3 py-1.5 rounded-full tracking-wide uppercase">
-                Featured
+                <T>Featured</T>
               </span>
             </div>
 
@@ -112,7 +113,7 @@ export default function StoriesPage() {
               </p>
 
               <div className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-6 py-3 rounded-full text-sm group-hover:bg-gold/90 transition-colors">
-                Read the account
+                <T>Read the account</T>
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -126,7 +127,7 @@ export default function StoriesPage() {
               {/* Stories grid */}
               <div>
                 <h3 className="text-navy text-sm font-medium tracking-widest uppercase mb-8">
-                  Recent Stories
+                  <T>Recent Stories</T>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {displayedPosts.map((post, i) => (
@@ -182,7 +183,7 @@ export default function StoriesPage() {
                     disabled={!hasMore}
                     className="border border-navy/20 text-navy font-medium px-8 py-3 rounded-full text-sm hover:border-navy hover:bg-navy/5 transition-all disabled:opacity-40 disabled:cursor-default"
                   >
-                    Load More
+                    <T>Load More</T>
                   </button>
                 </div>
               </div>
@@ -192,7 +193,7 @@ export default function StoriesPage() {
                 {/* Categories */}
                 <div className="bg-navy rounded-2xl p-6">
                   <h4 className="text-cream text-sm font-medium uppercase tracking-wider mb-4">
-                    Categories
+                    <T>Categories</T>
                   </h4>
                   <CategoriesSelect current={categoryFilter || undefined} onChange={handleCategoryChange} />
                 </div>
@@ -200,7 +201,7 @@ export default function StoriesPage() {
                 {/* Latest Posts */}
                 <div className="bg-navy rounded-2xl p-6">
                   <h4 className="text-cream text-sm font-medium uppercase tracking-wider mb-5">
-                    Latest Posts
+                    <T>Latest Posts</T>
                   </h4>
                   <div className="space-y-4">
                     {posts.slice(0, 4).map((p) => (
