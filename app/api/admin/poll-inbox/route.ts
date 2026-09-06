@@ -7,14 +7,18 @@ import { getImapConfig } from '@/lib/mail';
 export const dynamic = 'force-dynamic';
 
 // Triggered on a schedule (see .env.local.example for the required env
-// vars, and vercel.json for the default Vercel Cron wiring) to pull an
-// admin's email reply back into the traveler-facing chat panel on
-// app/bookings/[reference]. Protected by CRON_SECRET since
-// it has no traveler session to check — only whoever holds that secret
-// (your scheduler) may trigger it. Accepts the secret either as a bearer
-// token (Vercel Cron's convention) or a `?secret=` query param (for
-// schedulers that can't set custom headers, e.g. cron-job.org can, but
-// some simpler ones can't).
+// vars) to pull an admin's email reply back into the traveler-facing chat
+// panel on app/bookings/[reference]. Deliberately NOT wired up via Vercel's
+// own Cron Jobs (vercel.json) — Vercel's Hobby plan only allows a cron to
+// run once a day, and this needs to run roughly every 10 minutes for the
+// chat sync to feel timely; a Hobby project with a more-frequent schedule
+// in vercel.json fails deployment validation outright (every deploy gets
+// silently rejected, which is exactly what happened here once). Instead,
+// point a free external scheduler (e.g. cron-job.org) at this URL every
+// ~10 minutes. Protected by CRON_SECRET since it has no traveler session to
+// check — only whoever holds that secret (your scheduler) may trigger it.
+// Accepts the secret either as a bearer token (for schedulers that support
+// custom headers) or a `?secret=` query param (for ones that don't).
 function isAuthorized(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET;
   if (!expected) return false;
