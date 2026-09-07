@@ -94,8 +94,14 @@ export async function POST(req: NextRequest) {
 
 // One batched Claude call per request, regardless of how many unique
 // strings need translating — asked to translate meaning, tone, and
-// register for a luxury travel brand, not word-for-word, and to hand back
-// a strict JSON array so the response can be matched back up by position.
+// register for a luxury travel brand, not word-for-word. Output is
+// delimiter-separated plain text rather than JSON: some source strings
+// contain literal quote characters, and a JSON-array response occasionally
+// carried an un-escaped quote straight through into a translated string,
+// breaking JSON.parse — a delimiter unlikely to appear in translated UI
+// copy sidesteps that escaping problem entirely.
+const DELIMITER_INSTRUCTION_MARKER = '§§§';
+
 async function translateBatch(texts: string[], locale: LocaleCode): Promise<string[]> {
   const language = localeName(locale);
   const message = await anthropic.messages.create({
@@ -103,22 +109,23 @@ async function translateBatch(texts: string[], locale: LocaleCode): Promise<stri
     max_tokens: 4096,
     system:
       `You are a professional translator for EscapePod Kenya, a luxury bespoke travel brand. ` +
-      `Translate each string in the JSON array from English into ${language}. ` +
+      `Translate each of the following strings from English into ${language}. ` +
       `Translate for meaning, tone, and natural fluency — the way a native ${language} speaker ` +
       `writing marketing copy or UI text would phrase it — never a literal word-for-word translation. ` +
       `Preserve the register (elegant, warm, confident) and keep placeholders, numbers, proper nouns ` +
       `(brand names, place names like "Maasai Mara" or "Lamu"), and punctuation-only strings unchanged. ` +
-      `Respond with ONLY a JSON array of strings, same length and order as the input, no commentary.`,
+      `Respond with ONLY the translations, one per input string, in the exact same order as the input, ` +
+      `with each translation separated from the next by a line containing exactly: ${DELIMITER_INSTRUCTION_MARKER} ` +
+      `Do not add numbering, quotes, JSON formatting, or any commentary — just the raw translated text ` +
+      `for each string in order, separated by that marker.`,
     messages: [{ role: 'user', content: JSON.stringify(texts) }],
   });
 
   const block = message.content.find((b) => b.type === 'text');
-  const raw = block && block.type === 'text' ? block.text.trim() : '[]';
-  const jsonMatch = raw.match(/\[[\s\S]*\]/);
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
-  if (!Array.isArray(parsed)) throw new Error('translation response was not an array');
+  const raw = block && block.type === 'text' ? block.text.trim() : '';
+  const parts = raw.split(/\n?§§§\n?/).map((s) => s.trim());
 
   // Pad/truncate defensively so a malformed response can't desync the
   // position-based mapping back in the caller.
-  return texts.map((text, i) => (typeof parsed[i] === 'string' && parsed[i].trim() ? parsed[i] : text));
+  return texts.map((text, i) => (parts[i] && parts[i].trim() ? parts[i] : text));
 }
