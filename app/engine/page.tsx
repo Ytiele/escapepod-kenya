@@ -401,6 +401,23 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
   )
 }
 
+// A suggestion chip whose underlying text is a static English fallback
+// (the "starters"/generic prompts, or an interpolated "Tell me more about
+// X" ask) — translated for display, and the TRANSLATED text is what gets
+// sent on click too, so what the traveler sees in their own outgoing chat
+// bubble matches what they just tapped. NOT used for Claude's own
+// <<<SUGGESTIONS>>> chips — those already arrive in the right language
+// (see the LANGUAGE instruction in app/api/curate/route.ts), so
+// translating them again client-side would be redundant at best.
+function TranslatedChip({ text, onPick, className }: { text: string; onPick: (text: string) => void; className: string }) {
+  const translated = useTranslated(text)
+  return (
+    <button onClick={() => onPick(translated)} className={className}>
+      {translated}
+    </button>
+  )
+}
+
 // ── Composer pod ─────────────────────────────────────────────────────────
 
 interface ComposerProps {
@@ -415,6 +432,11 @@ interface ComposerProps {
   hint: string
   placeholder: string
   chips: string[]
+  // True when `chips` is one of the static English fallback arrays
+  // (starters/genericChips) and so needs client-side translation; false
+  // when it's Claude's own <<<SUGGESTIONS>>>, which already arrive in the
+  // traveler's selected language.
+  translateChips: boolean
   onPick: (text: string) => void
   textareaRef: React.RefObject<HTMLTextAreaElement | null>
   containerRef: React.RefObject<HTMLDivElement | null>
@@ -423,7 +445,7 @@ interface ComposerProps {
 // Both states are always mounted and cross-fade via opacity/scale — this is
 // what makes the collapse (e.g. from a click outside) read as one smooth
 // motion instead of a hard swap between two different elements.
-function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, loading, hint, placeholder, chips, onPick, textareaRef, containerRef }: ComposerProps) {
+function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disabled, loading, hint, placeholder, chips, translateChips, onPick, textareaRef, containerRef }: ComposerProps) {
   return (
     <div ref={containerRef} className="relative w-full">
       <button
@@ -465,15 +487,24 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
           <div className="border-t border-navy/8 bg-navy/3 px-4 py-3 flex flex-col gap-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-navy/35"><T>Suggested next</T></span>
             <div className="flex gap-2 flex-wrap">
-              {chips.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => onPick(c)}
-                  className="text-left px-3.5 py-1.5 rounded-full border border-gold/30 bg-gold/10 text-navy/80 text-[13px] hover:bg-gold/20 transition-colors"
-                >
-                  {c}
-                </button>
-              ))}
+              {chips.map((c) =>
+                translateChips ? (
+                  <TranslatedChip
+                    key={c}
+                    text={c}
+                    onPick={onPick}
+                    className="text-left px-3.5 py-1.5 rounded-full border border-gold/30 bg-gold/10 text-navy/80 text-[13px] hover:bg-gold/20 transition-colors"
+                  />
+                ) : (
+                  <button
+                    key={c}
+                    onClick={() => onPick(c)}
+                    className="text-left px-3.5 py-1.5 rounded-full border border-gold/30 bg-gold/10 text-navy/80 text-[13px] hover:bg-gold/20 transition-colors"
+                  >
+                    {c}
+                  </button>
+                )
+              )}
             </div>
             <span className="text-[11px] text-navy/30"><T>Enter to send · Esc to dismiss · ⌘K to summon</T></span>
           </div>
@@ -581,13 +612,12 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
             <T>Compare this with the other options</T>
           </button>
           {asks.map((q) => (
-            <button
+            <TranslatedChip
               key={q}
-              onClick={() => onAsk(q)}
+              text={q}
+              onPick={onAsk}
               className="text-left px-3.5 py-2.5 rounded-xl border border-gold/30 bg-gold/5 text-navy/80 text-[13px] hover:bg-gold/10 transition-colors"
-            >
-              {q}
-            </button>
+            />
           ))}
         </div>
       </div>
@@ -1374,6 +1404,7 @@ export default function EnginePage() {
             hint={loading ? `${translatedLoadingStages[loadingStage]} ${elapsed}s` : (hasTrip ? changeSomethingLabel : tellMeAboutTripLabel)}
             placeholder={hasTrip ? composerPlaceholderHasTrip : composerPlaceholderEmpty}
             chips={chips}
+            translateChips={suggestions.length === 0}
             onPick={(t) => sendMessage(t)}
             textareaRef={textareaRef}
             containerRef={composerRef}

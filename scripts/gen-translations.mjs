@@ -156,6 +156,20 @@ function extractKnownArrays(filePath, content, strings) {
       for (const m of block[1].matchAll(/type:\s*'([^']*)'/g)) strings.add(`${m[1]} Journey`);
     }
   }
+
+  // Composer/experience-panel suggestion chips — plain string array
+  // literals. Template-literal entries (e.g. `Tell me more about ${...}`)
+  // are naturally skipped since this only matches single-quoted strings;
+  // those stay on the live /api/translate fallback since the interpolated
+  // catalogue name makes them unsafe to pre-generate as a fixed set.
+  if (rel === 'app/engine/page.tsx') {
+    for (const arrayName of ['genericChips', 'asks']) {
+      const block = content.match(new RegExp(`const ${arrayName}\\s*=\\s*\\[([\\s\\S]*?)\\]`));
+      if (block) {
+        for (const m of block[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)) strings.add(unescapeJsString(m[1]));
+      }
+    }
+  }
 }
 
 // ── Translation (mirrors app/api/translate/route.ts's translateBatch) ────

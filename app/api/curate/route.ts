@@ -504,10 +504,12 @@ export async function POST(req: NextRequest) {
       ? ''
       : `\n\n---\n\nLANGUAGE: Respond to the traveler entirely in ${localeName(locale)} — write it the way a fluent ` +
         `native ${localeName(locale)} speaker naturally would, translating for meaning and tone rather than ` +
-        `word-for-word. This applies only to the conversational text you show the traveler. Any tool calls you ` +
-        `make, and every structured data field inside them (destination names, experience names, prices, ids), ` +
-        `must stay exactly as they appear in the catalogue — never translate those, since the app matches them by ` +
-        `exact string.`;
+        `word-for-word. This includes BOTH your conversational reply text AND the quick-reply chips in the ` +
+        `hidden <<<SUGGESTIONS>>>[...] line — the traveler reads and taps those chips too, so they must read as ` +
+        `natural ${localeName(locale)}, not English. The only things that must stay untranslated are tool calls ` +
+        `you make, and every structured data field inside them (destination names, experience names, prices, ` +
+        `ids) — those must stay exactly as they appear in the catalogue, since the app matches them by exact ` +
+        `string.`;
   const systemWithProfile = `${SYSTEM_PROMPT}\n\n---\n\nCURRENT KNOWN TRAVELER PROFILE (already captured — do not re-ask for these):\n${JSON.stringify(traveler.profile ?? {})}${languageInstruction}`;
 
   // Agent loop: cap tool round-trips so a stuck loop can't run forever.
