@@ -307,5 +307,17 @@
   "Adjust the budget": "Измените бюджет",
   "Combine two of these": "Объедините два из этих вариантов",
   "Ask a follow-up question": "Задайте уточняющий вопрос",
-  "Adjust the budget for this one": "Измените бюджет для этого варианта"
+  "Adjust the budget for this one": "Измените бюджет для этого варианта",
+  "Sending...": "Отправка...",
+  "Send Reset Link": "Отправить ссылку для сброса",
+  "Back to sign in": "Вернуться к входу",
+  "Set a new password": "Установить новый пароль",
+  "Choose a new password for your EscapePod account.": "Создайте новый пароль для вашего аккаунта EscapePod.",
+  "Updating...": "Обновление...",
+  "Update Password": "Обновить пароль",
+  "New Password (min 8 chars)": "Новый пароль (минимум 8 символов)",
+  "Confirm New Password": "Подтвердите новый пароль",
+  "Password must be at least 8 characters.": "Пароль должен содержать минимум 8 символов.",
+  "This reset link is invalid. Please request a new one.": "Ссылка для сброса пароля недействительна. Пожалуйста, запросите новую.",
+  "Passwords don't match.": "Пароли не совпадают."
 }

@@ -307,5 +307,17 @@
   "Adjust the budget": "예산을 조정해 주세요",
   "Combine two of these": "이 중 두 가지를 결합하세요",
   "Ask a follow-up question": "후속 질문을 해주세요",
-  "Adjust the budget for this one": "이것의 예산을 조정해 주세요"
+  "Adjust the budget for this one": "이것의 예산을 조정해 주세요",
+  "Sending...": "전송 중...",
+  "Send Reset Link": "비밀번호 재설정 링크 전송",
+  "Back to sign in": "로그인으로 돌아가기",
+  "Set a new password": "새 비밀번호 설정",
+  "Choose a new password for your EscapePod account.": "EscapePod 계정의 새로운 비밀번호를 설정하세요.",
+  "Updating...": "업데이트 중...",
+  "Update Password": "비밀번호 업데이트",
+  "New Password (min 8 chars)": "새 비밀번호 (최소 8자)",
+  "Confirm New Password": "새 비밀번호 확인",
+  "Password must be at least 8 characters.": "비밀번호는 최소 8자 이상이어야 합니다.",
+  "This reset link is invalid. Please request a new one.": "유효하지 않은 재설정 링크입니다. 새로운 링크를 요청해 주세요.",
+  "Passwords don't match.": "비밀번호가 일치하지 않습니다."
 }

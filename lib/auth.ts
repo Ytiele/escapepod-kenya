@@ -44,3 +44,25 @@ export async function signUp(name: string, email: string, password: string): Pro
 export async function signOut(): Promise<void> {
   try { await fetch('/api/auth/logout', { method: 'POST' }) } catch { /* ignore */ }
 }
+
+export async function requestPasswordReset(email: string): Promise<{ message: string } | { error: string }> {
+  const res = await fetch('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) return { error: data.error ?? 'Could not send the reset email.' }
+  return { message: data.message }
+}
+
+export async function resetPassword(tokenHash: string, password: string): Promise<{ user: User } | { error: string }> {
+  const res = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token_hash: tokenHash, password }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) return { error: data.error ?? 'Could not reset your password.' }
+  return { user: data.user }
+}

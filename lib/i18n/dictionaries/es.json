@@ -307,5 +307,17 @@
   "Adjust the budget": "Ajusta el presupuesto",
   "Combine two of these": "Combina dos de estos",
   "Ask a follow-up question": "Haz una pregunta de seguimiento",
-  "Adjust the budget for this one": "Ajusta el presupuesto para este"
+  "Adjust the budget for this one": "Ajusta el presupuesto para este",
+  "Sending...": "Enviando...",
+  "Send Reset Link": "Enviar enlace de restablecimiento",
+  "Back to sign in": "Volver al inicio de sesión",
+  "Set a new password": "Establece una nueva contraseña",
+  "Choose a new password for your EscapePod account.": "Elige una nueva contraseña para tu cuenta de EscapePod.",
+  "Updating...": "Actualizando...",
+  "Update Password": "Actualizar contraseña",
+  "New Password (min 8 chars)": "Nueva contraseña (mín. 8 caracteres)",
+  "Confirm New Password": "Confirmar nueva contraseña",
+  "Password must be at least 8 characters.": "La contraseña debe tener al menos 8 caracteres.",
+  "This reset link is invalid. Please request a new one.": "Este enlace de restablecimiento no es válido. Por favor, solicita uno nuevo.",
+  "Passwords don't match.": "Las contraseñas no coinciden."
 }

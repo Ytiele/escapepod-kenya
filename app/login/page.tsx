@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { signIn, signUp, getCurrentUser } from '@/lib/auth'
+import { signIn, signUp, getCurrentUser, requestPasswordReset } from '@/lib/auth'
 import { T, useTranslated } from '@/components/i18n/T'
 
-type Mode = 'signin' | 'signup'
+type Mode = 'signin' | 'signup' | 'forgot'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetMessage, setResetMessage] = useState('')
 
   // Pre-translated validation messages (fixed set of literals — see setError calls below)
   const emailRequiredMsg = useTranslated('Please enter your email address.')
@@ -37,8 +38,26 @@ export default function LoginPage() {
   function switchMode(m: Mode) {
     setMode(m)
     setError('')
+    setResetMessage('')
     setName('')
     setPassword('')
+  }
+
+  async function handleForgotSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setResetMessage('')
+
+    if (!email.trim()) { setError(emailRequiredMsg); return }
+
+    setLoading(true)
+    try {
+      const result = await requestPasswordReset(email.trim())
+      if ('error' in result) setError(result.error)
+      else setResetMessage(result.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,32 +149,82 @@ export default function LoginPage() {
           </div>
 
           {/* Mode tabs */}
-          <div className="flex mb-8 bg-cream/5 border border-cream/10 rounded-xl p-1 gap-1">
-            {(['signin', 'signup'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => switchMode(m)}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                  mode === m
-                    ? 'bg-gold text-navy'
-                    : 'text-cream/50 hover:text-cream'
-                }`}
-              >
-                <T>{m === 'signin' ? 'Sign In' : 'Create Account'}</T>
-              </button>
-            ))}
-          </div>
+          {mode !== 'forgot' && (
+            <div className="flex mb-8 bg-cream/5 border border-cream/10 rounded-xl p-1 gap-1">
+              {(['signin', 'signup'] as Mode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => switchMode(m)}
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                    mode === m
+                      ? 'bg-gold text-navy'
+                      : 'text-cream/50 hover:text-cream'
+                  }`}
+                >
+                  <T>{m === 'signin' ? 'Sign In' : 'Create Account'}</T>
+                </button>
+              ))}
+            </div>
+          )}
 
           <h1 className="text-cream text-2xl font-medium mb-1">
-            <T>{mode === 'signin' ? 'Welcome back' : 'Start your journey'}</T>
+            <T>{mode === 'signin' ? 'Welcome back' : mode === 'signup' ? 'Start your journey' : 'Reset your password'}</T>
           </h1>
           <p className="text-cream/40 text-sm mb-8">
             <T>{mode === 'signin'
               ? 'Sign in to continue to EscapePod'
-              : 'Create an account to save and curate your trips'}</T>
+              : mode === 'signup'
+              ? 'Create an account to save and curate your trips'
+              : "Enter your email and we'll send you a link to set a new password."}</T>
           </p>
 
+          {mode === 'forgot' ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={emailPlaceholder}
+                autoComplete="email"
+                className="w-full bg-cream/5 border border-cream/15 rounded-xl px-4 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold/60 transition-colors"
+              />
+
+              {resetMessage && (
+                <div className="bg-gold/10 border border-gold/20 rounded-xl px-4 py-3">
+                  <p className="text-gold text-sm">{resetMessage}</p>
+                </div>
+              )}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gold text-navy font-medium py-3.5 rounded-xl hover:bg-gold/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all text-sm mt-2 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
+                    <T>Sending...</T>
+                  </>
+                ) : (
+                  <T>Send Reset Link</T>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => switchMode('signin')}
+                className="w-full text-center text-cream/50 hover:text-cream text-sm transition-colors pt-1"
+              >
+                <T>Back to sign in</T>
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
               <div>
@@ -210,7 +279,11 @@ export default function LoginPage() {
 
             {mode === 'signin' && (
               <div className="flex justify-end">
-                <button type="button" className="text-gold/70 text-xs hover:text-gold transition-colors">
+                <button
+                  type="button"
+                  onClick={() => switchMode('forgot')}
+                  className="text-gold/70 text-xs hover:text-gold transition-colors"
+                >
                   <T>Forgot password?</T>
                 </button>
               </div>
@@ -237,7 +310,10 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          )}
 
+          {mode !== 'forgot' && (
+          <>
           <div className="relative my-7">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-cream/10" />
@@ -266,6 +342,8 @@ export default function LoginPage() {
             {' & '}
             <Link href="/privacy" className="text-gold/60 hover:text-gold transition-colors"><T>Privacy Policy</T></Link>
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>
