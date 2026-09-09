@@ -4,6 +4,7 @@ import { resolveSession, setSessionCookies } from '@/lib/session';
 import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { addDays, generateBookingReference } from '@/lib/bookings';
+import { summarizeConversation } from '@/lib/curationSummary';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Please sign in to book a journey.' }, { status: 401 });
   }
 
-  let body: { experienceId?: string; numTravelers?: number; startDate?: string };
+  let body: { experienceId?: string; numTravelers?: number; startDate?: string; conversation?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -34,6 +35,13 @@ export async function POST(request: NextRequest) {
   if (!body.experienceId) {
     return NextResponse.json({ error: 'Missing experienceId.' }, { status: 400 });
   }
+
+  // Best-effort — the engine chat history the traveler had leading up to
+  // this booking, condensed into a short briefing note for whoever follows
+  // up on it. Never blocks the booking itself: an invalid/missing/oversized
+  // conversation (or a failed summarization call) just means the admin
+  // email goes out without this section, same as before this existed.
+  const conversationSummaryPromise = summarizeConversation(body.conversation);
 
   const numTravelers = Number.isInteger(body.numTravelers) && (body.numTravelers as number) >= 1 && (body.numTravelers as number) <= 20
     ? (body.numTravelers as number)
@@ -117,6 +125,10 @@ export async function POST(request: NextRequest) {
       ? `$${experience.price_usd_pp_min.toLocaleString()} pp`
       : 'Price on request';
 
+  // Was kicked off right after body parsing, above, so it ran concurrently
+  // with the booking insert instead of adding its own latency afterward.
+  const conversationSummary = await conversationSummaryPromise;
+
   const transport = getMailTransport();
   if (transport) {
     // Awaited deliberately — on serverless hosting, a fire-and-forget send
@@ -145,6 +157,7 @@ export async function POST(request: NextRequest) {
           `Price: ${priceRange}`,
           `Accommodation: ${(experience.accommodation ?? []).join(', ') || '—'}`,
           `Key activities: ${(experience.key_activities ?? []).join(', ') || '—'}`,
+          ...(conversationSummary ? ['', `Conversation summary:`, conversationSummary] : []),
         ].join('\n'),
         html: `
           <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
@@ -165,6 +178,10 @@ export async function POST(request: NextRequest) {
               <tr><td style="padding: 6px 0; color: #888;">Accommodation</td><td style="padding: 6px 0;">${escapeHtml((experience.accommodation ?? []).join(', ') || '—')}</td></tr>
               <tr><td style="padding: 6px 0; color: #888;">Key Activities</td><td style="padding: 6px 0;">${escapeHtml((experience.key_activities ?? []).join(', ') || '—')}</td></tr>
             </table>
+            ${conversationSummary ? `
+            <h3 style="color: #0A1F3C; margin-top: 20px;">Conversation Summary</h3>
+            <p style="margin: 0; color: #333; white-space: pre-wrap;">${escapeHtml(conversationSummary)}</p>
+            ` : ''}
           </div>
         `,
       });

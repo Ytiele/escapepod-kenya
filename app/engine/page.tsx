@@ -636,7 +636,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
 
 // ── Booking confirmation dialog ──────────────────────────────────────────
 
-function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () => void; onSent: (msg: string) => void }) {
+function BookingDialog({ exp, conversation, onClose, onSent }: { exp: Experience; conversation: ChatMessage[]; onClose: () => void; onSent: (msg: string) => void }) {
   const router = useRouter()
   const isCustom = Boolean(exp.is_custom)
   const [status, setStatus] = useState<'idle' | 'sending' | 'error' | 'done'>('idle')
@@ -666,12 +666,13 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
               startDate: startDate || undefined,
               accommodation: exp.accommodation,
               keyActivities: exp.key_activities,
+              conversation,
             }),
           })
         : await fetch('/api/book-experience', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined }),
+            body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined, conversation }),
           })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || genericErrorMsg)
@@ -1495,7 +1496,7 @@ export default function EnginePage() {
         <ProfileDialog user={user} onClose={() => setProfileOpen(false)} onSignOut={async () => { await signOut(); router.replace('/login') }} />
       )}
       {bookingExp && (
-        <BookingDialog exp={bookingExp} onClose={() => setBookingExp(null)} onSent={flash} />
+        <BookingDialog exp={bookingExp} conversation={messages} onClose={() => setBookingExp(null)} onSent={flash} />
       )}
       {toast && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-95 bg-navy text-cream px-5 py-2.5 rounded-full text-[13.5px] shadow-lg animate-fade-in">

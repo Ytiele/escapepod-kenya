@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { resolveSession, setSessionCookies } from '@/lib/session';
 import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { summarizeConversation } from '@/lib/curationSummary';
 
 // The "Request Pricing" CTA on a custom itinerary card (see
 // build_custom_direction_cards in app/api/curate/route.ts) — the card
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     startDate?: string;
     accommodation?: string[];
     keyActivities?: string[];
+    conversation?: unknown;
   };
   try {
     body = await request.json();
@@ -37,6 +39,12 @@ export async function POST(request: NextRequest) {
   if (!destination) {
     return NextResponse.json({ error: 'Missing destination.' }, { status: 400 });
   }
+
+  // Best-effort — kicked off now so it runs concurrently with everything
+  // below rather than adding its own latency before the email goes out.
+  // Never blocks the request itself: see summarizeConversation's own
+  // failure handling.
+  const conversationSummaryPromise = summarizeConversation(body.conversation);
   const packageName = clip(String(body.packageName ?? destination).trim(), 200);
   const numTravelers = Number.isInteger(body.numTravelers) && (body.numTravelers as number) >= 1 && (body.numTravelers as number) <= 20
     ? (body.numTravelers as number)
@@ -59,6 +67,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forwarding is temporarily unavailable. Please try again shortly.' }, { status: 503 });
   }
 
+  const conversationSummary = await conversationSummaryPromise;
+
   try {
     await transport.sendMail({
       from: `"EscapePod Curation Engine" <${process.env.SMTP_USER}>`,
@@ -75,6 +85,7 @@ export async function POST(request: NextRequest) {
         `Requested start date: ${startDate ?? 'not specified'}`,
         `Candidate accommodation: ${accommodation.join(', ') || '—'}`,
         `Signature activities: ${keyActivities.join(', ') || '—'}`,
+        ...(conversationSummary ? ['', `Conversation summary:`, conversationSummary] : []),
       ].join('\n'),
       html: `
         <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
@@ -88,6 +99,10 @@ export async function POST(request: NextRequest) {
             <tr><td style="padding: 6px 0; color: #888;">Candidate accommodation</td><td style="padding: 6px 0;">${escapeHtml(accommodation.join(', ') || '—')}</td></tr>
             <tr><td style="padding: 6px 0; color: #888;">Signature activities</td><td style="padding: 6px 0;">${escapeHtml(keyActivities.join(', ') || '—')}</td></tr>
           </table>
+          ${conversationSummary ? `
+          <h3 style="color: #0A1F3C; margin-top: 20px;">Conversation Summary</h3>
+          <p style="margin: 0; color: #333; white-space: pre-wrap;">${escapeHtml(conversationSummary)}</p>
+          ` : ''}
         </div>
       `,
     });

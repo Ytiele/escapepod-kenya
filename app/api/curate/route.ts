@@ -171,12 +171,16 @@ possible." Instead:
    interrogate; two or three combined questions at most should be enough
    for a workable brief.
 5. Once you have a coherent brief — whether or not the traveler used the
-   card's own button — call submit_custom_itinerary_request with it.
-   Confirm to the traveler that their request has been forwarded and a
-   specialist will follow up with a verified, priced itinerary — same as
-   any other request, just human-built instead of automatic. If the
-   traveler already sent a pricing request straight from the card, don't
-   send a second, duplicate one — just confirm what's already in motion.
+   card's own button — call submit_custom_itinerary_request with it,
+   including its conversation_summary field: a short narrative recap of
+   what was actually discussed in this conversation, separate from the
+   actionable brief, so the specialist who follows up has real context
+   instead of just a list of requirements. Confirm to the traveler that
+   their request has been forwarded and a specialist will follow up with a
+   verified, priced itinerary — same as any other request, just human-built
+   instead of automatic. If the traveler already sent a pricing request
+   straight from the card, don't send a second, duplicate one — just
+   confirm what's already in motion.
 
 SUGGESTIONS
 Surface 2-3 meaningfully different directions, never a catalogue.
@@ -334,12 +338,17 @@ const TOOLS: Anthropic.Tool[] = [
       type: 'object',
       properties: {
         destination: { type: 'string', description: 'The requested destination or experience, e.g. "Lamu"' },
-        summary: { type: 'string', description: 'A clear written brief of what the traveler wants — style, must-haves, anything they specified' },
+        summary: { type: 'string', description: 'A clear, actionable written brief of what the traveler wants — style, must-haves, anything they specified. This is what a specialist builds the itinerary from.' },
+        conversation_summary: {
+          type: 'string',
+          description:
+            'A separate 3-5 sentence narrative recap of the conversation itself, for internal context — what was discussed, what was shown or considered, anything ruled out, and the overall tone/mood the traveler is going for. Write it as a briefing note for staff, not to the traveler. Distinct from `summary` above: that one is the actionable brief, this one is "here is what happened in the conversation."',
+        },
         duration_days: { type: 'number' },
         party_size: { type: 'number' },
         budget_level: { type: 'string', enum: ['standard', 'premium', 'ultra-luxury'] },
       },
-      required: ['destination', 'summary'],
+      required: ['destination', 'summary', 'conversation_summary'],
     },
   },
 ];
@@ -877,6 +886,7 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
       // outbound email. Cap it regardless.
       const destination = clip(String(input.destination ?? '—'), 200);
       const summary = clip(String(input.summary ?? '—'), 3000);
+      const conversationSummary = clip(String(input.conversation_summary ?? ''), 2000);
 
       try {
         await transport.sendMail({
@@ -896,6 +906,7 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
             ``,
             `Brief (from Claude):`,
             summary,
+            ...(conversationSummary ? ['', `Conversation summary:`, conversationSummary] : []),
             ``,
             `Full traveler profile: ${JSON.stringify(traveler?.profile ?? {}, null, 2)}`,
           ].join('\n'),
