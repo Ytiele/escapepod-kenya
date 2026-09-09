@@ -127,11 +127,13 @@ internally and route to a verified alternative.
 
 Never proactively name or suggest a destination that isn't in the verified
 catalogue (confirmed via search_experiences/generate_directions/
-get_experience in THIS conversation) — not in your own reply text, and
-never as a quick-reply suggestion (see QUICK REPLIES below). Exploring
-somewhere unverified should only ever start from the traveler typing it
-themselves, not from you offering it as a tappable option. If the traveler
-brings one up, follow UNAVAILABLE EXPERIENCES below.
+get_experience in THIS conversation — search_destination_knowledge does
+NOT count towards this, see below, since it carries no pricing or
+availability) — not in your own reply text, and never as a quick-reply
+suggestion (see QUICK REPLIES below). Exploring somewhere unverified should
+only ever start from the traveler typing it themselves, not from you
+offering it as a tappable option. If the traveler brings one up, follow
+UNAVAILABLE EXPERIENCES below.
 
 UNAVAILABLE EXPERIENCES (e.g. Lamu, or anything search_experiences doesn't
 return)
@@ -141,12 +143,25 @@ possible." Instead:
 1. Say plainly that this isn't in the verified catalogue yet, so you can't
    hand them a priced itinerary instantly the way you can for in-catalogue
    destinations.
-2. Still curate it conversationally. Gather what you need in as few turns
-   as possible — combine questions rather than asking one at a time, and
-   infer anything already stated or implied (persona, duration, budget,
-   must-haves). Do not interrogate; two or three combined questions at most
-   should be enough for a workable brief.
-3. Once you have a coherent brief, call submit_custom_itinerary_request
+2. Call search_destination_knowledge with what they named. EscapePod has
+   scouted far more of Kenya than is bookable today, and this covers 35
+   real candidate locations with real hotels already operating there — if
+   it returns a match, use its actual attractions, activities, and real
+   hotel names to talk about the place specifically and credibly instead
+   of vaguely or generically. This is scouting/reference data only: no
+   prices, no availability, no confirmed accommodation. Never state a
+   price for anything it returns, never imply a listed hotel is booked or
+   included, and never let a match here loosen INVENTORY INTEGRITY above —
+   it makes the conversation better-informed, not the destination
+   bookable. If it returns nothing, that's fine — continue with whatever
+   the traveler has already told you.
+3. Still curate it conversationally regardless of what step 2 found.
+   Gather what you need in as few turns as possible — combine questions
+   rather than asking one at a time, and infer anything already stated or
+   implied (persona, duration, budget, must-haves). Do not interrogate;
+   two or three combined questions at most should be enough for a workable
+   brief.
+4. Once you have a coherent brief, call submit_custom_itinerary_request
    with it. Confirm to the traveler that their request has been forwarded
    and a specialist will follow up with a verified, priced itinerary —
    same as any other request, just human-built instead of automatic.
@@ -182,7 +197,9 @@ Rules:
   the underlying need you identified (e.g. "Keep it more private" or
   "I don't want to plan logistics"), not generic tourism filler.
 - Never name a destination or experience in a suggestion unless it's
-  already been confirmed via a tool call in this conversation. Don't use
+  already been confirmed via search_experiences/generate_directions/
+  get_experience in this conversation — a search_destination_knowledge
+  match does NOT count, since it has no pricing or availability. Don't use
   this line to float somewhere unverified (e.g. a coastal town that's not
   in the catalogue) as a tappable idea — that only ever comes from the
   traveler typing it themselves.
@@ -265,6 +282,18 @@ const TOOLS: Anthropic.Tool[] = [
         priority: { type: 'string', enum: ['low', 'medium', 'high'] },
       },
       required: ['change'],
+    },
+  },
+  {
+    name: 'search_destination_knowledge',
+    description:
+      "Look up EscapePod's broader Kenya scouting reference — 35 candidate locations across 7 regions, each with real, currently operating hotels — for a destination the traveler brought up that is NOT in the verified, bookable experiences catalogue (search_experiences returned nothing for it). Use this only as part of the UNAVAILABLE EXPERIENCES flow, to speak specifically and credibly about a real place (its actual attractions, activities, and real hotel names) instead of vaguely or generically. This is reference/scouting data only — it carries no pricing, no availability, and is never a bookable listing; a result from this tool never satisfies INVENTORY INTEGRITY and never counts as a verified destination.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'A destination name, region, or keyword, e.g. "Lake Bogoria", "tea plantations", "flamingos", "Northern Kenya".' },
+      },
+      required: ['query'],
     },
   },
   {
@@ -693,6 +722,45 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
       // per-day pricing by duration_days. Returning a placeholder for now
       // so the tool-call loop doesn't break.
       return { note: 'itinerary builder not yet implemented' };
+    }
+
+    case 'search_destination_knowledge': {
+      const query = String(input.query ?? '').trim();
+      if (!query) return [];
+      const like = `%${query}%`;
+
+      // Reference/scouting data — deliberately a completely separate table
+      // from `experiences` (see scripts/locations-hotels-schema.sql). No
+      // filterVerified() here on purpose: this never claims to be bookable
+      // inventory in the first place, so there's nothing to gate.
+      const { data: locations } = await supabaseAdmin
+        .from('locations')
+        .select('id, region, name, tier, site_type, key_attractions, signature_activities, distance_from_nairobi, suitability_notes')
+        .or(
+          [
+            `name.ilike.${like}`,
+            `region.ilike.${like}`,
+            `site_type.ilike.${like}`,
+            `key_attractions.ilike.${like}`,
+            `signature_activities.ilike.${like}`,
+            `suitability_notes.ilike.${like}`,
+          ].join(',')
+        )
+        .limit(5);
+
+      if (!locations || locations.length === 0) return [];
+
+      const { data: hotels } = await supabaseAdmin
+        .from('hotels')
+        .select('location_id, name, price_segment')
+        .in('location_id', locations.map((l) => l.id));
+
+      return locations.map((loc) => ({
+        ...loc,
+        hotels: (hotels ?? [])
+          .filter((h) => h.location_id === loc.id)
+          .map((h) => ({ name: h.name, price_segment: h.price_segment })),
+      }));
     }
 
     case 'submit_custom_itinerary_request': {
