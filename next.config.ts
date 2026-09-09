@@ -33,6 +33,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // Several API routes read public/images/** off disk at runtime (email
+  // logo attachments via lib/mail.ts's getLogoAttachment(), and the
+  // itinerary PDF's cover photo via lib/pdf/bookingPdf.tsx) using a
+  // dynamic fs.readFileSync path Next's build-time file tracer can't
+  // statically follow — without this, those reads would 404/ENOENT in
+  // Vercel's serverless bundle even though they work fine in `next dev`
+  // (which always has full filesystem access).
+  outputFileTracingIncludes: {
+    '/*': ['public/images/**/*'],
+  },
   images: {
     // Serve AVIF when the browser supports it, falling back to WebP, then
     // the original format — negotiated via the request's Accept header.
