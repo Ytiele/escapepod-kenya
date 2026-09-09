@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getMailTransport } from '@/lib/mail';
+import { getMailTransport, customerEmailShell, brandedButton, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
           from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
           to: email,
           subject: 'Reset your EscapePod password',
+          attachments: [getLogoAttachment()],
           text: [
             `Hi ${name},`,
             ``,
@@ -58,17 +59,17 @@ export async function POST(request: NextRequest) {
             ``,
             `This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password won't change.`,
           ].join('\n'),
-          html: `
-            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-              <h2 style="color: #0A1F3C;">Reset your password</h2>
-              <p>Hi ${escapeHtml(name)},</p>
-              <p>We received a request to reset your EscapePod password. Click below to choose a new one:</p>
-              <p style="margin: 24px 0;">
-                <a href="${resetUrl}" style="background: #C9A24B; color: #0A1F3C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">Reset Password</a>
+          html: customerEmailShell(
+            'Reset your password',
+            `
+              <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)},</p>
+              <p style="margin: 0 0 24px;">We received a request to reset your EscapePod password. Click below to choose a new one:</p>
+              <p style="margin: 0 0 24px;">
+                ${brandedButton(resetUrl, 'Reset Password')}
               </p>
-              <p style="color: #888; font-size: 13px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password won't change.</p>
-            </div>
-          `,
+              <p style="margin: 0; color: rgba(28,28,28,0.55); font-size: 12.5px;">This link expires in 1 hour. If you didn't request this, you can safely ignore this email — your password won't change.</p>
+            `
+          ),
         });
       } catch (err) {
         console.error('[forgot-password] failed to send reset email', err);

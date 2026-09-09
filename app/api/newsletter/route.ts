@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       text: `New "Inner Circle" newsletter signup from the homepage.\n\nEmail: ${email}`,
       html: `
         <div style="font-family: sans-serif; max-width: 420px; margin: 0 auto;">
-          <h2 style="color: #0A1F3C;">New Newsletter Signup</h2>
+          <h2 style="color: #011627;">New Newsletter Signup</h2>
           <p style="color: #333;">A visitor joined the Inner Circle dispatch from the homepage.</p>
           <p style="margin-top: 12px;"><strong>Email:</strong> ${escapeHtml(email)}</p>
         </div>

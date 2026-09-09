@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail'
+import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail'
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security'
 
 type BookingBody = {
@@ -60,17 +60,18 @@ export async function POST(request: NextRequest) {
       to: BOOKING_RECIPIENT,
       replyTo: email,
       subject: `New Consultation Booking — ${name}`,
+      attachments: [getLogoAttachment()],
       text: `New consultation request via escapepodkenya.com\n\nName: ${name}\nEmail: ${email}\nRequested Date: ${formattedDate}\nRequested Time: ${time}`,
       html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color: #0A1F3C;">New Consultation Booking</h2>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: ${BRAND.charcoal};">
+          <h2 style="color: ${BRAND.navy};">New Consultation Booking</h2>
           <p style="color: #333;">A new 20-minute consultation request was submitted on the Contact page.</p>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
-            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(name)}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(email)}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Requested Date</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(formattedDate)}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Requested Time</td><td style="padding: 8px 0; color: #0A1F3C; font-weight: 600;">${escapeHtml(time)}</td></tr>
-          </table>
+          ${brandedTable([
+            brandedRow('Name', escapeHtml(name)),
+            brandedRow('Email', escapeHtml(email)),
+            brandedRow('Requested Date', escapeHtml(formattedDate)),
+            brandedRow('Requested Time', escapeHtml(time)),
+          ].join(''))}
         </div>
       `,
     })
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
         to: email,
         replyTo: BOOKING_RECIPIENT,
         subject: `Consultation Request Received`,
+        attachments: [getLogoAttachment()],
         text: [
           `Hi ${name},`,
           ``,
@@ -98,12 +100,12 @@ export async function POST(request: NextRequest) {
         html: customerEmailShell(
           'Consultation Request Received',
           `
-            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your request for a 20-minute consultation.</p>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr><td style="padding: 6px 0; color: #888;">Requested Date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(formattedDate)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Requested Time</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(time)}</td></tr>
-            </table>
-            <p style="margin: 16px 0 0;">We'll confirm your exact time by email shortly — this isn't an automated calendar booking, so please allow us a little time to get back to you.</p>
+            <p style="margin: 0 0 20px;">Hi ${escapeHtml(name)}, we've received your request for a 20-minute consultation.</p>
+            ${brandedTable([
+              brandedRow('Requested Date', escapeHtml(formattedDate)),
+              brandedRow('Requested Time', escapeHtml(time)),
+            ].join(''))}
+            <p style="margin: 20px 0 0;">We'll confirm your exact time by email shortly — this isn't an automated calendar booking, so please allow us a little time to get back to you.</p>
           `
         ),
       })

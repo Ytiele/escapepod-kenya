@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
@@ -70,18 +70,18 @@ export async function POST(request: NextRequest) {
     `Service: ${serviceLabel}`,
   ];
   const tableRows = [
-    `<tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(email)}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Type of Car</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(carType)}</td></tr>`,
-    `<tr><td style="padding: 8px 0; color: #888;">Service</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(serviceLabel)}</td></tr>`,
+    brandedRow('Name', escapeHtml(name)),
+    brandedRow('Email', escapeHtml(email)),
+    brandedRow('Type of Car', escapeHtml(carType)),
+    brandedRow('Service', escapeHtml(serviceLabel)),
   ];
 
   if (serviceType === 'taxi') {
     textLines.push(`Pickup location: ${pickupLocation}`, `Pickup time: ${pickupTime}`, `Drop-off location: ${dropoffLocation}`);
     tableRows.push(
-      `<tr><td style="padding: 8px 0; color: #888;">Pickup Location</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(pickupLocation!)}</td></tr>`,
-      `<tr><td style="padding: 8px 0; color: #888;">Pickup Time</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(pickupTime!)}</td></tr>`,
-      `<tr><td style="padding: 8px 0; color: #888;">Drop-off Location</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(dropoffLocation!)}</td></tr>`
+      brandedRow('Pickup Location', escapeHtml(pickupLocation!)),
+      brandedRow('Pickup Time', escapeHtml(pickupTime!)),
+      brandedRow('Drop-off Location', escapeHtml(dropoffLocation!))
     );
   }
 
@@ -91,13 +91,12 @@ export async function POST(request: NextRequest) {
       to: BOOKING_RECIPIENT,
       replyTo: email,
       subject: `Trusted Transport Request (${serviceLabel}) — ${name}`,
+      attachments: [getLogoAttachment()],
       text: textLines.join('\n'),
       html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color: #0A1F3C;">New Trusted Transport Request</h2>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-            ${tableRows.join('\n')}
-          </table>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: ${BRAND.charcoal};">
+          <h2 style="color: ${BRAND.navy};">New Trusted Transport Request</h2>
+          ${brandedTable(tableRows.join(''))}
         </div>
       `,
     });
@@ -112,15 +111,15 @@ export async function POST(request: NextRequest) {
         `We've received your trusted transport request (${serviceLabel}, ${carType}).`,
       ];
       const customerTableRows = [
-        `<tr><td style="padding: 6px 0; color: #888;">Type of Car</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(carType)}</td></tr>`,
-        `<tr><td style="padding: 6px 0; color: #888;">Service</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(serviceLabel)}</td></tr>`,
+        brandedRow('Type of Car', escapeHtml(carType)),
+        brandedRow('Service', escapeHtml(serviceLabel)),
       ];
       if (serviceType === 'taxi') {
         customerTextLines.push(`Pickup location: ${pickupLocation}`, `Pickup time: ${pickupTime}`, `Drop-off location: ${dropoffLocation}`);
         customerTableRows.push(
-          `<tr><td style="padding: 6px 0; color: #888;">Pickup Location</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(pickupLocation!)}</td></tr>`,
-          `<tr><td style="padding: 6px 0; color: #888;">Pickup Time</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(pickupTime!)}</td></tr>`,
-          `<tr><td style="padding: 6px 0; color: #888;">Drop-off Location</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(dropoffLocation!)}</td></tr>`
+          brandedRow('Pickup Location', escapeHtml(pickupLocation!)),
+          brandedRow('Pickup Time', escapeHtml(pickupTime!)),
+          brandedRow('Drop-off Location', escapeHtml(dropoffLocation!))
         );
       }
       customerTextLines.push(``, `Someone from our team will follow up by email or WhatsApp shortly to confirm details.`, ``, `Warmly,`, `The EscapePod Kenya Team`);
@@ -130,15 +129,14 @@ export async function POST(request: NextRequest) {
         to: email,
         replyTo: BOOKING_RECIPIENT,
         subject: `Trusted Transport Request Received`,
+        attachments: [getLogoAttachment()],
         text: customerTextLines.join('\n'),
         html: customerEmailShell(
           'Trusted Transport Request Received',
           `
-            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your trusted transport request.</p>
-            <table style="width: 100%; border-collapse: collapse;">
-              ${customerTableRows.join('\n')}
-            </table>
-            <p style="margin: 16px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm details.</p>
+            <p style="margin: 0 0 20px;">Hi ${escapeHtml(name)}, we've received your trusted transport request.</p>
+            ${brandedTable(customerTableRows.join(''))}
+            <p style="margin: 20px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm details.</p>
           `
         ),
       });

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { resolveSession, setSessionCookies } from '@/lib/session';
-import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, brandedButton, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { addDays, generateBookingReference } from '@/lib/bookings';
 import { summarizeConversation } from '@/lib/curationSummary';
+import { generateBookingPdf } from '@/lib/pdf/bookingPdf';
+import { imageForDestination } from '@/lib/destinations';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -125,9 +127,28 @@ export async function POST(request: NextRequest) {
       ? `$${experience.price_usd_pp_min.toLocaleString()} pp`
       : 'Price on request';
 
-  // Was kicked off right after body parsing, above, so it ran concurrently
-  // with the booking insert instead of adding its own latency afterward.
+  // Both kicked off before the emails are composed, so they run
+  // concurrently rather than adding their own latency in sequence. Both
+  // fail open (empty string / null) — see their own files for why.
   const conversationSummary = await conversationSummaryPromise;
+  const pdfBuffer = await generateBookingPdf(
+    {
+      reference: booking.reference,
+      packageName: experience.name,
+      destination: experience.destination,
+      durationDays: experience.duration_days,
+      numTravelers,
+      startDate,
+      priceLabel: priceRange,
+      accommodation: experience.accommodation ?? [],
+      keyActivities: experience.key_activities ?? [],
+      travelerName: user.name,
+    },
+    imageForDestination(experience.destination)
+  );
+  const pdfAttachment = pdfBuffer
+    ? [{ filename: `EscapePod-Booking-${booking.reference}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+    : [];
 
   const transport = getMailTransport();
   if (transport) {
@@ -141,6 +162,7 @@ export async function POST(request: NextRequest) {
         to: BOOKING_RECIPIENT,
         replyTo: user.email,
         subject: `Booking Request ${booking.reference} — ${experience.name} — ${user.name}`,
+        attachments: [getLogoAttachment(), ...pdfAttachment],
         text: [
           `New booking request from the Curation Engine.`,
           ``,
@@ -160,28 +182,29 @@ export async function POST(request: NextRequest) {
           ...(conversationSummary ? ['', `Conversation summary:`, conversationSummary] : []),
         ].join('\n'),
         html: `
-          <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
-            <h2 style="color: #0A1F3C;">New Booking Request — ${escapeHtml(booking.reference)}</h2>
-            <h3 style="color: #0A1F3C; margin-bottom: 4px;">Traveler</h3>
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; color: ${BRAND.charcoal};">
+            <h2 style="color: ${BRAND.navy};">New Booking Request — ${escapeHtml(booking.reference)}</h2>
+            <h3 style="color: ${BRAND.navy}; margin-bottom: 4px;">Traveler</h3>
             <p style="margin: 0 0 4px;"><strong>${escapeHtml(user.name)}</strong> — ${escapeHtml(user.email)}</p>
             <p style="margin: 0 0 12px; color: #666;">Persona: ${escapeHtml(traveler?.persona ?? 'unknown')}</p>
             <pre style="background: #f4f4f4; padding: 12px; border-radius: 8px; font-size: 12px; white-space: pre-wrap;">${escapeHtml(JSON.stringify(traveler?.profile ?? {}, null, 2))}</pre>
 
-            <h3 style="color: #0A1F3C; margin-top: 20px;">Experience Booked</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr><td style="padding: 6px 0; color: #888;">Name</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.name)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Destination</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.destination)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Duration</td><td style="padding: 6px 0; font-weight: 600;">${experience.duration_days ?? '—'} days</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Travelers</td><td style="padding: 6px 0; font-weight: 600;">${numTravelers}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Requested start date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(startDate ?? 'not specified')}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Price</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(priceRange)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Accommodation</td><td style="padding: 6px 0;">${escapeHtml((experience.accommodation ?? []).join(', ') || '—')}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Key Activities</td><td style="padding: 6px 0;">${escapeHtml((experience.key_activities ?? []).join(', ') || '—')}</td></tr>
-            </table>
+            <h3 style="color: ${BRAND.navy}; margin-top: 20px;">Experience Booked</h3>
+            ${brandedTable([
+              brandedRow('Name', escapeHtml(experience.name)),
+              brandedRow('Destination', escapeHtml(experience.destination)),
+              brandedRow('Duration', `${experience.duration_days ?? '—'} days`),
+              brandedRow('Travelers', String(numTravelers)),
+              brandedRow('Requested start date', escapeHtml(startDate ?? 'not specified')),
+              brandedRow('Price', escapeHtml(priceRange)),
+              brandedRow('Accommodation', escapeHtml((experience.accommodation ?? []).join(', ') || '—')),
+              brandedRow('Key Activities', escapeHtml((experience.key_activities ?? []).join(', ') || '—')),
+            ].join(''))}
             ${conversationSummary ? `
-            <h3 style="color: #0A1F3C; margin-top: 20px;">Conversation Summary</h3>
+            <h3 style="color: ${BRAND.navy}; margin-top: 20px;">Conversation Summary</h3>
             <p style="margin: 0; color: #333; white-space: pre-wrap;">${escapeHtml(conversationSummary)}</p>
             ` : ''}
+            ${pdfAttachment.length > 0 ? `<p style="margin: 16px 0 0; color: #888; font-size: 12px;">A full itinerary PDF is attached.</p>` : ''}
           </div>
         `,
       });
@@ -200,6 +223,7 @@ export async function POST(request: NextRequest) {
         to: user.email,
         replyTo: BOOKING_RECIPIENT,
         subject: `Booking Received — ${booking.reference}`,
+        attachments: [getLogoAttachment(), ...pdfAttachment],
         text: [
           `Hi ${user.name},`,
           ``,
@@ -215,6 +239,8 @@ export async function POST(request: NextRequest) {
           ``,
           `A travel designer will confirm availability, pricing, and every detail within 24 hours. No payment has been taken yet.`,
           ``,
+          `A PDF copy of this itinerary is attached.`,
+          ``,
           `Track this booking anytime: ${origin}/bookings/${booking.reference}`,
           ``,
           `Warmly,`,
@@ -223,19 +249,20 @@ export async function POST(request: NextRequest) {
         html: customerEmailShell(
           'Booking Received',
           `
-            <p style="margin: 0 0 16px;">Hi ${escapeHtml(user.name)}, we've received your booking request — thank you for choosing EscapePod Kenya.</p>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr><td style="padding: 6px 0; color: #888;">Booking reference</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(booking.reference)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Journey</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.name)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Destination</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.destination)}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Duration</td><td style="padding: 6px 0; font-weight: 600;">${experience.duration_days ?? '—'} days</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Travelers</td><td style="padding: 6px 0; font-weight: 600;">${numTravelers}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Requested start date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(startDate ?? 'not specified')}</td></tr>
-              <tr><td style="padding: 6px 0; color: #888;">Estimated price</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(priceRange)}</td></tr>
-            </table>
-            <p style="margin: 16px 0 0;">A travel designer will confirm availability, pricing, and every detail within 24 hours. No payment has been taken yet.</p>
-            <p style="margin: 16px 0 0;">
-              <a href="${origin}/bookings/${booking.reference}" style="background: #C9A24B; color: #0A1F3C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">Track This Booking</a>
+            <p style="margin: 0 0 20px;">Hi ${escapeHtml(user.name)}, we've received your booking request — thank you for choosing EscapePod Kenya.</p>
+            ${brandedTable([
+              brandedRow('Booking reference', escapeHtml(booking.reference)),
+              brandedRow('Journey', escapeHtml(experience.name)),
+              brandedRow('Destination', escapeHtml(experience.destination)),
+              brandedRow('Duration', `${experience.duration_days ?? '—'} days`),
+              brandedRow('Travelers', String(numTravelers)),
+              brandedRow('Requested start date', escapeHtml(startDate ?? 'not specified')),
+              brandedRow('Estimated price', escapeHtml(priceRange)),
+            ].join(''))}
+            <p style="margin: 20px 0 0;">A travel designer will confirm availability, pricing, and every detail within 24 hours. No payment has been taken yet.</p>
+            ${pdfAttachment.length > 0 ? `<p style="margin: 12px 0 0; color: rgba(28,28,28,0.6); font-size: 13px;">A beautifully laid-out PDF of your itinerary is attached to this email — save it, print it, or share it with anyone joining you.</p>` : ''}
+            <p style="margin: 22px 0 0;">
+              ${brandedButton(`${origin}/bookings/${booking.reference}`, 'Track This Booking')}
             </p>
           `
         ),

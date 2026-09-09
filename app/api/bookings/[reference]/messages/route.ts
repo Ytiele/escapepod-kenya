@@ -153,7 +153,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         ].join('\n'),
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2 style="color: #0A1F3C;">New Booking Message — ${escapeHtml(booking.reference)}</h2>
+            <h2 style="color: #011627;">New Booking Message — ${escapeHtml(booking.reference)}</h2>
             <p style="margin: 0 0 4px;"><strong>${escapeHtml(user.name)}</strong> — ${escapeHtml(user.email)}</p>
             <p style="margin: 0 0 12px; color: #666;">Re: ${escapeHtml(booking.package_name)}</p>
             <p style="background: #f4f4f4; padding: 12px; border-radius: 8px; white-space: pre-wrap;">${escapeHtml(message)}</p>

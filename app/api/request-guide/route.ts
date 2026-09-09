@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       to: BOOKING_RECIPIENT,
       replyTo: email,
       subject: `Private Guide Request — ${name}`,
+      attachments: [getLogoAttachment()],
       text: [
         `New private guide request from the website.`,
         ``,
@@ -61,14 +62,14 @@ export async function POST(request: NextRequest) {
         `Type of guide needed: ${guideDescription}`,
       ].join('\n'),
       html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color: #0A1F3C;">New Private Guide Request</h2>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
-            <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(email)}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Phone / WhatsApp</td><td style="padding: 8px 0;">${escapeHtml(phone || '—')}</td></tr>
-            <tr><td style="padding: 8px 0; color: #888;">Type of Guide</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(guideDescription)}</td></tr>
-          </table>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: ${BRAND.charcoal};">
+          <h2 style="color: ${BRAND.navy};">New Private Guide Request</h2>
+          ${brandedTable([
+            brandedRow('Name', escapeHtml(name)),
+            brandedRow('Email', escapeHtml(email)),
+            brandedRow('Phone / WhatsApp', escapeHtml(phone || '—')),
+            brandedRow('Type of Guide', escapeHtml(guideDescription)),
+          ].join(''))}
         </div>
       `,
     });
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
         to: email,
         replyTo: BOOKING_RECIPIENT,
         subject: `Private Guide Request Received`,
+        attachments: [getLogoAttachment()],
         text: [
           `Hi ${name},`,
           ``,
@@ -95,11 +97,9 @@ export async function POST(request: NextRequest) {
         html: customerEmailShell(
           'Private Guide Request Received',
           `
-            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your private guide request.</p>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr><td style="padding: 6px 0; color: #888;">Type of Guide</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(guideDescription)}</td></tr>
-            </table>
-            <p style="margin: 16px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm availability.</p>
+            <p style="margin: 0 0 20px;">Hi ${escapeHtml(name)}, we've received your private guide request.</p>
+            ${brandedTable(brandedRow('Type of Guide', escapeHtml(guideDescription)))}
+            <p style="margin: 20px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm availability.</p>
           `
         ),
       });

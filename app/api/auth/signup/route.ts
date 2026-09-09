@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         ].join('\n'),
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2 style="color: #0A1F3C;">New Profile Created</h2>
+            <h2 style="color: #011627;">New Profile Created</h2>
             <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
               <tr><td style="padding: 8px 0; color: #888;">Name</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td></tr>
               <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0; font-weight: 600;">${escapeHtml(email)}</td></tr>
