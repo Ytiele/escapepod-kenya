@@ -127,13 +127,14 @@ internally and route to a verified alternative.
 
 Never proactively name or suggest a destination that isn't in the verified
 catalogue (confirmed via search_experiences/generate_directions/
-get_experience in THIS conversation — search_destination_knowledge does
-NOT count towards this, see below, since it carries no pricing or
-availability) — not in your own reply text, and never as a quick-reply
-suggestion (see QUICK REPLIES below). Exploring somewhere unverified should
-only ever start from the traveler typing it themselves, not from you
-offering it as a tappable option. If the traveler brings one up, follow
-UNAVAILABLE EXPERIENCES below.
+get_experience in THIS conversation, OR already shown to the traveler as a
+card via build_custom_direction_cards — search_destination_knowledge alone
+does NOT count, since that's a private lookup, nothing has been shown yet)
+— not in your own reply text, and never as a quick-reply suggestion (see
+QUICK REPLIES below). Exploring somewhere unverified should only ever
+start from the traveler typing it themselves, not from you offering it as
+a tappable option. If the traveler brings one up, follow UNAVAILABLE
+EXPERIENCES below.
 
 UNAVAILABLE EXPERIENCES (e.g. Lamu, or anything search_experiences doesn't
 return)
@@ -149,22 +150,33 @@ possible." Instead:
    it returns a match, use its actual attractions, activities, and real
    hotel names to talk about the place specifically and credibly instead
    of vaguely or generically. This is scouting/reference data only: no
-   prices, no availability, no confirmed accommodation. Never state a
-   price for anything it returns, never imply a listed hotel is booked or
-   included, and never let a match here loosen INVENTORY INTEGRITY above —
-   it makes the conversation better-informed, not the destination
-   bookable. If it returns nothing, that's fine — continue with whatever
-   the traveler has already told you.
-3. Still curate it conversationally regardless of what step 2 found.
-   Gather what you need in as few turns as possible — combine questions
-   rather than asking one at a time, and infer anything already stated or
-   implied (persona, duration, budget, must-haves). Do not interrogate;
-   two or three combined questions at most should be enough for a workable
-   brief.
-4. Once you have a coherent brief, call submit_custom_itinerary_request
-   with it. Confirm to the traveler that their request has been forwarded
-   and a specialist will follow up with a verified, priced itinerary —
-   same as any other request, just human-built instead of automatic.
+   prices, no availability, no confirmed accommodation. If it returns
+   nothing, that's fine — continue with whatever the traveler has already
+   told you, and skip straight to step 4.
+3. If it DID return a match, call build_custom_direction_cards for it —
+   roughly how many days is enough of a brief to do this, don't wait for a
+   complete profile. This shows the traveler an actual card, exactly like
+   a verified experience, except its price honestly reads "Price on
+   request" and its own button sends a pricing request instead of booking
+   instantly. Do this proactively as soon as it's useful, the same way you
+   present verified directions — don't make the traveler ask for it by
+   name. Never state a price for it yourself, never imply a listed hotel
+   is already booked or included, and don't let showing it loosen
+   INVENTORY INTEGRITY above — the card's own copy already makes clear
+   it's a request, not a confirmation.
+4. Keep curating conversationally regardless of what the steps above
+   found. Gather what you need in as few turns as possible — combine
+   questions rather than asking one at a time, and infer anything already
+   stated or implied (persona, duration, budget, must-haves). Do not
+   interrogate; two or three combined questions at most should be enough
+   for a workable brief.
+5. Once you have a coherent brief — whether or not the traveler used the
+   card's own button — call submit_custom_itinerary_request with it.
+   Confirm to the traveler that their request has been forwarded and a
+   specialist will follow up with a verified, priced itinerary — same as
+   any other request, just human-built instead of automatic. If the
+   traveler already sent a pricing request straight from the card, don't
+   send a second, duplicate one — just confirm what's already in motion.
 
 SUGGESTIONS
 Surface 2-3 meaningfully different directions, never a catalogue.
@@ -198,11 +210,13 @@ Rules:
   "I don't want to plan logistics"), not generic tourism filler.
 - Never name a destination or experience in a suggestion unless it's
   already been confirmed via search_experiences/generate_directions/
-  get_experience in this conversation — a search_destination_knowledge
-  match does NOT count, since it has no pricing or availability. Don't use
-  this line to float somewhere unverified (e.g. a coastal town that's not
-  in the catalogue) as a tappable idea — that only ever comes from the
-  traveler typing it themselves.
+  get_experience, or already shown to the traveler as a card via
+  build_custom_direction_cards, in this conversation — a
+  search_destination_knowledge match on its own does NOT count, since
+  nothing has actually been shown yet. Don't use this line to float
+  somewhere unverified (e.g. a coastal town that's not in the catalogue)
+  as a tappable idea — that only ever comes from the traveler typing it
+  themselves.
 - Never include this line while you still intend to call a tool this turn.
 - This line is stripped before the traveler ever sees it — write it as if
   it were internal metadata, not part of your message.
@@ -294,6 +308,23 @@ const TOOLS: Anthropic.Tool[] = [
         query: { type: 'string', description: 'A destination name, region, or keyword, e.g. "Lake Bogoria", "tea plantations", "flamingos", "Northern Kenya".' },
       },
       required: ['query'],
+    },
+  },
+  {
+    name: 'build_custom_direction_cards',
+    description:
+      "Build ready-to-display itinerary cards (1-3) for destinations found via search_destination_knowledge that are NOT in the verified, bookable catalogue. Renders exactly like a verified experience card, except its price honestly reads 'Price on request' and its own button sends a pricing request to the team instead of booking instantly. Call this proactively once search_destination_knowledge has found a real match and you have roughly enough of a brief (how many days, ideally) — don't wait for a complete profile, and don't make the traveler ask for a card by name.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        location_names: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '1 to 3 location names to build cards for — must match names returned by search_destination_knowledge.',
+        },
+        duration_days: { type: 'number', description: 'Estimated trip length, if known — otherwise omit.' },
+      },
+      required: ['location_names'],
     },
   },
   {
@@ -575,7 +606,12 @@ export async function POST(req: NextRequest) {
     for (const toolUse of toolUses) {
       const result = await executeTool(toolUse.name, toolUse.input, { travelerId: traveler.id, name: user.name, email: user.email });
 
-      if (toolUse.name === 'search_experiences' || toolUse.name === 'generate_directions' || toolUse.name === 'build_itinerary') {
+      if (
+        toolUse.name === 'search_experiences' ||
+        toolUse.name === 'generate_directions' ||
+        toolUse.name === 'build_itinerary' ||
+        toolUse.name === 'build_custom_direction_cards'
+      ) {
         uiPayload = { type: toolUse.name, data: result };
         highestPriceSeenUsd = Math.max(highestPriceSeenUsd, maxPriceIn(result));
       }
@@ -761,6 +797,66 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
           .filter((h) => h.location_id === loc.id)
           .map((h) => ({ name: h.name, price_segment: h.price_segment })),
       }));
+    }
+
+    case 'build_custom_direction_cards': {
+      const names: string[] = Array.isArray(input.location_names)
+        ? input.location_names.map((n: unknown) => String(n)).filter(Boolean).slice(0, 3)
+        : [];
+      if (names.length === 0) return [];
+
+      const durationDays = typeof input.duration_days === 'number' ? input.duration_days : null;
+      const cards = [];
+
+      for (const rawName of names) {
+        const { data: loc } = await supabaseAdmin
+          .from('locations')
+          .select('id, name, signature_activities, suitability_notes')
+          .ilike('name', `%${rawName.trim()}%`)
+          .limit(1)
+          .maybeSingle();
+        if (!loc) continue;
+
+        const { data: hotelRows } = await supabaseAdmin
+          .from('hotels')
+          .select('name, price_segment')
+          .eq('location_id', loc.id);
+
+        // Luxury names first, so the accommodation line leads with the
+        // strongest option — same instinct as how a verified card reads.
+        const accommodation = (hotelRows ?? [])
+          .slice()
+          .sort((a, b) => (a.price_segment === 'Luxury' ? 0 : 1) - (b.price_segment === 'Luxury' ? 0 : 1))
+          .map((h) => h.name)
+          .slice(0, 3);
+
+        // signature_activities is free-form prose (e.g. "Game drives,
+        // hot-air ballooning, cultural visits; vehicle-based drives need no
+        // walking...") — split into short phrases the way a real
+        // experience's key_activities array reads on a card, dropping the
+        // pacing/accessibility note after the semicolon.
+        const activities = (loc.signature_activities ?? '')
+          .split(';')[0]
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+
+        cards.push({
+          id: `custom-${loc.id}`,
+          name: `${loc.name} — Custom Itinerary`,
+          destination: loc.name,
+          duration_days: durationDays,
+          price_usd_pp_min: null,
+          price_usd_pp_max: null,
+          is_custom: true,
+          accommodation,
+          key_activities: activities,
+          ideal_for: loc.suitability_notes ? [loc.suitability_notes] : [],
+        });
+      }
+
+      return cards;
     }
 
     case 'submit_custom_itinerary_request': {

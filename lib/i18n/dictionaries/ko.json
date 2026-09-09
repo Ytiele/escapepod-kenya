@@ -319,5 +319,10 @@
   "Confirm New Password": "새 비밀번호 확인",
   "Password must be at least 8 characters.": "비밀번호는 최소 8자 이상이어야 합니다.",
   "This reset link is invalid. Please request a new one.": "유효하지 않은 재설정 링크입니다. 새로운 링크를 요청해 주세요.",
-  "Passwords don't match.": "비밀번호가 일치하지 않습니다."
+  "Passwords don't match.": "비밀번호가 일치하지 않습니다.",
+  "Request sent": "요청이 전송되었습니다",
+  "A travel designer will build a priced, verified itinerary for this and follow up by email within 24 hours.": "저희 여행 디자이너가 검증된 정가 일정을 작성하고 24시간 내에 이메일로 연락드리겠습니다.",
+  "This destination isn't in our verified, priced catalogue yet. Send this to the EscapePod team and a travel designer will build a real, priced itinerary and follow up within 24 hours. No payment is taken here.": "아직 저희 검증된 정가 카탈로그에 없는 목적지입니다. EscapePod 팀으로 보내주시면 여행 디자이너가 실제 정가 일정을 작성하고 24시간 내에 연락드리겠습니다. 여기서는 결제가 이루어지지 않습니다.",
+  "Request Pricing": "가격 책정 요청",
+  "What would this roughly cost?": "대략 얼마 정도 필요할까요?"
 }

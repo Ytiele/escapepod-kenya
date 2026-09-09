@@ -324,6 +324,8 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
   const matchSuffix = useTranslated('% match')
   const yourCurrentPickLabel = useTranslated('Your current pick')
   const directionWord = useTranslated('Direction')
+  const bookLabel = useTranslated('Book Now')
+  const requestPricingLabel = useTranslated('Request Pricing')
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
@@ -392,7 +394,7 @@ function ItineraryCard({ exp, index, selected, isCompareAnchor, onView, onBook, 
               onClick={onBook}
               className="shrink-0 flex items-center gap-1 bg-gold text-navy font-semibold text-[12.5px] px-4 py-2 rounded-full hover:bg-gold/90 transition-colors"
             >
-              <T>Book Now</T> <span aria-hidden>→</span>
+              {exp.is_custom ? requestPricingLabel : bookLabel} <span aria-hidden>→</span>
             </button>
           </div>
         </div>
@@ -519,7 +521,7 @@ function ComposerPod({ open, onOpen, value, onChange, onKeyDown, onSubmit, disab
 function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; onAsk: (q: string) => void; onCompare: () => void; onBook: () => void }) {
   const asks = [
     `Tell me more about ${exp.name}`,
-    'Adjust the budget for this one',
+    exp.is_custom ? 'What would this roughly cost?' : 'Adjust the budget for this one',
   ]
 
   const img = imageForDestination(exp.destination)
@@ -626,7 +628,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
         onClick={onBook}
         className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full hover:bg-gold/90 transition-colors text-sm shadow-sm"
       >
-        <T>Book This Journey</T>
+        <T>{exp.is_custom ? 'Request Pricing' : 'Book This Journey'}</T>
       </button>
     </div>
   )
@@ -636,6 +638,7 @@ function ExperiencePanel({ exp, onAsk, onCompare, onBook }: { exp: Experience; o
 
 function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () => void; onSent: (msg: string) => void }) {
   const router = useRouter()
+  const isCustom = Boolean(exp.is_custom)
   const [status, setStatus] = useState<'idle' | 'sending' | 'error' | 'done'>('idle')
   const [error, setError] = useState('')
   const [numTravelers, setNumTravelers] = useState(1)
@@ -647,14 +650,32 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
   async function confirm() {
     setStatus('sending')
     try {
-      const res = await fetch('/api/book-experience', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined }),
-      })
+      // Custom cards (see build_custom_direction_cards) are synthesized
+      // from the locations/hotels scouting catalogue — there's no
+      // `experiences` row to book against, no real price, and no
+      // confirmed availability, so this sends a pricing request instead
+      // of creating a real booking record.
+      const res = isCustom
+        ? await fetch('/api/request-custom-itinerary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              destination: exp.destination,
+              packageName: exp.name,
+              numTravelers,
+              startDate: startDate || undefined,
+              accommodation: exp.accommodation,
+              keyActivities: exp.key_activities,
+            }),
+          })
+        : await fetch('/api/book-experience', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ experienceId: exp.id, numTravelers, startDate: startDate || undefined }),
+          })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || genericErrorMsg)
-      setReference(data.reference)
+      if (!isCustom) setReference(data.reference)
       setStatus('done')
     } catch (err) {
       setStatus('error')
@@ -663,6 +684,21 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
   }
 
   if (status === 'done') {
+    if (isCustom) {
+      return (
+        <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 text-center">
+            <h3 className="text-navy text-2xl font-medium"><T>Request sent</T></h3>
+            <p className="text-sm text-charcoal/60 leading-relaxed">
+              <T>A travel designer will build a priced, verified itinerary for this and follow up by email within 24 hours.</T>
+            </p>
+            <button onClick={onClose} className="w-full bg-gold text-navy font-semibold py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors mt-2">
+              <T>Close</T>
+            </button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
         <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col items-center gap-3 text-center">
@@ -692,9 +728,13 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
   return (
     <div onClick={onClose} className="fixed inset-0 z-92 bg-navy/40 flex items-center justify-center p-4">
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-cream rounded-3xl shadow-lg p-6 flex flex-col gap-3">
-        <h3 className="text-navy text-2xl font-medium"><T>Book this journey</T></h3>
+        <h3 className="text-navy text-2xl font-medium"><T>{isCustom ? 'Request custom pricing' : 'Book this journey'}</T></h3>
         <p className="text-sm text-charcoal/60 leading-relaxed">
-          <T>Send this to the EscapePod team and a travel designer will confirm availability, pricing, and every detail, then follow up within 24 hours. No payment is taken here.</T>
+          {isCustom ? (
+            <T>This destination isn't in our verified, priced catalogue yet. Send this to the EscapePod team and a travel designer will build a real, priced itinerary and follow up within 24 hours. No payment is taken here.</T>
+          ) : (
+            <T>Send this to the EscapePod team and a travel designer will confirm availability, pricing, and every detail, then follow up within 24 hours. No payment is taken here.</T>
+          )}
         </p>
         <div className="bg-navy/5 rounded-xl px-4 py-3 flex flex-col gap-1.5 mt-1">
           <div className="flex justify-between text-[13px]"><span className="text-charcoal/50"><T>Journey</T></span><span className="font-medium text-navy">{exp.name}</span></div>
@@ -736,7 +776,7 @@ function BookingDialog({ exp, onClose, onSent }: { exp: Experience; onClose: () 
             disabled={status === 'sending'}
             className="flex-1 bg-gold text-navy font-semibold py-3 rounded-full text-sm hover:bg-gold/90 disabled:opacity-60 transition-colors"
           >
-            <T>{status === 'sending' ? 'Sending…' : 'Send booking request'}</T>
+            <T>{status === 'sending' ? 'Sending…' : isCustom ? 'Send pricing request' : 'Send booking request'}</T>
           </button>
         </div>
       </div>

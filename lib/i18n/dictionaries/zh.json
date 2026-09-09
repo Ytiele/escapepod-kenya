@@ -319,5 +319,10 @@
   "Confirm New Password": "确认新密码",
   "Password must be at least 8 characters.": "密码必须至少包含 8 个字符。",
   "This reset link is invalid. Please request a new one.": "此重置链接已失效。请申请新的链接。",
-  "Passwords don't match.": "密码不匹配。"
+  "Passwords don't match.": "密码不匹配。",
+  "Request sent": "请求已发送",
+  "A travel designer will build a priced, verified itinerary for this and follow up by email within 24 hours.": "我们的旅行设计师将为您制定一份经过验证的报价行程，并在24小时内通过邮件跟进。",
+  "This destination isn't in our verified, priced catalogue yet. Send this to the EscapePod team and a travel designer will build a real, priced itinerary and follow up within 24 hours. No payment is taken here.": "该目的地暂未纳入我们经过验证的报价目录。我们将此转交给EscapePod团队，旅行设计师会为您制定真实的报价行程，并在24小时内跟进。此处不会产生任何费用。",
+  "Request Pricing": "询价",
+  "What would this roughly cost?": "这大概需要多少费用？"
 }

@@ -18,6 +18,13 @@ export interface ChatMessage {
 // Shape of a row in the Supabase `experiences` table — see
 // scripts/curate-schema.sql. Everything here is verified inventory data;
 // nothing on this type should ever be filled in by guesswork.
+//
+// The one exception is `is_custom` — set only on a card synthesized from
+// the locations/hotels scouting catalogue (see build_custom_direction_card
+// in app/api/curate/route.ts) for a destination outside the verified,
+// priced catalogue. Its price_usd_pp_min/max are always null on purpose
+// ("Price on request"), and the UI routes its booking CTA to a pricing
+// request instead of a real booking — see ItineraryCard/BookingDialog.
 export interface Experience {
   id: string
   name: string
@@ -25,6 +32,7 @@ export interface Experience {
   duration_days: number | null
   price_usd_pp_min: number | null
   price_usd_pp_max: number | null
+  is_custom?: boolean
   weather?: string | null
   accommodation?: string[]
   key_activities?: string[]
@@ -38,7 +46,7 @@ export interface Experience {
 
 // What /api/curate returns after a turn.
 export interface CuratePayload {
-  type: 'search_experiences' | 'generate_directions' | 'build_itinerary'
+  type: 'search_experiences' | 'generate_directions' | 'build_itinerary' | 'build_custom_direction_cards'
   data: Experience[] | Record<string, unknown>
 }
 

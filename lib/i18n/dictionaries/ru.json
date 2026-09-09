@@ -319,5 +319,10 @@
   "Confirm New Password": "Подтвердите новый пароль",
   "Password must be at least 8 characters.": "Пароль должен содержать минимум 8 символов.",
   "This reset link is invalid. Please request a new one.": "Ссылка для сброса пароля недействительна. Пожалуйста, запросите новую.",
-  "Passwords don't match.": "Пароли не совпадают."
+  "Passwords don't match.": "Пароли не совпадают.",
+  "Request sent": "Запрос отправлен",
+  "A travel designer will build a priced, verified itinerary for this and follow up by email within 24 hours.": "Наш специалист по путешествиям создаст для вас подробный маршрут с расчетом стоимости и свяжется с вами по электронной почте в течение 24 часов.",
+  "This destination isn't in our verified, priced catalogue yet. Send this to the EscapePod team and a travel designer will build a real, priced itinerary and follow up within 24 hours. No payment is taken here.": "Этот маршрут еще не включен в наш каталог проверенных предложений. Отправьте его команде EscapePod, и наш специалист разработает для вас реальный маршрут с точной стоимостью и свяжется с вами в течение 24 часов. На этом этапе платеж не требуется.",
+  "Request Pricing": "Узнать стоимость",
+  "What would this roughly cost?": "Какова примерная стоимость?"
 }
