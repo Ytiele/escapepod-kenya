@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { LanguageProvider } from '@/components/i18n/LanguageContext'
 import LanguageBar from '@/components/i18n/LanguageBar'
+import LanguagePickerModal from '@/components/i18n/LanguagePickerModal'
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full antialiased pt-9">
         <LanguageProvider>
           <LanguageBar />
+          <LanguagePickerModal />
           {children}
         </LanguageProvider>
       </body>

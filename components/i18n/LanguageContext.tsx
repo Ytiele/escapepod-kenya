@@ -15,17 +15,24 @@ interface LanguageContextValue {
   // dictionary, even ones that already committed to the live-translate
   // fallback before the preload finished.
   dictVersion: number;
+  // True only for a visitor with no stored language preference at all —
+  // see LanguagePickerModal. Never true again once any locale (including
+  // English) has been explicitly chosen, so this is a first-visit prompt,
+  // not a nag shown on every page load.
+  showLanguagePicker: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
   locale: DEFAULT_LOCALE,
   setLocale: () => {},
   dictVersion: 0,
+  showLanguagePicker: false,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<LocaleCode>(DEFAULT_LOCALE);
   const [dictVersion, setDictVersion] = useState(0);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   // Runs once on mount. Starting from DEFAULT_LOCALE on the server (and on
   // this first client render) keeps SSR markup and the first client render
@@ -50,6 +57,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       });
     } else if (isLocaleCode(stored)) {
       setLocaleState(stored);
+    } else {
+      // No preference recorded at all (first-ever visit, or storage was
+      // cleared) — prompt once, rather than silently defaulting to English.
+      setShowLanguagePicker(true);
     }
 
     preloadAllDictionaries().then(() => {
@@ -67,6 +78,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = useCallback((next: LocaleCode) => {
     setLocaleState(next);
+    setShowLanguagePicker(false);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
@@ -75,7 +87,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, dictVersion }}>{children}</LanguageContext.Provider>
+    <LanguageContext.Provider value={{ locale, setLocale, dictVersion, showLanguagePicker }}>
+      {children}
+    </LanguageContext.Provider>
   );
 }
 
