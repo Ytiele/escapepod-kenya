@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveSession, setSessionCookies } from '@/lib/session';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 // The "Request Pricing" CTA on a custom itinerary card (see
@@ -94,6 +94,47 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('[request-custom-itinerary] failed to send email', err);
     return NextResponse.json({ error: 'Something went wrong sending your request. Please try again.' }, { status: 500 });
+  }
+
+  // Customer-facing confirmation — sent immediately so the traveler knows
+  // their pricing request actually went through. A failure here shouldn't
+  // fail the request itself, since the team notification above already
+  // succeeded.
+  try {
+    await transport.sendMail({
+      from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      replyTo: BOOKING_RECIPIENT,
+      subject: `Request Received — ${destination}`,
+      text: [
+        `Hi ${user.name},`,
+        ``,
+        `Thanks for your interest in ${destination} — we've received your request.`,
+        ``,
+        `This destination isn't in our verified, priced catalogue yet, so a travel designer will build a real, priced itinerary by hand and follow up by email within 24 hours.`,
+        ``,
+        `Package: ${packageName}`,
+        `Travelers: ${numTravelers}`,
+        `Requested start date: ${startDate ?? 'not specified'}`,
+        ``,
+        `Warmly,`,
+        `The EscapePod Kenya Team`,
+      ].join('\n'),
+      html: customerEmailShell(
+        'Request Received',
+        `
+          <p style="margin: 0 0 16px;">Hi ${escapeHtml(user.name)}, thanks for your interest in ${escapeHtml(destination)} — we've received your request.</p>
+          <p style="margin: 0 0 16px;">This destination isn't in our verified, priced catalogue yet, so a travel designer will build a real, priced itinerary by hand and follow up by email within 24 hours.</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 6px 0; color: #888;">Package</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(packageName)}</td></tr>
+            <tr><td style="padding: 6px 0; color: #888;">Travelers</td><td style="padding: 6px 0; font-weight: 600;">${numTravelers}</td></tr>
+            <tr><td style="padding: 6px 0; color: #888;">Requested start date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(startDate ?? 'not specified')}</td></tr>
+          </table>
+        `
+      ),
+    });
+  } catch (err) {
+    console.error('[request-custom-itinerary] failed to send customer confirmation email', err);
   }
 
   const response = NextResponse.json({ ok: true });

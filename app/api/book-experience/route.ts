@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { resolveSession, setSessionCookies } from '@/lib/session';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { addDays, generateBookingReference } from '@/lib/bookings';
 
@@ -170,6 +170,61 @@ export async function POST(request: NextRequest) {
       });
     } catch (err) {
       console.error('[book-experience] failed to send notification email', err);
+    }
+
+    // Customer-facing confirmation — sent immediately, alongside the team
+    // notification above, so the traveler isn't left wondering whether
+    // their booking actually went through. Its own try/catch: a failure
+    // here should never fail the booking itself, which is already saved.
+    try {
+      const origin = request.headers.get('origin') ?? new URL(request.url).origin;
+      await transport.sendMail({
+        from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+        to: user.email,
+        replyTo: BOOKING_RECIPIENT,
+        subject: `Booking Received — ${booking.reference}`,
+        text: [
+          `Hi ${user.name},`,
+          ``,
+          `We've received your booking request — thank you for choosing EscapePod Kenya.`,
+          ``,
+          `Booking reference: ${booking.reference}`,
+          `Journey: ${experience.name}`,
+          `Destination: ${experience.destination}`,
+          `Duration: ${experience.duration_days ?? '—'} days`,
+          `Travelers: ${numTravelers}`,
+          `Requested start date: ${startDate ?? 'not specified'}`,
+          `Estimated price: ${priceRange}`,
+          ``,
+          `A travel designer will confirm availability, pricing, and every detail within 24 hours. No payment has been taken yet.`,
+          ``,
+          `Track this booking anytime: ${origin}/bookings/${booking.reference}`,
+          ``,
+          `Warmly,`,
+          `The EscapePod Kenya Team`,
+        ].join('\n'),
+        html: customerEmailShell(
+          'Booking Received',
+          `
+            <p style="margin: 0 0 16px;">Hi ${escapeHtml(user.name)}, we've received your booking request — thank you for choosing EscapePod Kenya.</p>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 6px 0; color: #888;">Booking reference</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(booking.reference)}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Journey</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.name)}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Destination</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(experience.destination)}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Duration</td><td style="padding: 6px 0; font-weight: 600;">${experience.duration_days ?? '—'} days</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Travelers</td><td style="padding: 6px 0; font-weight: 600;">${numTravelers}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Requested start date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(startDate ?? 'not specified')}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Estimated price</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(priceRange)}</td></tr>
+            </table>
+            <p style="margin: 16px 0 0;">A travel designer will confirm availability, pricing, and every detail within 24 hours. No payment has been taken yet.</p>
+            <p style="margin: 16px 0 0;">
+              <a href="${origin}/bookings/${booking.reference}" style="background: #C9A24B; color: #0A1F3C; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: 600;">Track This Booking</a>
+            </p>
+          `
+        ),
+      });
+    } catch (err) {
+      console.error('[book-experience] failed to send customer confirmation email', err);
     }
   } else {
     console.error('[book-experience] SMTP is not configured — skipping notification email');

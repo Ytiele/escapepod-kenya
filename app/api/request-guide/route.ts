@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
@@ -72,6 +72,41 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     });
+    // Customer-facing confirmation — sent immediately, right after the team
+    // notification above, so whoever just asked for a guide isn't left
+    // wondering whether it went through. Own try/catch: a failure here
+    // shouldn't fail the request itself, since the team was already notified.
+    try {
+      await transport.sendMail({
+        from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+        to: email,
+        replyTo: BOOKING_RECIPIENT,
+        subject: `Private Guide Request Received`,
+        text: [
+          `Hi ${name},`,
+          ``,
+          `We've received your private guide request (${guideDescription}).`,
+          ``,
+          `Someone from our team will follow up by email or WhatsApp shortly to confirm availability.`,
+          ``,
+          `Warmly,`,
+          `The EscapePod Kenya Team`,
+        ].join('\n'),
+        html: customerEmailShell(
+          'Private Guide Request Received',
+          `
+            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your private guide request.</p>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 6px 0; color: #888;">Type of Guide</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(guideDescription)}</td></tr>
+            </table>
+            <p style="margin: 16px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm availability.</p>
+          `
+        ),
+      });
+    } catch (err) {
+      console.error('[request-guide] failed to send customer confirmation email', err);
+    }
+
     return Response.json({ ok: true });
   } catch (err) {
     console.error('[request-guide]', err);

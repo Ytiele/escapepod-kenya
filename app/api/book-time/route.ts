@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail'
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail'
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security'
 
 type BookingBody = {
@@ -74,6 +74,42 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     })
+
+    // Customer-facing confirmation — sent immediately, right after the team
+    // notification above, so whoever just requested a slot isn't left
+    // wondering whether it went through. Own try/catch: a failure here
+    // shouldn't fail the request itself, since the team was already notified.
+    try {
+      await transport.sendMail({
+        from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+        to: email,
+        replyTo: BOOKING_RECIPIENT,
+        subject: `Consultation Request Received`,
+        text: [
+          `Hi ${name},`,
+          ``,
+          `We've received your request for a 20-minute consultation on ${formattedDate} at ${time}.`,
+          ``,
+          `We'll confirm your exact time by email shortly — this isn't an automated calendar booking, so please allow us a little time to get back to you.`,
+          ``,
+          `Warmly,`,
+          `The EscapePod Kenya Team`,
+        ].join('\n'),
+        html: customerEmailShell(
+          'Consultation Request Received',
+          `
+            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your request for a 20-minute consultation.</p>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 6px 0; color: #888;">Requested Date</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(formattedDate)}</td></tr>
+              <tr><td style="padding: 6px 0; color: #888;">Requested Time</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(time)}</td></tr>
+            </table>
+            <p style="margin: 16px 0 0;">We'll confirm your exact time by email shortly — this isn't an automated calendar booking, so please allow us a little time to get back to you.</p>
+          `
+        ),
+      })
+    } catch (err) {
+      console.error('[book-time] failed to send customer confirmation email', err)
+    }
 
     return Response.json({ ok: true })
   } catch (err) {

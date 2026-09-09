@@ -22,6 +22,26 @@ export function getMailTransport() {
 
 export const BOOKING_RECIPIENT = process.env.BOOKING_EMAIL_TO || 'sales@escapepodkenya.com'
 
+// Shared visual shell for customer-facing confirmation emails (booking,
+// custom pricing request, guide/transport/consultation requests) — every
+// one of these routes sends the team a detailed internal notification AND
+// the customer an immediate, warmer confirmation that their request went
+// through; this just keeps that confirmation's branding (navy heading,
+// consistent footer) in one place instead of duplicated five times.
+// `bodyHtml` is trusted, pre-escaped HTML the caller builds — this only
+// wraps it.
+export function customerEmailShell(heading: string, bodyHtml: string): string {
+  return `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
+      <h2 style="color: #0A1F3C; margin-bottom: 4px;">${heading}</h2>
+      ${bodyHtml}
+      <p style="color: #888; font-size: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+        EscapePod Kenya &mdash; sales@escapepodkenya.com
+      </p>
+    </div>
+  `
+}
+
 // IMAP access to the same inbox BOOKING_RECIPIENT delivers to — used by
 // app/api/admin/poll-inbox/route.ts to pull an admin's email reply back
 // into a booking's chat panel. Defaults to the SMTP credentials (same

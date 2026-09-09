@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
 function isValidEmail(email: string) {
@@ -101,6 +101,51 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     });
+    // Customer-facing confirmation — sent immediately, right after the team
+    // notification above, so whoever just requested transport isn't left
+    // wondering whether it went through. Own try/catch: a failure here
+    // shouldn't fail the request itself, since the team was already notified.
+    try {
+      const customerTextLines = [
+        `Hi ${name},`,
+        ``,
+        `We've received your trusted transport request (${serviceLabel}, ${carType}).`,
+      ];
+      const customerTableRows = [
+        `<tr><td style="padding: 6px 0; color: #888;">Type of Car</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(carType)}</td></tr>`,
+        `<tr><td style="padding: 6px 0; color: #888;">Service</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(serviceLabel)}</td></tr>`,
+      ];
+      if (serviceType === 'taxi') {
+        customerTextLines.push(`Pickup location: ${pickupLocation}`, `Pickup time: ${pickupTime}`, `Drop-off location: ${dropoffLocation}`);
+        customerTableRows.push(
+          `<tr><td style="padding: 6px 0; color: #888;">Pickup Location</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(pickupLocation!)}</td></tr>`,
+          `<tr><td style="padding: 6px 0; color: #888;">Pickup Time</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(pickupTime!)}</td></tr>`,
+          `<tr><td style="padding: 6px 0; color: #888;">Drop-off Location</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(dropoffLocation!)}</td></tr>`
+        );
+      }
+      customerTextLines.push(``, `Someone from our team will follow up by email or WhatsApp shortly to confirm details.`, ``, `Warmly,`, `The EscapePod Kenya Team`);
+
+      await transport.sendMail({
+        from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+        to: email,
+        replyTo: BOOKING_RECIPIENT,
+        subject: `Trusted Transport Request Received`,
+        text: customerTextLines.join('\n'),
+        html: customerEmailShell(
+          'Trusted Transport Request Received',
+          `
+            <p style="margin: 0 0 16px;">Hi ${escapeHtml(name)}, we've received your trusted transport request.</p>
+            <table style="width: 100%; border-collapse: collapse;">
+              ${customerTableRows.join('\n')}
+            </table>
+            <p style="margin: 16px 0 0;">Someone from our team will follow up by email or WhatsApp shortly to confirm details.</p>
+          `
+        ),
+      });
+    } catch (err) {
+      console.error('[request-transport] failed to send customer confirmation email', err);
+    }
+
     return Response.json({ ok: true });
   } catch (err) {
     console.error('[request-transport]', err);
