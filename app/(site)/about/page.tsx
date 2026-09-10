@@ -109,45 +109,41 @@ export default function AboutPage() {
       </section>
 
       <section className="bg-cream py-24 lg:py-32">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <div>
-              <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Our Philosophy</T></span>
-              <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
-                <T>The Luxury of Intention</T>
-              </h2>
-              <div className="mt-10 rounded-3xl overflow-hidden shadow-sm border border-navy/10">
-                <Image
-                  src="/images/about-philosophy.jpg"
-                  alt={philosophyAlt}
-                  width={1600}
-                  height={900}
-                  sizes="(min-width: 1024px) 45vw, 100vw"
-                  loading="lazy"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-            </div>
-            <div className="space-y-5 text-charcoal/70 text-base leading-relaxed">
-              <p>
-                <T>Escape Pod Kenya was not built to sell itineraries. It was built to eliminate friction.
-                We architect bespoke environments so you can bypass the research and focus entirely on
-                the experience.</T>
-              </p>
-              <p>
-                <T>You define the rhythm. You select the company. We orchestrate the execution — quietly and completely — ensuring
-                the journey stays with you long after you
-                return.</T>
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/engine"
-                  className="inline-flex items-center gap-2 bg-navy text-cream font-medium px-7 py-3.5 rounded-full text-sm hover:bg-navy/80 transition-colors"
-                >
-                  <T>Design Your Experience</T>
-                </Link>
-              </div>
-            </div>
+        <div className="max-w-3xl mx-auto px-6 lg:px-10 flex flex-col items-center text-center">
+          <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Our Philosophy</T></span>
+          <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
+            <T>The Luxury of Intention</T>
+          </h2>
+          <div className="mt-10 w-full rounded-3xl overflow-hidden shadow-sm border border-navy/10">
+            <Image
+              src="/images/about-philosophy.jpg"
+              alt={philosophyAlt}
+              width={1600}
+              height={900}
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              loading="lazy"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+          <div className="mt-10 space-y-5 text-charcoal/70 text-base leading-relaxed">
+            <p>
+              <T>Escape Pod Kenya was not built to sell itineraries. It was built to eliminate friction.
+              We architect bespoke environments so you can bypass the research and focus entirely on
+              the experience.</T>
+            </p>
+            <p>
+              <T>You define the rhythm. You select the company. We orchestrate the execution — quietly and completely — ensuring
+              the journey stays with you long after you
+              return.</T>
+            </p>
+          </div>
+          <div className="pt-8">
+            <Link
+              href="/engine"
+              className="inline-flex items-center gap-2 bg-navy text-cream font-medium px-7 py-3.5 rounded-full text-sm hover:bg-navy/80 transition-colors"
+            >
+              <T>Design Your Experience</T>
+            </Link>
           </div>
         </div>
       </section>
