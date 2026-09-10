@@ -110,7 +110,7 @@ export default function AboutPage() {
 
       <section className="bg-cream py-24 lg:py-32">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Our Philosophy</T></span>
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
