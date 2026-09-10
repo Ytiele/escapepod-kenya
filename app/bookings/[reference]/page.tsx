@@ -9,6 +9,7 @@ import { getCurrentUser, type User } from '@/lib/auth'
 import { imageForDestination } from '@/lib/destinations'
 import PhotoCredit from '@/components/PhotoCredit'
 import BookingChatPanel from '@/components/BookingChatPanel'
+import BookingsHeader from '@/components/bookings/BookingsHeader'
 import {
   BOOKING_STATUS_LABELS,
   formatDate,
@@ -93,25 +94,24 @@ export default function BookingDetailPage() {
 
   return (
     <div className="min-h-screen bg-cream text-charcoal">
-      <header className="bg-navy">
-        <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4 sm:py-5 max-w-3xl mx-auto">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
-            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
-          </Link>
-          {/* Shows who's signed in, in place of the old "← My Bookings" text
-              link — that link read as cream-on-navy at low contrast and was
-              easy to miss. The actual back navigation now lives as a clearly
-              visible button at the top-left of the content below. */}
-          {user && (
-            <div className="flex items-center gap-2 min-w-0">
+      {/* Right slot shows who's signed in rather than a second "back" link —
+          the actual back navigation is the clearly visible button at the
+          top-left of the content below. */}
+      <BookingsHeader
+        maxWidth="max-w-5xl"
+        rightSlot={
+          user ? (
+            <div className="flex items-center gap-2 min-w-0 shrink-0">
               <span className="text-sm text-cream/85 font-medium truncate max-w-[140px] hidden sm:inline">{user.name}</span>
               <span className="w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-gold font-semibold text-xs shrink-0">
                 {user.name[0]?.toUpperCase()}
               </span>
             </div>
-          )}
-        </div>
-      </header>
+          ) : (
+            <span className="shrink-0" />
+          )
+        }
+      />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24">
         <Link

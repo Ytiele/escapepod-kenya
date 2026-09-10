@@ -8,6 +8,7 @@ import type { Booking } from '@/lib/types'
 import { getCurrentUser } from '@/lib/auth'
 import { formatDateRange, formatUsd, paymentStatus, PAYMENT_STATUS_LABELS } from '@/lib/bookings'
 import { T, useTranslated } from '@/components/i18n/T'
+import BookingsHeader from '@/components/bookings/BookingsHeader'
 
 const STATUS_STYLES: Record<string, string> = {
   unpaid: 'bg-navy/8 text-navy/60',
@@ -82,17 +83,7 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-cream text-charcoal">
-      <header className="bg-navy">
-        <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-4 sm:py-5 max-w-5xl mx-auto">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
-            <Image src="/images/png logo.png" alt="EscapePod" width={430} height={101} priority className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90" />
-          </Link>
-          <Link href="/engine" className="text-sm text-cream/60 hover:text-cream transition-colors whitespace-nowrap">
-            <span className="hidden sm:inline">← <T>Back to Curation Engine</T></span>
-            <span className="sm:hidden">← <T>Back</T></span>
-          </Link>
-        </div>
-      </header>
+      <BookingsHeader />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-24">
         <h1 className="text-[11px] font-bold uppercase tracking-widest text-navy/40 mb-1"><T>My Bookings</T></h1>
