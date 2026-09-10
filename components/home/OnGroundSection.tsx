@@ -13,15 +13,19 @@ const revealIn = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }
 
 const panels = {
   guide: {
-    image: '/images/on-ground-guide.jpg',
+    // 2000x1500 (4:3), same as transport below, so object-cover frames
+    // both panels identically.
+    image: '/images/on-ground-guide-2.jpg',
     imagePosition: 'center center',
     title: 'Private Guides',
     description:
       'Secure an accompanied local expert for wildlife photography, cultural heritage, or multi-day expeditions.',
   },
   transport: {
-    image: '/images/on-ground-transport.jpg',
-    imagePosition: 'center top',
+    image: '/images/on-ground-transport-2.jpg',
+    // anchored a little above centre so the man's face clears the top of
+    // the shorter (collapsed-form) panel state
+    imagePosition: 'center 22%',
     title: 'Trusted Transport',
     description:
       "Private, secure, unbranded SUVs through our exclusive partnership with Motogari — Kenya's premier private transport network.",
