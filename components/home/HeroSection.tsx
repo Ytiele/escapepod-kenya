@@ -9,14 +9,6 @@ const SLIDE_DURATION = 6000
 
 const travelerTypes = [
   {
-    label: 'Couples',
-    tag: 'Couples',
-    headline: 'Intimate Escapes &\nShared Silences.',
-    sub: 'Reclaim your privacy with slow luxury, surprise moments, and zero cognitive load.',
-    image: '/images/hero/couples.jpg',
-    cardLabel: 'Private coastal villa',
-  },
-  {
     label: 'Family',
     tag: 'Family',
     headline: 'Unforgettable\nFamily Adventures.',
@@ -31,6 +23,14 @@ const travelerTypes = [
     sub: 'Private exclusivity for the group who refuses ordinary. One call, one curator, no compromise.',
     image: '/images/hero/social.jpg',
     cardLabel: 'Private ranches & conservancies',
+  },
+  {
+    label: 'Couples',
+    tag: 'Couples',
+    headline: 'Intimate Escapes &\nShared Silences.',
+    sub: 'Reclaim your privacy with slow luxury, surprise moments, and zero cognitive load.',
+    image: '/images/hero/couples.jpg',
+    cardLabel: 'Private coastal villa',
   },
   {
     label: 'Solo',
