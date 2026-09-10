@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { stagger, staggerSlow, fromLeft, slideUp, fadeUp, scaleIn, viewport } from '@/lib/motion'
 import { T } from '@/components/i18n/T'
@@ -30,6 +31,20 @@ export default function PhilosophySection() {
               <T>Tell us how you want to feel.</T>{' '}
               <span className="text-gold"><T>We will orchestrate the rest.</T></span>
             </motion.h2>
+            <motion.div
+              variants={scaleIn}
+              className="mt-10 rounded-3xl overflow-hidden shadow-sm border border-navy/10"
+            >
+              <Image
+                src="/images/process-coast.jpg"
+                alt="Aerial view of a Kenyan coastal town"
+                width={1600}
+                height={900}
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                loading="lazy"
+                className="w-full h-auto object-cover"
+              />
+            </motion.div>
           </motion.div>
 
           {/* Right col — stagger fade up */}
