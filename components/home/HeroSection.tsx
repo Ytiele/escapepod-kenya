@@ -13,7 +13,7 @@ const travelerTypes = [
     tag: 'Family',
     headline: 'Unforgettable\nFamily Adventures.',
     sub: 'Expertly curated for every age and pace. We design the framework; your family writes the story.',
-    image: '/images/hero/family.jpg',
+    image: '/images/hero/family-v2.jpg',
     cardLabel: 'Marine parks & wildlife',
   },
   {
@@ -21,7 +21,7 @@ const travelerTypes = [
     tag: 'Social circle',
     headline: 'Gather in\nthe Wild.',
     sub: 'Private exclusivity for the group who refuses ordinary. One call, one curator, no compromise.',
-    image: '/images/hero/social.jpg',
+    image: '/images/hero/social-v2.jpg',
     cardLabel: 'Private ranches & conservancies',
   },
   {
@@ -29,7 +29,7 @@ const travelerTypes = [
     tag: 'Couples',
     headline: 'Intimate Escapes &\nShared Silences.',
     sub: 'Reclaim your privacy with slow luxury, surprise moments, and zero cognitive load.',
-    image: '/images/hero/couples.jpg',
+    image: '/images/hero/couples-v2.jpg',
     cardLabel: 'Private coastal villa',
   },
   {
@@ -37,7 +37,7 @@ const travelerTypes = [
     tag: 'Solo',
     headline: 'Your Rhythm.\nYour Kenya.',
     sub: 'Absolute freedom with zero compromise. You set the pace; we make every moment count.',
-    image: '/images/hero/solo.jpg',
+    image: '/images/hero/solo-v2.jpg',
     cardLabel: 'Wilderness & remote terrain',
   },
 ]
