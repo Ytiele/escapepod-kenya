@@ -40,13 +40,14 @@ export default function StoriesPage() {
         className="relative min-h-[55vh] flex items-end pb-16 pt-40 overflow-hidden"
       >
         <Image
-          src="/images/hot ballon.jpg"
+          src="/images/stories-hero.jpg"
           alt=""
           fill
           sizes="100vw"
           priority
           className="object-cover"
         />
+        <div className="absolute inset-0 bg-linear-to-t from-navy/85 via-navy/30 to-transparent" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
           <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>The Journals</T></span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl font-medium leading-[1.1] tracking-tight max-w-2xl">
