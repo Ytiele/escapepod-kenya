@@ -30,7 +30,7 @@ const travelerTypes = [
     headline: 'Intimate Escapes &\nShared Silences.',
     sub: 'Reclaim your privacy with slow luxury, surprise moments, and zero cognitive load.',
     image: '/images/hero/couples-v2.jpg',
-    cardLabel: 'Private coastal villa',
+    cardLabel: 'Bespoke travel safaris',
   },
   {
     label: 'Solo',
