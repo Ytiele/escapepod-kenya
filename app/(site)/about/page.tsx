@@ -78,6 +78,7 @@ function FounderSection() {
 }
 
 export default function AboutPage() {
+  const philosophyAlt = useTranslated('A luxury safari lodge deck with an infinity pool overlooking the hills')
   return (
     <>
       <section
@@ -115,6 +116,17 @@ export default function AboutPage() {
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
                 <T>The Luxury of Intention</T>
               </h2>
+              <div className="mt-10 rounded-3xl overflow-hidden shadow-sm border border-navy/10">
+                <Image
+                  src="/images/about-philosophy.jpg"
+                  alt={philosophyAlt}
+                  width={1600}
+                  height={900}
+                  sizes="(min-width: 1024px) 45vw, 100vw"
+                  loading="lazy"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
             </div>
             <div className="space-y-5 text-charcoal/70 text-base leading-relaxed">
               <p>
