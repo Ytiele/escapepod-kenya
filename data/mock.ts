@@ -6,7 +6,7 @@ export const posts: JournalPost[] = [
     title: 'The Swahili Silence of Lamu',
     excerpt:
       'A journey back in time where the only sounds are the rustle of dhow sails and the distant call to prayer. Discover private island living with zero digital intrusion.',
-    author: 'Christopher James',
+    author: 'EscapePod',
     date: 'Dec 20, 2023',
     category: 'Solo',
     readTime: '6 min read',
@@ -38,7 +38,7 @@ Lamu will not suit everyone. It has no air-conditioned malls, no nightlife in th
     title: 'A Deep Reset in the Mara',
     excerpt:
       'Escape the crowds with exclusive access to a private Maasai Mara conservancy. Depart only when you are ready, guided by trackers who know the land\'s secrets.',
-    author: 'Christopher James',
+    author: 'EscapePod',
     date: 'Dec 20, 2023',
     category: '',
     readTime: '7 min read',
@@ -68,7 +68,7 @@ This is a place that rewards patience. Come with empty days and an open attentio
     title: 'Raw Elegance in Samburu',
     excerpt:
       'Venture into the rugged, ochre-colored landscapes of the north. Encounter rare wildlife unique to this harsh paradise, while staying in uncompromised luxury.',
-    author: 'Christopher James',
+    author: 'EscapePod',
     date: 'Dec 20, 2023',
     category: 'Solo',
     readTime: '5 min read',
@@ -94,7 +94,7 @@ Samburu will not suit everyone. If you want density of experience — multiple e
     title: 'Mount Kenya Trekking: Routes, Difficulty, Prices, and What to Expect',
     excerpt:
       "Mount Kenya, the second-highest peak in Africa at 5,199 meters, offers a unique trekking experience that blends alpine challenge with extraordinary ecological richness.",
-    author: 'Layla Doey',
+    author: 'EscapePod',
     date: 'Dec 20, 2023',
     category: 'Adventure',
     readTime: '9 min read',
