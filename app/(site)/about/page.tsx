@@ -84,19 +84,18 @@ export default function AboutPage() {
         className="relative bg-navy min-h-[60vh] flex items-end pb-16 pt-40 overflow-hidden"
       >
         <Image
-          src="/images/about escape.png"
+          src="/images/about-hero.jpg"
           alt=""
           fill
           sizes="100vw"
           priority
           className="object-cover"
         />
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundColor: '#0a1e3a',
-          }}
-        />
+        <div className="absolute inset-0 opacity-30" style={{ backgroundColor: '#0a1e3a' }} />
+        {/* Bottom gradient so the overlaid heading/sub stay legible over
+            the brighter areas of the photo — matches the hero treatment
+            used elsewhere on the site. */}
+        <div className="absolute inset-0 bg-linear-to-t from-navy/85 via-navy/30 to-transparent" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full">
           <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>Who We Are</T></span>
           <h1 className="mt-4 text-cream text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight max-w-3xl">
