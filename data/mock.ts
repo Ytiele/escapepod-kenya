@@ -7,10 +7,12 @@ export const posts: JournalPost[] = [
     excerpt:
       'A journey back in time where the only sounds are the rustle of dhow sails and the distant call to prayer. Discover private island living with zero digital intrusion.',
     author: 'EscapePod',
-    date: 'Dec 20, 2023',
+    date: 'Mar 18, 2025',
     category: 'Solo',
     readTime: '6 min read',
     image: '/images/lamu-sunset.jpg',
+    curatePrompt:
+      'A slow, quiet solo escape on the Kenyan coast — private island living, dhow sails, empty days and no digital intrusion, somewhere like Lamu.',
     content: `
 Lamu does not announce itself. It simply absorbs you.
 
@@ -39,10 +41,12 @@ Lamu will not suit everyone. It has no air-conditioned malls, no nightlife in th
     excerpt:
       'Escape the crowds with exclusive access to a private Maasai Mara conservancy. Depart only when you are ready, guided by trackers who know the land\'s secrets.',
     author: 'EscapePod',
-    date: 'Dec 20, 2023',
+    date: 'Nov 4, 2024',
     category: '',
     readTime: '7 min read',
     image: '/images/mara.jpg',
+    curatePrompt:
+      'A deep-reset safari in a private Maasai Mara conservancy — no crowds, no fixed schedule, expert Maasai trackers, and room to move at my own pace.',
     content: `
 There is a version of the Maasai Mara that most people experience: a convoy of minibuses clustered around a cheetah, engines running, lenses extended, a hundred people witnessing the same thing simultaneously. It is not unmoving — the animal is real, the landscape is real. But it is witnessed rather than experienced.
 
@@ -69,10 +73,12 @@ This is a place that rewards patience. Come with empty days and an open attentio
     excerpt:
       'Venture into the rugged, ochre-colored landscapes of the north. Encounter rare wildlife unique to this harsh paradise, while staying in uncompromised luxury.',
     author: 'EscapePod',
-    date: 'Dec 20, 2023',
+    date: 'Aug 12, 2024',
     category: 'Solo',
     readTime: '5 min read',
     image: '/images/elephant.jpg',
+    curatePrompt:
+      'A remote northern-Kenya safari in Samburu — rugged ochre landscapes, the Special Five, a camel walk, and uncompromised comfort well away from the crowds.',
     content: `
 Samburu is not easy to reach. That is part of its value.
 
@@ -95,10 +101,12 @@ Samburu will not suit everyone. If you want density of experience — multiple e
     excerpt:
       "Mount Kenya, the second-highest peak in Africa at 5,199 meters, offers a unique trekking experience that blends alpine challenge with extraordinary ecological richness.",
     author: 'EscapePod',
-    date: 'Dec 20, 2023',
+    date: 'Jan 27, 2025',
     category: 'Adventure',
     readTime: '9 min read',
     image: '/images/mt kenya.jpg',
+    curatePrompt:
+      'A guided Mount Kenya trek to Point Lenana on the Sirimon–Chogoria route — proper acclimatisation, mountain-community guides, and all the logistics handled end to end.',
     content: `
 Mount Kenya invites adventurers into a landscape of striking contrasts and layered experiences. As Kenya's highest mountain and a UNESCO World Heritage Site, it offers multiple peaks, diverse ecosystems, and tranquil trails that set it apart from every other mountain experience in Africa.
 

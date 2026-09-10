@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { posts } from '@/data/mock'
 import CategoriesSelect from '@/components/stories/CategoriesSelect'
 import NewsletterSidebar from '@/components/stories/NewsletterSidebar'
+import CurateSimilarButton from '@/components/stories/CurateSimilarButton'
 import { T } from '@/components/i18n/T'
 
 interface Props {
@@ -113,15 +114,15 @@ export default async function StoryPage({ params }: Props) {
               })}
 
               <div className="mt-12 pt-8 border-t border-navy/10">
-                <Link
-                  href="/engine"
+                <CurateSimilarButton
+                  prompt={post.curatePrompt}
                   className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors"
                 >
                   <T>Curate a similar journey</T>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                </Link>
+                </CurateSimilarButton>
               </div>
             </div>
 

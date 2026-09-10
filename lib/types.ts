@@ -8,6 +8,10 @@ export interface JournalPost {
   readTime: string
   content: string
   image?: string
+  // A natural traveler-request phrasing of this story's trip, fed straight
+  // into the Curation Engine when the reader taps "Curate a similar
+  // journey" — see components/stories/CurateSimilarButton.tsx.
+  curatePrompt: string
 }
 
 export interface ChatMessage {

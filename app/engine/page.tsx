@@ -889,6 +889,9 @@ export default function EnginePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const composerRef = useRef<HTMLDivElement>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Guards the one-shot "Curate a similar journey" auto-send (see effect
+  // below) so it can't re-fire on a re-render.
+  const curateAutoSentRef = useRef(false)
 
   const mobile = vw < 820
   const narrow = vw < 1180
@@ -1119,6 +1122,27 @@ export default function EnginePage() {
       }])
     } finally { setLoading(false) }
   }, [messages, loading, router, currentChatId, experiences, saveRecent, locale])
+
+  // ── "Curate a similar journey" hand-off ──────────────────────────────
+  // A story page stashes its curatePrompt in sessionStorage (see
+  // components/stories/CurateSimilarButton.tsx) and navigates here. Once
+  // the traveler is authenticated and the engine is empty, send it as the
+  // opening message so they land straight on a response — no typing, no
+  // extra click. One-shot: the key is cleared and a ref guards re-fires.
+  useEffect(() => {
+    if (curateAutoSentRef.current || !user || messages.length > 0) return
+    let prompt: string | null = null
+    try {
+      prompt = sessionStorage.getItem('ek_curate_prompt')
+      if (prompt) sessionStorage.removeItem('ek_curate_prompt')
+    } catch {
+      // sessionStorage unavailable — nothing to hand off.
+    }
+    if (prompt && prompt.trim()) {
+      curateAutoSentRef.current = true
+      sendMessage(prompt.trim().slice(0, 2000))
+    }
+  }, [user, messages.length, sendMessage])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
