@@ -30,7 +30,7 @@ export default function BookingsHeader({
             width={430}
             height={101}
             priority
-            className="h-6 sm:h-7 w-auto object-contain brightness-0 invert opacity-90"
+            className="h-12 w-auto"
           />
         </Link>
 
