@@ -12,6 +12,12 @@ export interface JournalPost {
   // into the Curation Engine when the reader taps "Curate a similar
   // journey" — see components/stories/CurateSimilarButton.tsx.
   curatePrompt: string
+  // A pre-written engine reply to that prompt, shown verbatim as the
+  // opening exchange so the hand-off costs no AI call. The model only
+  // engages once the traveler types a follow-up.
+  curateResponse: string
+  // Pre-written quick replies to sit under curateResponse.
+  curateSuggestions: string[]
 }
 
 export interface ChatMessage {

@@ -13,6 +13,9 @@ export const posts: JournalPost[] = [
     image: '/images/lamu-sunset.jpg',
     curatePrompt:
       'A slow, quiet solo escape on the Kenyan coast — private island living, dhow sails, empty days and no digital intrusion, somewhere like Lamu.',
+    curateResponse:
+      "You want to disappear for a while — no decisions, no noise, no screen. Lamu is built for exactly that. We'd fly you in to Manda, cross by dhow, and settle you on the Shela seafront with an almost-empty calendar: a guide for the first morning to orient you in the old town, a sunset sail, a snorkelling run out to Manda Toto, and otherwise nothing scheduled. No cars, no rush, the first call to prayer as your alarm. The point isn't to see Lamu — it's to stop thinking for a few days. Tell me roughly how long you have and I'll shape the pacing around it.",
+    curateSuggestions: ['Around a week', 'Just a long weekend', 'Make it even quieter', 'What would this cost?'],
     content: `
 Lamu does not announce itself. It simply absorbs you.
 
@@ -47,6 +50,9 @@ Lamu will not suit everyone. It has no air-conditioned malls, no nightlife in th
     image: '/images/mara.jpg',
     curatePrompt:
       'A deep-reset safari in a private Maasai Mara conservancy — no crowds, no fixed schedule, expert Maasai trackers, and room to move at my own pace.',
+    curateResponse:
+      "You want the Mara without the convoy — space, silence, and the freedom to not have a plan. We'd put you in a private conservancy on the northeastern edge of the reserve, where a single camp holds traversing rights and you can go hours without seeing another vehicle. Your tracker would be Maasai, born in that ecosystem, reading the grass in a way a guidebook can't teach. Drives when you want them, breakfast in a dry riverbed, a whole day doing nothing if that's what the morning asks for. Give me a rough number of days and who's travelling, and I'll build the rhythm around it.",
+    curateSuggestions: ['Five or six days', 'Just the two of us', 'Add a few days on the coast', 'What would this cost?'],
     content: `
 There is a version of the Maasai Mara that most people experience: a convoy of minibuses clustered around a cheetah, engines running, lenses extended, a hundred people witnessing the same thing simultaneously. It is not unmoving — the animal is real, the landscape is real. But it is witnessed rather than experienced.
 
@@ -79,6 +85,9 @@ This is a place that rewards patience. Come with empty days and an open attentio
     image: '/images/elephant.jpg',
     curatePrompt:
       'A remote northern-Kenya safari in Samburu — rugged ochre landscapes, the Special Five, a camel walk, and uncompromised comfort well away from the crowds.',
+    curateResponse:
+      "You want somewhere that still feels genuinely remote — and the arid north delivers that in a way the southern parks no longer can. Samburu sits on the Ewaso Ng'iro River: reticulated giraffe and the rest of the Special Five, elephant coming down to drink at dusk, a flat-topped sky that reads as pure solitude. We'd base you on a raised bank above the water in a tented camp that only looks rustic — concrete floor, four-poster, hot water — and send you out on a dawn camel walk with a Samburu guide, no particular destination. Tell me how many nights and I'll pace the drives against the downtime.",
+    curateSuggestions: ['Three or four nights', 'Pair it with the Mara', 'Keep it very private', 'What would this cost?'],
     content: `
 Samburu is not easy to reach. That is part of its value.
 
@@ -107,6 +116,9 @@ Samburu will not suit everyone. If you want density of experience — multiple e
     image: '/images/mt kenya.jpg',
     curatePrompt:
       'A guided Mount Kenya trek to Point Lenana on the Sirimon–Chogoria route — proper acclimatisation, mountain-community guides, and all the logistics handled end to end.',
+    curateResponse:
+      "You want the climb without the logistics — Point Lenana on the classic Sirimon up, Chogoria down, with the altitude respected rather than rushed. That's a five-day circuit: a gradual ascent through bamboo forest and giant-lobelia moorland, a rest day built in before the summit, and a 3am push to stand on Lenana at sunrise before the cloud closes in. Chogoria on the way down, past Lake Michaelson, is the most scenic descent in Africa. Guides are drawn from the mountain communities, and every park fee, porter, hut booking and transfer is arranged before you land — you carry only what you choose to. From about $2,800 per person. Tell me your fitness level and rough timing, and I'll confirm the plan.",
+    curateSuggestions: ["I'm reasonably fit", 'Sometime next year', 'Add days in Laikipia after', 'Just Point Lenana is fine'],
     content: `
 Mount Kenya invites adventurers into a landscape of striking contrasts and layered experiences. As Kenya's highest mountain and a UNESCO World Heritage Site, it offers multiple peaks, diverse ecosystems, and tranquil trails that set it apart from every other mountain experience in Africa.
 

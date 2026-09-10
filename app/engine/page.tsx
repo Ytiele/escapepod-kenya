@@ -1124,25 +1124,46 @@ export default function EnginePage() {
   }, [messages, loading, router, currentChatId, experiences, saveRecent, locale])
 
   // ── "Curate a similar journey" hand-off ──────────────────────────────
-  // A story page stashes its curatePrompt in sessionStorage (see
-  // components/stories/CurateSimilarButton.tsx) and navigates here. Once
-  // the traveler is authenticated and the engine is empty, send it as the
-  // opening message so they land straight on a response — no typing, no
-  // extra click. One-shot: the key is cleared and a ref guards re-fires.
+  // A story page stashes { prompt, response, suggestions } in
+  // sessionStorage (see components/stories/CurateSimilarButton.tsx) and
+  // navigates here. Once the traveler is authenticated and the engine is
+  // empty, render the whole opening exchange VERBATIM — no /api/curate
+  // call, no AI cost. The model only engages when they type a follow-up
+  // (sendMessage from that point on works normally, with this pre-written
+  // exchange included in the history). One-shot: the key is cleared and a
+  // ref guards re-fires.
   useEffect(() => {
     if (curateAutoSentRef.current || !user || messages.length > 0) return
-    let prompt: string | null = null
+    let raw: string | null = null
     try {
-      prompt = sessionStorage.getItem('ek_curate_prompt')
-      if (prompt) sessionStorage.removeItem('ek_curate_prompt')
+      raw = sessionStorage.getItem('ek_curate_handoff')
+      if (raw) sessionStorage.removeItem('ek_curate_handoff')
     } catch {
       // sessionStorage unavailable — nothing to hand off.
     }
-    if (prompt && prompt.trim()) {
-      curateAutoSentRef.current = true
-      sendMessage(prompt.trim().slice(0, 2000))
+    if (!raw) return
+    let handoff: { prompt?: string; response?: string; suggestions?: string[] }
+    try {
+      handoff = JSON.parse(raw)
+    } catch {
+      return
     }
-  }, [user, messages.length, sendMessage])
+    const prompt = (handoff.prompt ?? '').trim()
+    const response = (handoff.response ?? '').trim()
+    if (!prompt || !response) return
+
+    curateAutoSentRef.current = true
+    const exchange: ChatMessage[] = [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: response },
+    ]
+    const chatId = Date.now().toString()
+    setCurrentChatId(chatId)
+    setMessages(exchange)
+    setSuggestions(Array.isArray(handoff.suggestions) ? handoff.suggestions.slice(0, 4) : [])
+    setPodOpen(false)
+    saveRecent(chatId, exchange, null)
+  }, [user, messages.length, saveRecent])
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }

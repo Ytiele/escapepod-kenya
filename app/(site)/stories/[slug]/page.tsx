@@ -116,6 +116,8 @@ export default async function StoryPage({ params }: Props) {
               <div className="mt-12 pt-8 border-t border-navy/10">
                 <CurateSimilarButton
                   prompt={post.curatePrompt}
+                  response={post.curateResponse}
+                  suggestions={post.curateSuggestions}
                   className="inline-flex items-center gap-3 bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors"
                 >
                   <T>Curate a similar journey</T>
