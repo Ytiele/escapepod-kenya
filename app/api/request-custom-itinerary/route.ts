@@ -6,6 +6,11 @@ import { summarizeConversation } from '@/lib/curationSummary';
 import { generateBookingPdf } from '@/lib/pdf/bookingPdf';
 import { imageForDestination } from '@/lib/destinations';
 
+// PDF generation + conversation summarization + two SMTP sends can add up
+// to more than Vercel's default 10s (Hobby) function timeout, which would
+// otherwise surface as a raw 504. 60s is Hobby's ceiling.
+export const maxDuration = 60;
+
 // The "Request Pricing" CTA on a custom itinerary card (see
 // build_custom_direction_cards in app/api/curate/route.ts) — the card
 // itself is built from the locations/hotels scouting catalogue, which

@@ -9,6 +9,12 @@ import { filterVerified } from '@/lib/catalogue';
 import { checkRateLimit, clip, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { isLocaleCode, localeName } from '@/lib/i18n/languages';
 
+// Vercel's default function timeout (10s on Hobby) is tight for a
+// multi-turn Claude tool-calling loop plus Supabase lookups — a real
+// gateway timeout (504) here just means this wasn't raised. 60s is
+// Hobby's ceiling; raise further if the project ever moves to Pro.
+export const maxDuration = 60;
+
 // Hard caps on the incoming conversation, applied before anything is sent
 // to Anthropic. Without these, an authenticated user could send an
 // unbounded `messages` array (or a single huge message) on every request —

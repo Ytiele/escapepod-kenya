@@ -6,6 +6,11 @@ import { getImapConfig } from '@/lib/mail';
 
 export const dynamic = 'force-dynamic';
 
+// An IMAP mailbox scan can run close to Vercel's default 10s (Hobby)
+// function timeout, which would otherwise surface as a raw 504. 60s is
+// Hobby's ceiling.
+export const maxDuration = 60;
+
 // Triggered on a schedule (see .env.local.example for the required env
 // vars) to pull an admin's email reply back into the traveler-facing chat
 // panel on app/bookings/[reference]. Deliberately NOT wired up via Vercel's

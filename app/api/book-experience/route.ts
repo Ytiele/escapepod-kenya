@@ -8,6 +8,12 @@ import { summarizeConversation } from '@/lib/curationSummary';
 import { generateBookingPdf } from '@/lib/pdf/bookingPdf';
 import { imageForDestination } from '@/lib/destinations';
 
+// PDF generation + conversation summarization + two SMTP sends can add up
+// to more than Vercel's default 10s (Hobby) function timeout, which would
+// otherwise surface as a raw 504 after the booking row is already saved.
+// 60s is Hobby's ceiling.
+export const maxDuration = 60;
+
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // The "Book This Journey" CTA. Always re-fetches the traveler's profile and
@@ -152,12 +158,18 @@ export async function POST(request: NextRequest) {
 
   const transport = getMailTransport();
   if (transport) {
-    // Awaited deliberately — on serverless hosting, a fire-and-forget send
-    // here can get killed mid-flight the instant this response goes out.
-    // The booking is already saved above regardless of whether this
-    // notification succeeds.
-    try {
-      await transport.sendMail({
+    const origin = request.headers.get('origin') ?? new URL(request.url).origin;
+
+    // Both sends are independent (each already logs and swallows its own
+    // failure below) and awaited deliberately — on serverless hosting, a
+    // fire-and-forget send here can get killed mid-flight the instant this
+    // response goes out. Run them concurrently rather than one after the
+    // other: with a PDF attachment on both, sequential sends over the same
+    // SMTP connection were adding up to real latency, close to Vercel's
+    // default 10s (Hobby) function timeout. The booking is already saved
+    // above regardless of whether either notification succeeds.
+    const [adminResult, customerResult] = await Promise.allSettled([
+      transport.sendMail({
         from: `"EscapePod Curation Engine" <${process.env.SMTP_USER}>`,
         to: BOOKING_RECIPIENT,
         replyTo: user.email,
@@ -207,18 +219,12 @@ export async function POST(request: NextRequest) {
             ${pdfAttachment.length > 0 ? `<p style="margin: 16px 0 0; color: #888; font-size: 12px;">A full itinerary PDF is attached.</p>` : ''}
           </div>
         `,
-      });
-    } catch (err) {
-      console.error('[book-experience] failed to send notification email', err);
-    }
+      }),
 
-    // Customer-facing confirmation — sent immediately, alongside the team
-    // notification above, so the traveler isn't left wondering whether
-    // their booking actually went through. Its own try/catch: a failure
-    // here should never fail the booking itself, which is already saved.
-    try {
-      const origin = request.headers.get('origin') ?? new URL(request.url).origin;
-      await transport.sendMail({
+      // Customer-facing confirmation — sent alongside the team notification
+      // above, so the traveler isn't left wondering whether their booking
+      // actually went through.
+      transport.sendMail({
         from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
         to: user.email,
         replyTo: BOOKING_RECIPIENT,
@@ -266,9 +272,14 @@ export async function POST(request: NextRequest) {
             </p>
           `
         ),
-      });
-    } catch (err) {
-      console.error('[book-experience] failed to send customer confirmation email', err);
+      }),
+    ]);
+
+    if (adminResult.status === 'rejected') {
+      console.error('[book-experience] failed to send notification email', adminResult.reason);
+    }
+    if (customerResult.status === 'rejected') {
+      console.error('[book-experience] failed to send customer confirmation email', customerResult.reason);
     }
   } else {
     console.error('[book-experience] SMTP is not configured — skipping notification email');

@@ -2,6 +2,11 @@ import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 
+// Two sequential SMTP sends can push past Vercel's default 10s (Hobby)
+// function timeout, which would otherwise surface as a raw 504. 60s is
+// Hobby's ceiling.
+export const maxDuration = 60;
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

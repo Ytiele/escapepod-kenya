@@ -7,6 +7,11 @@ import { isLocaleCode, localeName, type LocaleCode } from '@/lib/i18n/languages'
 
 export const dynamic = 'force-dynamic';
 
+// A large batch translated via Claude can run close to Vercel's default
+// 10s (Hobby) function timeout, which would otherwise surface as a raw
+// 504. 60s is Hobby's ceiling.
+export const maxDuration = 60;
+
 // Public — no traveler session required (the language toggle works for a
 // signed-out visitor browsing the marketing site), so this is rate-limited
 // by IP instead, and capped hard on both request size and text length to
