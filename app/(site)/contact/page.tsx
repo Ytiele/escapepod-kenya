@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Contact Us',
   description:
     'Book a 20-minute zero-commitment consultation via Google Meet. Tell us what you want to achieve.',
+  alternates: { canonical: '/contact' },
 }
 
 export default function ContactPage() {

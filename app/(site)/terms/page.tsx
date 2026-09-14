@@ -4,6 +4,7 @@ import { T } from '@/components/i18n/T'
 export const metadata: Metadata = {
   title: 'Terms & Conditions',
   description: 'Escape Pod Safari Booking Terms & Conditions.',
+  alternates: { canonical: '/terms' },
 }
 
 const sections: { heading: string; body: React.ReactNode }[] = [

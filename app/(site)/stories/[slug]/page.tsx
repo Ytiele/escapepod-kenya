@@ -7,6 +7,7 @@ import CategoriesSelect from '@/components/stories/CategoriesSelect'
 import NewsletterSidebar from '@/components/stories/NewsletterSidebar'
 import CurateSimilarButton from '@/components/stories/CurateSimilarButton'
 import { T } from '@/components/i18n/T'
+import { SITE_NAME, absoluteUrl } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -20,9 +21,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const post = posts.find((p) => p.slug === slug)
   if (!post) return {}
+  const url = `/stories/${post.slug}`
+  const publishedTime = new Date(post.date).toISOString()
   return {
     title: post.title,
     description: post.excerpt,
+    alternates: { canonical: url },
+    openGraph: {
+      // Next doesn't deep-merge a page's `openGraph` into the root
+      // layout's — it replaces it wholesale, so siteName/locale have to
+      // be repeated here or they'd silently disappear from article pages.
+      type: 'article',
+      siteName: SITE_NAME,
+      locale: 'en_US',
+      title: post.title,
+      description: post.excerpt,
+      url,
+      publishedTime,
+      authors: [post.author],
+      images: post.image ? [{ url: post.image, width: 1200, height: 630, alt: post.title }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: post.image ? [post.image] : undefined,
+    },
   }
 }
 
@@ -33,8 +57,37 @@ export default async function StoryPage({ params }: Props) {
 
   const related = posts.filter((p) => p.slug !== slug).slice(0, 3)
 
+  const publishedTime = new Date(post.date).toISOString()
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    image: post.image ? [absoluteUrl(post.image)] : undefined,
+    datePublished: publishedTime,
+    dateModified: publishedTime,
+    author: { '@type': 'Organization', name: post.author },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: { '@type': 'ImageObject', url: absoluteUrl('/images/png logo.png') },
+    },
+    mainEntityOfPage: absoluteUrl(`/stories/${post.slug}`),
+  }
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: 'Our Stories', item: absoluteUrl('/stories') },
+      { '@type': 'ListItem', position: 3, name: post.title, item: absoluteUrl(`/stories/${post.slug}`) },
+    ],
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <article className="bg-cream">
         <section
           className="relative min-h-[60vh] flex items-end pb-16 pt-40 overflow-hidden"

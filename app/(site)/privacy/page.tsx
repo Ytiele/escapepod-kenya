@@ -5,6 +5,7 @@ import { T } from '@/components/i18n/T'
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'How Escape Pod Limited collects, uses, and safeguards your information.',
+  alternates: { canonical: '/privacy' },
 }
 
 const sections = [
