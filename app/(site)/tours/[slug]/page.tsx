@@ -150,7 +150,12 @@ export default async function TourDetailPage({ params }: Props) {
             </div>
 
             <aside className="space-y-6">
-              <div className="bg-white rounded-3xl border border-navy/8 shadow-sm p-6 flex flex-col gap-4 lg:sticky lg:top-24">
+              {/* z-20: the sticky card needs to sit above the "Other
+                  Pre-Planned Journeys" thumbnail images below it (and any
+                  other-tour images further down the page) as it scrolls
+                  past them — those <Image>s create their own stacking
+                  context and were winning by DOM order without this. */}
+              <div className="relative z-20 bg-white rounded-3xl border border-navy/8 shadow-sm p-6 flex flex-col gap-4 lg:sticky lg:top-24">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest text-navy/40"><T>From</T></p>
                   <p className="text-navy text-3xl font-medium mt-1">{formatUsd(tour.priceUsdPerPerson)}<span className="text-base font-normal text-charcoal/40"> <T>pp</T></span></p>
