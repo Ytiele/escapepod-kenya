@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { posts } from '@/data/mock'
+import { tours } from '@/data/tours'
 import { SITE_URL } from '@/lib/seo'
 
 // Next's sitemap.xml file convention. Only lists genuinely public,
@@ -23,5 +24,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...postRoutes]
+  const tourRoutes: MetadataRoute.Sitemap = tours.map((tour) => ({
+    url: `${SITE_URL}/tours/${tour.slug}`,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }))
+
+  return [...staticRoutes, ...postRoutes, ...tourRoutes]
 }

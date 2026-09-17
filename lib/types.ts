@@ -20,6 +20,30 @@ export interface JournalPost {
   curateSuggestions: string[]
 }
 
+// A fixed, pre-designed itinerary shown on the homepage's "Pre-Planned
+// Journeys" section and its own /tours/[slug] detail page — distinct from
+// the Curation Engine's `Experience` (which is AI-matched from Supabase):
+// these are hand-authored, always the same for every visitor, and never
+// booked instantly — "Book This Tour" only ever sends a request to the
+// team by email (see app/api/book-tour/route.ts), the same as the other
+// public request forms (book-time, request-guide, request-transport).
+export interface PreplannedTour {
+  slug: string
+  name: string
+  destination: string
+  durationDays: number
+  priceUsdPerPerson: number
+  image: string
+  // One-line hook shown on the homepage card.
+  summary: string
+  // Longer-form paragraphs shown on the detail page.
+  description: string[]
+  highlights: string[]
+  accommodation: string[]
+  activities: string[]
+  idealFor: string[]
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
