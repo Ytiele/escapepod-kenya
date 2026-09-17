@@ -85,7 +85,7 @@ export default function AboutPage() {
         className="relative bg-navy min-h-[60vh] flex items-end pb-16 pt-40 overflow-hidden"
       >
         <Image
-          src="/images/about-hero.jpg"
+          src="/images/about-hero-leopard.jpg"
           alt=""
           fill
           sizes="100vw"
