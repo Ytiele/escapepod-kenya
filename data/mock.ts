@@ -32,7 +32,7 @@ We're sharing this not to make Rose the story, but because it's the story behind
 
 When she went back a third time, she did it properly — with a team that knew her history, proper prep hikes, and guides who understood exactly what had gone wrong the previous two times and planned around it. This time, the pace held, the oxygen held, and on summit morning, a small crowd of people who'd climbed with her — friends, guides, porters who'd heard the whole story — cheered her the final stretch to Uhuru Peak.
 
-![Uhuru Peak, 5,895m — Rose's third attempt, and her first summit](/images/journals/kilimanjaro-2026/uhuru-peak-summit.jpg)
+![Uhuru Peak, 5,895m — Rose's third attempt, and her first summit](/images/journals/kilimanjaro-2026/uhuru-peak-summit-v2.jpg)
 
 We don't just book East African hikes for our clients — we've failed at them, learned from the failure, and gone back better prepared. That's the standard we plan every trek to.
 
