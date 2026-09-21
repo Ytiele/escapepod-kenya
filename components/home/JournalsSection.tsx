@@ -10,13 +10,6 @@ interface Props {
   posts: JournalPost[]
 }
 
-const journalImages = [
-  '/images/journals/kilimanjaro.jpg',
-  '/images/journals/lamu.jpg',
-  '/images/journals/mara.jpg',
-  '/images/journals/samburu.jpg',
-]
-
 export default function JournalsSection({ posts }: Props) {
   return (
     <section className="bg-cream py-24 lg:py-32">
@@ -53,7 +46,14 @@ export default function JournalsSection({ posts }: Props) {
 
         {/* Cards — stagger with scale */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {posts.map((post, i) => (
+          {posts.map((post, i) => {
+            // journalCardImage is a dedicated portrait (2:3) crop made for
+            // this exact aspect-3/4 card — falls back to the post's own
+            // (usually landscape) hero image, and finally to a plain navy
+            // gradient for a post with no photo at all yet, rather than
+            // reusing an unrelated post's image by array position.
+            const cardImage = post.journalCardImage ?? post.image
+            return (
             <motion.div
               key={post.slug}
               initial={{ opacity: 0, y: 36, scale: 0.97 }}
@@ -65,14 +65,27 @@ export default function JournalsSection({ posts }: Props) {
                 href={`/stories/${post.slug}`}
                 className="group relative rounded-2xl overflow-hidden aspect-3/4 flex flex-col justify-end cursor-pointer"
               >
-                <Image
-                  src={journalImages[i % journalImages.length]}
-                  alt={post.title}
-                  fill
-                  sizes="(min-width: 768px) 33vw, 100vw"
-                  loading="lazy"
-                  className="object-cover"
-                />
+                {cardImage ? (
+                  <Image
+                    src={cardImage}
+                    alt={post.title}
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    loading="lazy"
+                    className="object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-navy" />
+                    <div
+                      className="absolute inset-0 opacity-20"
+                      style={{
+                        backgroundImage:
+                          'radial-gradient(ellipse at 30% 20%, #3C1101 0%, transparent 55%), radial-gradient(ellipse at 80% 90%, #F2A755 0%, transparent 50%)',
+                      }}
+                    />
+                  </>
+                )}
                 <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent" />
                 <div className="relative z-10 p-6 space-y-2">
                   <div className="flex items-center gap-3">
@@ -95,7 +108,8 @@ export default function JournalsSection({ posts }: Props) {
                 </div>
               </Link>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
 
         <motion.p

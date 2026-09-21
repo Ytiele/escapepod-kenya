@@ -11,6 +11,7 @@ export const posts: JournalPost[] = [
     category: 'Adventure',
     readTime: '7 min read',
     image: '/images/mt kenya.jpg',
+    journalCardImage: '/images/journals/kilimanjaro.jpg',
     curatePrompt:
       'A guided multi-day hiking trip in East Africa — something like a Kilimanjaro summit attempt or a trek through Kenya\'s Aberdare Range, with proper acclimatisation and experienced guides.',
     curateResponse:
@@ -49,6 +50,58 @@ Whether it's a multi-day Kilimanjaro trek or a day on the Aberdare moorlands, hi
     `,
   },
   {
+    slug: 'uiuc-in-accra-field-notes',
+    title: 'Field Notes: UIUC in Accra — When Storytelling Meets the Street',
+    excerpt:
+      "Nine days, three institutions, and one Ghanaian city that never let anyone observe from a distance — inside Escape Pod's first study-abroad partnership with UIUC's College of Media.",
+    author: 'EscapePod',
+    date: 'Mar 30, 2026',
+    category: 'Cultural',
+    readTime: '6 min read',
+    curatePrompt:
+      "We're a university looking to run an immersive study-abroad program in West Africa — cultural immersion, real fieldwork access, and full on-the-ground logistics handled for us, similar to the UIUC program in Accra.",
+    curateResponse:
+      "Programs like this sit outside what I can price and build in a normal itinerary — they're bespoke, institutional partnerships, not a single traveler's trip. What I can tell you is what made the UIUC/Accra program work: one home base in a neighborhood with real texture, hard logistics handled invisibly (vans on time at 2am, meals sorted so no one loses a field day to hunger), and access built around what your students actually need to do — not a generic cultural tour wrapped around it. If you want to explore something similar for your institution, I'll connect you directly with our team to talk specifics: dates, group size, and what you're trying to teach.",
+    curateSuggestions: ['Connect me with your team', 'What does a program like this cost?', 'We have a smaller group', 'Different country in mind'],
+    content: `
+Some study abroad programs teach students about a place. This one asked them to earn it.
+
+In March 2026, Escape Pod welcomed nine journalism and advertising students from the University of Illinois Urbana-Champaign's College of Media, alongside three faculty members, into Accra, Ghana — joined by six students from UniMac and three from Fourah Bay College, Sierra Leone. Over nine days, the group didn't just study storytelling. They lived inside it.
+
+**Home Base: Osu**
+
+The program was anchored at Roots Hotel, right in the heart of Osu — one of Accra's most vibrant suburbs, and the kind of neighborhood where the city's culture, commerce, and nightlife all spill into the same street. It set the tone for everything that followed: this wasn't a program that observed Accra from a distance. It was one that lived in it.
+
+That first evening, the group gathered for a welcome dinner at Vine, a local Osu restaurant built around Ghanaian classics — fufu, kelewele, grilled tilapia — the kind of meal that does more introducing to a country than any orientation packet ever could.
+
+**Finding the Rhythm**
+
+Cultural immersion took center stage early, with a visit to the Akpe Centre for an afternoon of drumming and traditional Ghanaian dance. Students and faculty alike picked up sticks and learned a step or two — the kind of shared, slightly awkward, thoroughly joyful experience that tends to turn a group of strangers into a cohort. The day wound down at Kokrobite Beach, trading rhythm for tide.
+
+**The Work: Two Tracks, Two Textures**
+
+This was an academic program first, and it showed in how differently the two disciplines experienced Accra.
+
+Journalism meant early mornings — some as early as 2am — to reach Kantamanto Market at first light, timed to catch the trucks rolling in and the Kayayei beginning their day's work offloading bales. It's physically demanding, ethically weighty documentary work, done at the hour when the market is most honest about what it takes to run. Whatever the wake-up call, Escape Pod's transport was there — vans on time, every time, no matter how early the ask, with Roots Hotel breakfast packed and ready to eat on the road so no one started a field day on an empty stomach.
+
+Advertising moved at a different pace, tracing the creative industry through some of Accra's leading spaces: La Foundation for the Arts, Berj Art Gallery, and Elle Lokko for the visual and curatorial side, and Innova DDB and Ogilvy Africa for a real look at how the region's top agencies build campaigns. Different discipline, same premise — go to where the work actually happens, and learn from the people doing it.
+
+On market days, Escape Pod coordinated hot lunches on-site so the group never had to break momentum to find food — with the KFC two-piece chicken quickly becoming a standing favorite among students and faculty alike.
+
+**Telling the Kayayei's Story**
+
+At the center of the program was a piece of collaborative documentary work: students and faculty from UIUC, UniMac, and Fourah Bay College working side by side — across institutions, disciplines, and borders — to document and tell the story of the Kayayei, the young women who carry Kantamanto's goods on their heads for a living. It's the kind of story that resists easy framing, and the cross-institutional structure of the program meant no single perspective got to tell it alone.
+
+**Farewell, Accra**
+
+The program closed the way it began — around a table. The farewell dinner was held at Buka, another Osu institution, known for pulling its menu from across West Africa: Ghana, Côte d'Ivoire, Togo, and Nigeria all represented in one sitting. A fitting last night for a program that spent nine days insisting that the region doesn't sit still inside borders — not on a plate, and not in a story.
+
+Escape Pod served as the logistics and experience partner for the full program — accommodation, transport, cultural programming, and on-the-ground coordination — so that UIUC's faculty could focus entirely on the academic work in front of them.
+
+Escape Pod is now booking the 2026/2027 study abroad calendar. If your institution is designing an immersive, high-impact program in Africa, we'd love to talk.
+    `,
+  },
+  {
     slug: 'swahili-silence-lamu',
     title: 'The Swahili Silence of Lamu',
     excerpt:
@@ -58,6 +111,7 @@ Whether it's a multi-day Kilimanjaro trek or a day on the Aberdare moorlands, hi
     category: 'Solo',
     readTime: '6 min read',
     image: '/images/lamu-sunset.jpg',
+    journalCardImage: '/images/journals/lamu.jpg',
     curatePrompt:
       'A slow, quiet solo escape on the Kenyan coast — private island living, dhow sails, empty days and no digital intrusion, somewhere like Lamu.',
     curateResponse:
@@ -95,6 +149,7 @@ Lamu will not suit everyone. It has no air-conditioned malls, no nightlife in th
     category: '',
     readTime: '7 min read',
     image: '/images/mara.jpg',
+    journalCardImage: '/images/journals/mara.jpg',
     curatePrompt:
       'A deep-reset safari in a private Maasai Mara conservancy — no crowds, no fixed schedule, expert Maasai trackers, and room to move at my own pace.',
     curateResponse:
@@ -130,6 +185,7 @@ This is a place that rewards patience. Come with empty days and an open attentio
     category: 'Solo',
     readTime: '5 min read',
     image: '/images/elephant.jpg',
+    journalCardImage: '/images/journals/samburu.jpg',
     curatePrompt:
       'A remote northern-Kenya safari in Samburu — rugged ochre landscapes, the Special Five, a camel walk, and uncompromised comfort well away from the crowds.',
     curateResponse:

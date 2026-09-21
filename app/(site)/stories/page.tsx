@@ -64,15 +64,22 @@ export default function StoriesPage() {
             className="group relative flex items-end rounded-3xl overflow-hidden mb-16"
             style={{ minHeight: '50vh' }}
           >
-            {/* Background — sunset image, anchored to bottom */}
-            <Image
-              src={featured.image ?? '/images/lamu-sunset.jpg'}
-              alt={featured.title}
-              fill
-              sizes="100vw"
-              loading="lazy"
-              className="object-cover object-bottom"
-            />
+            {/* Background image, anchored to bottom — falls back to a
+                plain navy gradient (matching the regular grid cards below)
+                rather than forcing an unrelated post's photo when this one
+                has none. */}
+            {featured.image ? (
+              <Image
+                src={featured.image}
+                alt={featured.title}
+                fill
+                sizes="100vw"
+                loading="lazy"
+                className="object-cover object-bottom"
+              />
+            ) : (
+              <div className={`absolute inset-0 bg-linear-to-br ${gradients[0]}`} />
+            )}
             {/* Layered gradient overlays for depth */}
             <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent" />
             <div className="absolute inset-0 bg-linear-to-r from-black/40 to-transparent" />

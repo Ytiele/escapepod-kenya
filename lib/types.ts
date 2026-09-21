@@ -8,6 +8,13 @@ export interface JournalPost {
   readTime: string
   content: string
   image?: string
+  // A dedicated portrait (2:3) crop for the homepage Journals section's
+  // aspect-3/4 card grid (see components/home/JournalsSection.tsx) —
+  // `image` above is usually landscape-oriented and made for the wide
+  // hero on the post's own page, so it crops awkwardly at that ratio.
+  // Falls back to `image` when not set, and finally to a plain gradient
+  // for a post with no photo yet.
+  journalCardImage?: string
   // A natural traveler-request phrasing of this story's trip, fed straight
   // into the Curation Engine when the reader taps "Curate a similar
   // journey" — see components/stories/CurateSimilarButton.tsx.
