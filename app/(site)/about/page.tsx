@@ -200,14 +200,21 @@ export default function AboutPage() {
                 <T>The Architecture of Movement</T>
               </h2>
 
-              <Image
-                src="/images/transport logo.png"
-                alt="Transport Partner Logo"
-                width={1468}
-                height={692}
-                loading="lazy"
-                className="mt-10 w-80 h-auto"
-              />
+              <a
+                href="https://motogari.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-10 hover:opacity-80 transition-opacity"
+              >
+                <Image
+                  src="/images/transport logo.png"
+                  alt="Motogari — Transport Partner"
+                  width={1468}
+                  height={692}
+                  loading="lazy"
+                  className="w-56 h-auto"
+                />
+              </a>
             </div>
 
             <div className="space-y-5 text-cream/60 text-base leading-relaxed">
