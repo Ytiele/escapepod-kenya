@@ -58,6 +58,8 @@ Whether it's a multi-day Kilimanjaro trek or a day on the Aberdare moorlands, hi
     date: 'Mar 30, 2026',
     category: 'Cultural',
     readTime: '6 min read',
+    image: '/images/uiuc-accra-hero.jpg',
+    journalCardImage: '/images/journals/uiuc-accra.jpg',
     curatePrompt:
       "We're a university looking to run an immersive study-abroad program in West Africa — cultural immersion, real fieldwork access, and full on-the-ground logistics handled for us, similar to the UIUC program in Accra.",
     curateResponse:
@@ -73,6 +75,8 @@ In March 2026, Escape Pod welcomed nine journalism and advertising students from
 The program was anchored at Roots Hotel, right in the heart of Osu — one of Accra's most vibrant suburbs, and the kind of neighborhood where the city's culture, commerce, and nightlife all spill into the same street. It set the tone for everything that followed: this wasn't a program that observed Accra from a distance. It was one that lived in it.
 
 That first evening, the group gathered for a welcome dinner at Vine, a local Osu restaurant built around Ghanaian classics — fufu, kelewele, grilled tilapia — the kind of meal that does more introducing to a country than any orientation packet ever could.
+
+![The full cohort outside their home base in Osu](/images/journals/uiuc-accra/group-home-base.jpg)
 
 **Finding the Rhythm**
 
@@ -91,6 +95,8 @@ On market days, Escape Pod coordinated hot lunches on-site so the group never ha
 **Telling the Kayayei's Story**
 
 At the center of the program was a piece of collaborative documentary work: students and faculty from UIUC, UniMac, and Fourah Bay College working side by side — across institutions, disciplines, and borders — to document and tell the story of the Kayayei, the young women who carry Kantamanto's goods on their heads for a living. It's the kind of story that resists easy framing, and the cross-institutional structure of the program meant no single perspective got to tell it alone.
+
+![The cross-institutional team at Kantamanto Market](/images/journals/uiuc-accra/kantamanto-market.jpg)
 
 **Farewell, Accra**
 

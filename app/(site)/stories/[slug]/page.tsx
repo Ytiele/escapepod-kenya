@@ -159,6 +159,36 @@ export default async function StoryPage({ params }: Props) {
                     </h3>
                   )
                 }
+                // Inline in-body photo — a standalone Markdown-style image
+                // line (![caption](/path.jpg)), distinct from the post's
+                // own hero `image` field. Kept as one plain-text convention
+                // in `content` rather than a separate data field, so a
+                // photo can be dropped at the exact paragraph it belongs
+                // next to without restructuring the post's shape.
+                const imageMatch = /^!\[(.*)\]\((.*)\)$/.exec(para.trim())
+                if (imageMatch) {
+                  const [, caption, src] = imageMatch
+                  return (
+                    <figure key={i} className="my-8">
+                      <div className="rounded-2xl overflow-hidden border border-navy/10 shadow-sm">
+                        <Image
+                          src={src}
+                          alt={caption}
+                          width={1600}
+                          height={1067}
+                          sizes="(min-width: 1024px) 700px, 100vw"
+                          loading="lazy"
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                      {caption && (
+                        <figcaption className="mt-2.5 text-center text-charcoal/45 text-xs">
+                          <T>{caption}</T>
+                        </figcaption>
+                      )}
+                    </figure>
+                  )
+                }
                 return (
                   <p key={i} className="mb-6 text-charcoal/70 leading-relaxed">
                     <T>{para}</T>
