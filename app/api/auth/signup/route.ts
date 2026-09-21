@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { setSessionCookies } from '@/lib/session';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell, brandedButton, getLogoAttachment } from '@/lib/mail';
+
+// Two sequential SMTP sends can push past Vercel's default 10s (Hobby)
+// function timeout, which would otherwise surface as a raw 504. 60s is
+// Hobby's ceiling.
+export const maxDuration = 60;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -91,6 +96,44 @@ export async function POST(request: NextRequest) {
       });
     } catch (err) {
       console.error('[signup] failed to send new-profile notification', err);
+    }
+
+    // Welcome email — every other form on the site acknowledges the
+    // submission it just received; a new account deserves the same rather
+    // than silently dropping the traveler into the engine with no email
+    // record that anything happened. Own try/catch: a failure here
+    // shouldn't fail the signup itself, which already succeeded above.
+    try {
+      const origin = request.headers.get('origin') ?? new URL(request.url).origin;
+      await transport.sendMail({
+        from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+        to: email,
+        replyTo: BOOKING_RECIPIENT,
+        subject: `Welcome to EscapePod Kenya`,
+        attachments: [getLogoAttachment()],
+        text: [
+          `Hi ${name},`,
+          ``,
+          `Your EscapePod account is ready — welcome aboard.`,
+          ``,
+          `Whenever you're ready, tell the Curation Engine how you want to feel and we'll build a real, priced journey around it: ${origin}/engine`,
+          ``,
+          `Warmly,`,
+          `The EscapePod Kenya Team`,
+        ].join('\n'),
+        html: customerEmailShell(
+          'Welcome to EscapePod Kenya',
+          `
+            <p style="margin: 0 0 20px;">Hi ${escapeHtml(name)}, your EscapePod account is ready — welcome aboard.</p>
+            <p style="margin: 0 0 22px;">Whenever you're ready, tell the Curation Engine how you want to feel and we'll build a real, priced journey around it.</p>
+            <p style="margin: 0;">
+              ${brandedButton(`${origin}/engine`, 'Start Curating')}
+            </p>
+          `
+        ),
+      });
+    } catch (err) {
+      console.error('[signup] failed to send welcome email', err);
     }
   } else {
     console.error('[signup] SMTP is not configured — skipping new-profile notification');

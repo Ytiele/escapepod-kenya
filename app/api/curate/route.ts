@@ -4,9 +4,9 @@ import { anthropic, MODELS } from '@/lib/anthropic';
 import { supabaseAdmin } from '@/lib/supabase';
 import { scoreExperiences, diversify } from '@/lib/scoring';
 import { resolveSession, setSessionCookies } from '@/lib/session';
-import { getMailTransport, BOOKING_RECIPIENT } from '@/lib/mail';
+import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { filterVerified } from '@/lib/catalogue';
-import { checkRateLimit, clip, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { checkRateLimit, clip, escapeHtml, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { isLocaleCode, localeName } from '@/lib/i18n/languages';
 
 // Vercel's default function timeout (10s on Hobby) is tight for a
@@ -917,6 +917,42 @@ async function executeTool(name: string, input: any, ctx: ToolContext) {
             `Full traveler profile: ${JSON.stringify(traveler?.profile ?? {}, null, 2)}`,
           ].join('\n'),
         });
+
+        // Customer-facing acknowledgment — this route only ever notified
+        // the team; the traveler had nothing confirming their request
+        // actually went through beyond the chat message itself. Own
+        // try/catch: a failure here shouldn't fail the tool call, since
+        // the team was already notified above.
+        try {
+          await transport.sendMail({
+            from: `"EscapePod Kenya" <${process.env.SMTP_USER}>`,
+            to: ctx.email,
+            replyTo: BOOKING_RECIPIENT,
+            subject: `Request Received — ${destination}`,
+            attachments: [getLogoAttachment()],
+            text: [
+              `Hi ${ctx.name},`,
+              ``,
+              `Thanks for your interest in ${destination} — we've received your request.`,
+              ``,
+              `This destination isn't in our verified, priced catalogue yet, so a travel designer will build a real, priced itinerary by hand and follow up by email within 24 hours.`,
+              ``,
+              `Warmly,`,
+              `The EscapePod Kenya Team`,
+            ].join('\n'),
+            html: customerEmailShell(
+              'Request Received',
+              `
+                <p style="margin: 0 0 20px;">Hi ${escapeHtml(ctx.name)}, thanks for your interest in ${escapeHtml(destination)} — we've received your request.</p>
+                ${brandedTable(brandedRow('Requested destination', escapeHtml(destination)))}
+                <p style="margin: 20px 0 0;">This destination isn't in our verified, priced catalogue yet, so a travel designer will build a real, priced itinerary by hand and follow up by email within 24 hours.</p>
+              `
+            ),
+          });
+        } catch (err) {
+          console.error('[curate] failed to send customer acknowledgment', err);
+        }
+
         return { ok: true, message: 'Forwarded to the EscapePod team.' };
       } catch (err) {
         console.error('[curate] failed to send custom itinerary request', err);
