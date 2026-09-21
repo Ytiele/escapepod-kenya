@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Who We Are', href: '/about' },
   { label: 'Our Stories', href: '/stories' },
+  { label: 'Educational Tours', href: '/study-abroad' },
   { label: 'Contact Us', href: '/contact' },
 ]
 
