@@ -10,8 +10,8 @@ export const posts: JournalPost[] = [
     date: 'Jul 15, 2026',
     category: 'Adventure',
     readTime: '7 min read',
-    image: '/images/mt kenya.jpg',
-    journalCardImage: '/images/journals/kilimanjaro.jpg',
+    image: '/images/kilimanjaro-2026-hero.jpg',
+    journalCardImage: '/images/journals/kilimanjaro-2026.jpg',
     curatePrompt:
       'A guided multi-day hiking trip in East Africa — something like a Kilimanjaro summit attempt or a trek through Kenya\'s Aberdare Range, with proper acclimatisation and experienced guides.',
     curateResponse:
@@ -31,6 +31,8 @@ Her first, in 2019, took her to Point Stella — just 139 meters below Uhuru Pea
 We're sharing this not to make Rose the story, but because it's the story behind how we plan every trek we send people on. Altitude sickness isn't a footnote in Kilimanjaro planning — it's the thing that ends more summit attempts than fitness ever does, and Rose has been on both sides of that line: the climber it stopped, and eventually, the climber who prepared differently and got past it. That's not theoretical knowledge. It shapes exactly how we build acclimatization days into an itinerary, what we watch for in clients on the mountain, and why we don't treat "just push through it" as acceptable advice at altitude.
 
 When she went back a third time, she did it properly — with a team that knew her history, proper prep hikes, and guides who understood exactly what had gone wrong the previous two times and planned around it. This time, the pace held, the oxygen held, and on summit morning, a small crowd of people who'd climbed with her — friends, guides, porters who'd heard the whole story — cheered her the final stretch to Uhuru Peak.
+
+![Uhuru Peak, 5,895m — Rose's third attempt, and her first summit](/images/journals/kilimanjaro-2026/uhuru-peak-summit.jpg)
 
 We don't just book East African hikes for our clients — we've failed at them, learned from the failure, and gone back better prepared. That's the standard we plan every trek to.
 
