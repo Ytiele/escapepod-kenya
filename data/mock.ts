@@ -78,7 +78,7 @@ The program was anchored at Roots Hotel, right in the heart of Osu — one of Ac
 
 That first evening, the group gathered for a welcome dinner at Vine, a local Osu restaurant built around Ghanaian classics — fufu, kelewele, grilled tilapia — the kind of meal that does more introducing to a country than any orientation packet ever could.
 
-![The full cohort outside their home base in Osu](/images/journals/uiuc-accra/group-home-base.jpg)
+![The full cohort in kente stoles — Accra 2026](/images/journals/uiuc-accra/group-home-base-v2.jpg)
 
 **Finding the Rhythm**
 
