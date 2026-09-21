@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import Image from 'next/image'
 import { T } from '@/components/i18n/T'
 import FAQAccordion from '@/components/study-abroad/FAQAccordion'
+import StudyAbroadInquiryForm from '@/components/study-abroad/StudyAbroadInquiryForm'
 import { studyAbroadFaqs } from '@/data/studyAbroadFaqs'
 import { SITE_NAME, absoluteUrl } from '@/lib/seo'
 
@@ -143,12 +143,12 @@ export default function StudyAbroadPage() {
             <T>Faculty-led study abroad programs, designed and delivered end-to-end across Kenya, Uganda, Ghana, and beyond.</T>
           </p>
           <div className="mt-8">
-            <Link
-              href="/contact"
+            <a
+              href="#inquiry-form"
               className="inline-flex items-center gap-2 bg-gold text-navy font-medium px-7 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors"
             >
               <T>Start Planning Your Program</T>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -285,26 +285,22 @@ export default function StudyAbroadPage() {
         </div>
       </section>
 
-      {/* CTA band */}
-      <section className="bg-navy py-24 lg:py-28">
-        <div className="max-w-3xl mx-auto px-6 lg:px-10 text-center">
-          <h2 className="text-cream text-4xl md:text-5xl font-medium tracking-tight leading-[1.1]">
-            <T>Let's Build Your Next Program</T>
-          </h2>
-          <p className="mt-5 text-cream/60 text-base md:text-lg leading-relaxed">
-            <T>Whether you're a faculty member looking to take your classroom abroad or an international education
-            office seeking a reliable partner in Africa, let's co-create an unforgettable academic journey in
-            Africa. Contact us today to explore how we can bring your academic vision to life in Kenya, Uganda,
-            Ghana — and beyond.</T>
-          </p>
-          <div className="mt-8">
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 bg-gold text-navy font-medium px-8 py-3.5 rounded-full text-sm hover:bg-gold/90 transition-colors"
-            >
-              <T>Contact Us Today</T>
-            </Link>
+      {/* Inquiry form — both this page's CTAs (hero + this section) scroll
+          here rather than routing off to /contact, per a dedicated
+          request-form for this page's own leads. */}
+      <section id="inquiry-form" className="bg-navy py-24 lg:py-28 scroll-mt-24">
+        <div className="max-w-5xl mx-auto px-6 lg:px-10">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-cream text-4xl md:text-5xl font-medium tracking-tight leading-[1.1]">
+              <T>Let's Build Your Next Program</T>
+            </h2>
+            <p className="mt-5 text-cream/60 text-base md:text-lg leading-relaxed">
+              <T>Whether you're a faculty member looking to take your classroom abroad or an international education
+              office seeking a reliable partner in Africa, let's co-create an unforgettable academic journey in
+              Africa. Tell us a little about your program and we'll follow up directly.</T>
+            </p>
           </div>
+          <StudyAbroadInquiryForm />
         </div>
       </section>
 
@@ -314,7 +310,12 @@ export default function StudyAbroadPage() {
           <div className="text-center mb-14">
             <span className="text-gold text-xs font-medium tracking-[0.2em] uppercase"><T>FAQ</T></span>
             <h2 className="mt-4 text-navy text-4xl md:text-5xl font-medium tracking-tight"><T>Ready to Plan Your Program?</T></h2>
-            <p className="mt-4 text-navy/50 text-lg max-w-2xl mx-auto"><T>Contact us today to begin designing your custom itinerary.</T></p>
+            <p className="mt-4 text-navy/50 text-lg max-w-2xl mx-auto">
+              <T>Still have questions? Browse the FAQ below, or</T>{' '}
+              <a href="#inquiry-form" className="text-gold underline underline-offset-4 hover:text-navy transition-colors">
+                <T>jump straight to the inquiry form.</T>
+              </a>
+            </p>
           </div>
           <FAQAccordion />
         </div>
