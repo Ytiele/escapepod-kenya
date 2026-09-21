@@ -13,8 +13,13 @@ const CSP = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
   "font-src 'self' https://cdn.fontshare.com",
-  "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com",
+  // i.ytimg.com serves the click-to-play thumbnail for the About page's
+  // embedded YouTube video (components/media/YouTubeEmbed.tsx) — the
+  // actual player iframe only loads on click, into youtube-nocookie.com
+  // per frame-src below, not img-src.
+  "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://i.ytimg.com",
   "connect-src 'self'",
+  "frame-src https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

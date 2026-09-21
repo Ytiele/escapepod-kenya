@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
+import YouTubeEmbed from '@/components/media/YouTubeEmbed'
 
 
 function FounderSection() {
@@ -78,7 +79,7 @@ function FounderSection() {
 }
 
 export default function AboutPage() {
-  const philosophyAlt = useTranslated('A luxury safari lodge deck with an infinity pool overlooking the hills')
+  const philosophyAlt = useTranslated("Watch: Kenya's Grand Tours — Beaches, Safaris & Adventures")
   return (
     <>
       <section
@@ -116,15 +117,11 @@ export default function AboutPage() {
               <h2 className="mt-4 text-navy text-4xl font-medium tracking-tight leading-[1.15]">
                 <T>The Luxury of Intention</T>
               </h2>
-              <div className="mt-10 rounded-3xl overflow-hidden shadow-sm border border-navy/10">
-                <Image
-                  src="/images/about-philosophy.jpg"
-                  alt={philosophyAlt}
-                  width={1600}
-                  height={900}
-                  sizes="(min-width: 1024px) 45vw, 100vw"
-                  loading="lazy"
-                  className="w-full h-auto object-cover"
+              <div className="mt-10 rounded-3xl overflow-hidden shadow-sm border border-navy/10 relative aspect-video">
+                <YouTubeEmbed
+                  videoId="U4C24y7JQ7E"
+                  title={philosophyAlt}
+                  className="absolute inset-0"
                 />
               </div>
             </div>
