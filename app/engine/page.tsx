@@ -10,6 +10,7 @@ import { imageForDestination } from '@/lib/destinations'
 import PhotoCredit from '@/components/PhotoCredit'
 import { useLocale } from '@/components/i18n/LanguageContext'
 import { T, useTranslated } from '@/components/i18n/T'
+import OnboardingTour from '@/components/engine/OnboardingTour'
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -279,6 +280,13 @@ function IconMenu() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  )
+}
+function IconHelp() {
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   )
 }
@@ -849,6 +857,7 @@ export default function EnginePage() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [bookingExp, setBookingExp] = useState<Experience | null>(null)
   const [toast, setToast] = useState('')
+  const [showTour, setShowTour] = useState(false)
   const [vw, setVw] = useState(1280)
   const [catalogDestinations, setCatalogDestinations] = useState<string[]>([])
   const [loadingStage, setLoadingStage] = useState(0)
@@ -1165,6 +1174,35 @@ export default function EnginePage() {
     saveRecent(chatId, exchange, null)
   }, [user, messages.length, saveRecent])
 
+  // ── First-time walkthrough ────────────────────────────────────────────
+  // Auto-opens once per browser (localStorage, not tied to the account —
+  // same convention as the language picker) on a genuinely empty first
+  // landing. Checks curateAutoSentRef synchronously rather than
+  // messages.length: both this and the hand-off effect above run in the
+  // same commit on mount, and messages.length here would still read 0 for
+  // one tick even when that effect just decided to populate it — the ref
+  // mutation is synchronous and already reflects that decision.
+  useEffect(() => {
+    if (!user || messages.length > 0 || curateAutoSentRef.current) return
+    try {
+      if (localStorage.getItem('ek_engine_tour_seen')) return
+    } catch {
+      // localStorage unavailable — skip the auto-tour rather than risk
+      // showing it on every visit.
+      return
+    }
+    setShowTour(true)
+  }, [user, messages.length])
+
+  function markTourSeen() {
+    try {
+      localStorage.setItem('ek_engine_tour_seen', '1')
+    } catch {
+      // Best-effort — worst case the tour offers to auto-show again next
+      // visit, which is harmless.
+    }
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
   }
@@ -1269,6 +1307,13 @@ export default function EnginePage() {
         >
           <IconBooking /> <T>My Bookings</T>
         </Link>
+
+        <button
+          onClick={() => setShowTour(true)}
+          className="flex items-center gap-2.5 w-full py-2.5 px-3 rounded-xl text-cream/50 text-[13px] font-medium hover:bg-white/6 hover:text-cream/80 transition-colors"
+        >
+          <IconHelp /> <T>How It Works</T>
+        </button>
 
         <div className="flex-1 min-h-0 flex flex-col gap-2">
           <span className="text-[10.5px] font-bold uppercase tracking-widest text-cream/35 px-2"><T>Recent plans</T></span>
@@ -1548,6 +1593,11 @@ export default function EnginePage() {
           {toast}
         </div>
       )}
+      <OnboardingTour
+        open={showTour}
+        onFinish={() => { markTourSeen(); setShowTour(false) }}
+        onGoToBookings={() => { markTourSeen(); setShowTour(false); router.push('/bookings') }}
+      />
     </div>
   )
 }
