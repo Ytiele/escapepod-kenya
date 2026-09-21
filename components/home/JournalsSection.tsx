@@ -11,6 +11,7 @@ interface Props {
 }
 
 const journalImages = [
+  '/images/journals/kilimanjaro.jpg',
   '/images/journals/lamu.jpg',
   '/images/journals/mara.jpg',
   '/images/journals/samburu.jpg',

@@ -2,6 +2,53 @@ import type { JournalPost } from '@/lib/types'
 
 export const posts: JournalPost[] = [
   {
+    slug: 'beyond-the-big-five-hiking-east-africa',
+    title: "Beyond the Big Five: Why East Africa Is a Hiker's Paradise",
+    excerpt:
+      "When people picture a safari, they picture a vehicle and binoculars. But some of East Africa's most breathtaking landscapes are reached on foot — including the mountain our founder summited on her third attempt.",
+    author: 'EscapePod',
+    date: 'Jul 15, 2026',
+    category: 'Adventure',
+    readTime: '7 min read',
+    image: '/images/mt kenya.jpg',
+    curatePrompt:
+      'A guided multi-day hiking trip in East Africa — something like a Kilimanjaro summit attempt or a trek through Kenya\'s Aberdare Range, with proper acclimatisation and experienced guides.',
+    curateResponse:
+      "You want the kind of trip where the effort is the point — not a windscreen safari, but real ground covered on foot. Kilimanjaro is the obvious answer if a summit is the goal: a 6-8 day ascent via one of the gentler routes, with acclimatisation days built in properly rather than rushed — altitude, not fitness, is what actually ends most attempts. If you'd rather stay closer to home first, the Aberdare Range is a few hours from Nairobi and just as striking: bamboo forest, alpine moorland, and a summit of its own at Mount Satima, with far fewer people on the trail. Guides on both routes are drawn from the mountain communities who know exactly how the altitude behaves. Tell me which pulls at you more — the big summit or the quieter range — and how many days you have.",
+    curateSuggestions: ['Kilimanjaro is the goal', 'Start with something gentler', 'How many days does Kilimanjaro need?', 'What would this cost?'],
+    content: `
+When people think of an East African safari, they usually picture a vehicle, a pair of binoculars, and the Big Five grazing in the distance. What fewer people realize is that some of the most breathtaking landscapes on this continent aren't seen through a windscreen at all — they're reached on foot, one switchback at a time.
+
+At Escape Pod, we've always believed that the real magic of East Africa reveals itself when you slow down enough to walk through it. And this year, that belief became personal.
+
+**A Personal Summit**
+
+On 6th July 2026, our founder Rose summited Mt. Kilimanjaro. It was her third attempt.
+
+Her first, in 2019, took her to Point Stella — just 139 meters below Uhuru Peak — before exhaustion made the call for her. Her second, in 2023, was harder: high altitude sickness struck just before Gillman's Point, oxygen saturation dropped low enough that she was put on supplemental oxygen on the spot, and she was stretchered off the mountain and spent a night in a hospital in Moshi. Two attempts, two different ways of falling short — and both times, the same thought: unfinished business.
+
+We're sharing this not to make Rose the story, but because it's the story behind how we plan every trek we send people on. Altitude sickness isn't a footnote in Kilimanjaro planning — it's the thing that ends more summit attempts than fitness ever does, and Rose has been on both sides of that line: the climber it stopped, and eventually, the climber who prepared differently and got past it. That's not theoretical knowledge. It shapes exactly how we build acclimatization days into an itinerary, what we watch for in clients on the mountain, and why we don't treat "just push through it" as acceptable advice at altitude.
+
+When she went back a third time, she did it properly — with a team that knew her history, proper prep hikes, and guides who understood exactly what had gone wrong the previous two times and planned around it. This time, the pace held, the oxygen held, and on summit morning, a small crowd of people who'd climbed with her — friends, guides, porters who'd heard the whole story — cheered her the final stretch to Uhuru Peak.
+
+We don't just book East African hikes for our clients — we've failed at them, learned from the failure, and gone back better prepared. That's the standard we plan every trek to.
+
+**The Mountain Itself**
+
+Kilimanjaro isn't just Africa's tallest peak at 5,895 meters — it's the tallest free-standing mountain on Earth, formed by ancient volcanic activity. In October 1889, German geographer Hans Meyer and Austrian mountaineer Ludwig Purtscheller became the first recorded climbers to reach the summit — guided by local Chagga guide Yohani Kinyala Lauwo, then just eighteen years old, whose knowledge of the mountain made the expedition possible. That partnership between visiting climbers and local expertise is still exactly how successful Kilimanjaro climbs work today, which is why we work closely with Tanzanian guiding teams on the ground. And despite its height, Kilimanjaro requires no technical climbing gear — just patience, fitness, and the discipline to move slowly enough to let your body adjust.
+
+**Closer to Home: The Aberdares — and Mount Kenya**
+
+You don't need to fly to Tanzania for spectacular hiking. Kenya's own Aberdare Range, a few hours from Nairobi, is one of the country's most underrated trekking destinations. Its trails wind through bamboo forests, alpine meadows, and windswept moorlands, with views stretching from the Great Rift Valley to Mount Kenya. Mount Satima (Lesatima), the range's highest peak at just under 4,000 meters, rewards climbers with wide horizons and alpine scenery, while Table Mountain offers a gentler, quieter alternative. For those who'd rather hike toward water than a summit, Karuru Falls is reached by a short, steep trail through dense forest to a viewpoint over a towering, mist-drenched cascade.
+
+And then there's Mount Kenya itself — Africa's second-highest peak, and the first big mountain Rose ever summited. It's a different kind of breathtaking from Kilimanjaro: glacial lakes tucked between rocky ridges, dramatic changes in scenery as you climb through forest, moorland, and alpine zones, and views that stretch out in every direction once you're above the clouds. For hikers looking to build up to something like Kilimanjaro, or simply wanting an unforgettable trek in its own right, Mount Kenya belongs on the list.
+
+**Ready to Add Adventure to Your Safari?**
+
+Whether it's a multi-day Kilimanjaro trek or a day on the Aberdare moorlands, hiking turns a safari from something you watch into something you do. We've stood where you're standing — nervous, unsure if we're ready — and we've built every itinerary since around what actually gets people to the top, safely and well.
+    `,
+  },
+  {
     slug: 'swahili-silence-lamu',
     title: 'The Swahili Silence of Lamu',
     excerpt:
