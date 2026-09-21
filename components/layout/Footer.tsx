@@ -5,6 +5,7 @@ import { T } from '@/components/i18n/T'
 const quickLinks = [
   { label: 'About Us', href: '/about' },
   { label: 'Our Stories', href: '/stories' },
+  { label: 'Study Abroad', href: '/study-abroad' },
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Safari Booking', href: '/engine' },
   { label: 'Terms & Conditions', href: '/terms' },
