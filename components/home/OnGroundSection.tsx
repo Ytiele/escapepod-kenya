@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear, ease } from '@/lib/motion'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 // For fields that mount conditionally (after the parent's whileInView has
 // already resolved) — `variants` alone won't animate them in, since they
@@ -86,10 +87,11 @@ function GuideForm() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
+      const recaptchaToken = await getRecaptchaToken('request_guide')
       const res = await fetch('/api/request-guide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, guideType, otherDescription }),
+        body: JSON.stringify({ name, email, phone, guideType, otherDescription, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
@@ -187,10 +189,11 @@ function TransportForm() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
+      const recaptchaToken = await getRecaptchaToken('request_transport')
       const res = await fetch('/api/request-transport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, carType, serviceType, pickupLocation, pickupTime, dropoffLocation }),
+        body: JSON.stringify({ name, email, carType, serviceType, pickupLocation, pickupTime, dropoffLocation, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')

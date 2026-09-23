@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -21,10 +22,11 @@ export default function BookingForm() {
     setErrorMessage('')
 
     try {
+      const recaptchaToken = await getRecaptchaToken('book_time')
       const res = await fetch('/api/book-time', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, date, time }),
+        body: JSON.stringify({ name, email, date, time, recaptchaToken }),
       })
       const data = await res.json()
 

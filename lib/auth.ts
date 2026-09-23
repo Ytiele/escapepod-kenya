@@ -2,6 +2,8 @@
 // state lives in httpOnly cookies set by those routes (backed by Supabase
 // Auth) — nothing sensitive is ever stored in localStorage or read here.
 
+import { getRecaptchaToken } from './recaptcha-client'
+
 export type User = { id: string; name: string; email: string }
 
 async function parseJson(res: Response) {
@@ -20,10 +22,11 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 export async function signIn(email: string, password: string): Promise<{ user: User } | { error: string }> {
+  const recaptchaToken = await getRecaptchaToken('login')
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, recaptchaToken }),
   })
   const data = await parseJson(res)
   if (!res.ok) return { error: data.error ?? 'Incorrect email or password.' }
@@ -31,10 +34,11 @@ export async function signIn(email: string, password: string): Promise<{ user: U
 }
 
 export async function signUp(name: string, email: string, password: string): Promise<{ user: User } | { error: string }> {
+  const recaptchaToken = await getRecaptchaToken('signup')
   const res = await fetch('/api/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, recaptchaToken }),
   })
   const data = await parseJson(res)
   if (!res.ok) return { error: data.error ?? 'Could not create your account.' }
@@ -46,10 +50,11 @@ export async function signOut(): Promise<void> {
 }
 
 export async function requestPasswordReset(email: string): Promise<{ message: string } | { error: string }> {
+  const recaptchaToken = await getRecaptchaToken('forgot_password')
   const res = await fetch('/api/auth/forgot-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, recaptchaToken }),
   })
   const data = await parseJson(res)
   if (!res.ok) return { error: data.error ?? 'Could not send the reset email.' }

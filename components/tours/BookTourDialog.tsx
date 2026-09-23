@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { PreplannedTour } from '@/lib/types'
 import { formatUsd } from '@/lib/bookings'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 // Public request form for a pre-planned tour — no account/session needed
 // (unlike the Curation Engine's BookingDialog in app/engine/page.tsx,
@@ -28,6 +29,7 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
     setStatus('sending')
     setError('')
     try {
+      const recaptchaToken = await getRecaptchaToken('book_tour')
       const res = await fetch('/api/book-tour', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -38,6 +40,7 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
           phone: phone || undefined,
           numTravelers,
           startDate: startDate || undefined,
+          recaptchaToken,
         }),
       })
       const data = await res.json()

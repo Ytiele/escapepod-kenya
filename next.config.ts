@@ -10,16 +10,23 @@ import type { NextConfig } from 'next'
 // against it.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // www.google.com/recaptcha + www.gstatic.com/recaptcha: the reCAPTCHA v3
+  // script every public form loads (lib/recaptcha-client.ts) to fetch a
+  // verification token before submitting.
+  "script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
   "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
   "font-src 'self' https://cdn.fontshare.com",
   // i.ytimg.com serves the click-to-play thumbnail for the About page's
   // embedded YouTube video (components/media/YouTubeEmbed.tsx) — the
   // actual player iframe only loads on click, into youtube-nocookie.com
   // per frame-src below, not img-src.
-  "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://i.ytimg.com",
-  "connect-src 'self'",
-  "frame-src https://www.youtube-nocookie.com",
+  "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://i.ytimg.com https://www.gstatic.com",
+  // www.google.com: reCAPTCHA v3's own script makes calls back to Google
+  // to score the token request.
+  "connect-src 'self' https://www.google.com",
+  // reCAPTCHA v3 renders its required visibility badge in an invisible
+  // iframe from google.com, alongside the existing YouTube embed.
+  "frame-src https://www.youtube-nocookie.com https://www.google.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 
 // Two sequential SMTP sends can push past Vercel's default 10s (Hobby)
 // function timeout, which would otherwise surface as a raw 504. 60s is
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest) {
     groupSize?: string | number;
     timing?: string;
     message?: string;
+    recaptchaToken?: string;
   };
   try {
     body = await request.json();
@@ -49,6 +51,9 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidEmail(email)) {
     return Response.json({ error: 'Please provide a valid email address.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'study_abroad_inquiry'))) {
+    return Response.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   const ip = getClientIp(request);

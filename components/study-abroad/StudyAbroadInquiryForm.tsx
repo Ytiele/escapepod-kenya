@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -35,6 +36,7 @@ export default function StudyAbroadInquiryForm() {
     setErrorMessage('')
 
     try {
+      const recaptchaToken = await getRecaptchaToken('study_abroad_inquiry')
       const res = await fetch('/api/study-abroad-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,6 +49,7 @@ export default function StudyAbroadInquiryForm() {
           groupSize: groupSize || undefined,
           timing: timing || undefined,
           message: message || undefined,
+          recaptchaToken,
         }),
       })
       const data = await res.json()

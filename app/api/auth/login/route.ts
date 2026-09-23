@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { setSessionCookies } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 
 export async function POST(request: NextRequest) {
-  let body: { email?: string; password?: string };
+  let body: { email?: string; password?: string; recaptchaToken?: string };
   try {
     body = await request.json();
   } catch {
@@ -16,6 +17,9 @@ export async function POST(request: NextRequest) {
 
   if (!email || !password) {
     return NextResponse.json({ error: 'Please enter your email and password.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'login'))) {
+    return NextResponse.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   // Two independent limits: one per IP (stop a spray across many accounts)

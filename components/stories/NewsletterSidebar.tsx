@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -19,10 +20,11 @@ export default function NewsletterSidebar() {
     if (status === 'submitting' || status === 'success') return
     setStatus('submitting')
     try {
+      const recaptchaToken = await getRecaptchaToken('newsletter')
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')

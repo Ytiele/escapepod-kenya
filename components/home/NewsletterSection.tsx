@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { stagger, fadeUp, slideUp, scaleIn, scaleFade, viewport } from '@/lib/motion'
 import { T, useTranslated } from '@/components/i18n/T'
+import { getRecaptchaToken } from '@/lib/recaptcha-client'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -19,10 +20,11 @@ export default function NewsletterSection() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
+      const recaptchaToken = await getRecaptchaToken('newsletter')
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')

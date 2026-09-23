@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { setSessionCookies } from '@/lib/session';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
 import { getMailTransport, BOOKING_RECIPIENT, customerEmailShell, brandedButton, getLogoAttachment } from '@/lib/mail';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 
 // Two sequential SMTP sends can push past Vercel's default 10s (Hobby)
 // function timeout, which would otherwise surface as a raw 504. 60s is
@@ -14,7 +15,7 @@ function isValidEmail(email: string) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: { name?: string; email?: string; password?: string };
+  let body: { name?: string; email?: string; password?: string; recaptchaToken?: string };
   try {
     body = await request.json();
   } catch {
@@ -33,6 +34,9 @@ export async function POST(request: NextRequest) {
   }
   if (password.length < 8) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'signup'))) {
+    return NextResponse.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   // Cap account creation per IP — stops a script from mass-creating

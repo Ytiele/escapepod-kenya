@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 
 // Two sequential SMTP sends can push past Vercel's default 10s (Hobby)
 // function timeout, which would otherwise surface as a raw 504. 60s is
@@ -19,6 +20,7 @@ interface Body {
   pickupLocation?: string;
   pickupTime?: string;
   dropoffLocation?: string;
+  recaptchaToken?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,6 +50,9 @@ export async function POST(request: NextRequest) {
   }
   if (serviceType === 'taxi' && (!pickupLocation || !pickupTime || !dropoffLocation)) {
     return Response.json({ error: 'Pickup location, pickup time, and drop-off location are all required for a taxi.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'request_transport'))) {
+    return Response.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   const ip = getClientIp(request);

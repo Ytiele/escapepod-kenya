@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getMailTransport, BOOKING_RECIPIENT, BRAND, customerEmailShell, brandedRow, brandedTable, brandedButton, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, clip, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 import { getTourBySlug } from '@/data/tours';
 import { formatUsd } from '@/lib/bookings';
 
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
     phone?: string;
     numTravelers?: number;
     startDate?: string;
+    recaptchaToken?: string;
   };
   try {
     body = await request.json();
@@ -59,6 +61,9 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidEmail(email)) {
     return Response.json({ error: 'Please provide a valid email address.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'book_tour'))) {
+    return Response.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   const ip = getClientIp(request);

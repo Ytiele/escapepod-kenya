@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getMailTransport, customerEmailShell, brandedButton, getLogoAttachment } from '@/lib/mail';
 import { checkRateLimit, escapeHtml, getClientIp, RATE_LIMIT_MESSAGE } from '@/lib/security';
+import { verifyRecaptcha, RECAPTCHA_FAILURE_MESSAGE } from '@/lib/recaptcha';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -12,7 +13,7 @@ function isValidEmail(email: string) {
 const GENERIC_MESSAGE = "If that email has an account, we've sent a link to reset the password.";
 
 export async function POST(request: NextRequest) {
-  let body: { email?: string };
+  let body: { email?: string; recaptchaToken?: string };
   try {
     body = await request.json();
   } catch {
@@ -22,6 +23,9 @@ export async function POST(request: NextRequest) {
   const email = body.email?.trim().toLowerCase();
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
+  }
+  if (!(await verifyRecaptcha(body.recaptchaToken, 'forgot_password'))) {
+    return NextResponse.json({ error: RECAPTCHA_FAILURE_MESSAGE }, { status: 400 });
   }
 
   const ip = getClientIp(request);
