@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -22,6 +22,8 @@ export default function StudyAbroadInquiryForm() {
   const [groupSize, setGroupSize] = useState('')
   const [timing, setTiming] = useState('')
   const [message, setMessage] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const translatedError = useTranslated(errorMessage)
@@ -36,7 +38,6 @@ export default function StudyAbroadInquiryForm() {
     setErrorMessage('')
 
     try {
-      const recaptchaToken = await getRecaptchaToken('study_abroad_inquiry')
       const res = await fetch('/api/study-abroad-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,7 +50,7 @@ export default function StudyAbroadInquiryForm() {
           groupSize: groupSize || undefined,
           timing: timing || undefined,
           message: message || undefined,
-          recaptchaToken,
+          recaptchaToken: captchaToken,
         }),
       })
       const data = await res.json()
@@ -70,6 +71,9 @@ export default function StudyAbroadInquiryForm() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -210,6 +214,10 @@ export default function StudyAbroadInquiryForm() {
             className="w-full bg-navy/5 border border-navy/10 rounded-2xl px-6 py-3.5 text-navy placeholder-charcoal/30 text-sm focus:outline-none focus:border-gold transition-colors resize-none"
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} />
       </div>
 
       {status === 'error' && (

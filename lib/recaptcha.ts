@@ -1,6 +1,10 @@
-// Server-side verification for Google reCAPTCHA v3 (score-based, invisible
-// — no checkbox widget on any form). See lib/recaptcha-client.ts for the
-// browser-side token fetch these routes expect in the request body.
+// Server-side verification for Google reCAPTCHA v2 (the visible "I'm not a
+// robot" checkbox — see components/RecaptchaCheckbox.tsx for the widget
+// every form renders). The `action` parameter is kept for forward
+// compatibility with a v3 (score-based) token, which does carry one; a v2
+// checkbox response has no `score`/`action` fields at all, so those checks
+// below simply don't fire for it — this function works unchanged either
+// way.
 //
 // Fails OPEN in two specific cases, matching every other best-effort piece
 // of infrastructure on this site (SMTP, PDF generation, conversation
@@ -10,8 +14,8 @@
 // without keys configured yet. And if Google's own endpoint errors or times
 // out, that's treated as "unknown," not "reject" — a Google outage
 // shouldn't be able to take down every form on the site. It only actually
-// blocks a submission when Google explicitly says the token is invalid or
-// the score is low (i.e. it looks like a bot).
+// blocks a submission when Google explicitly says the token is invalid,
+// missing, or expired.
 export async function verifyRecaptcha(token: unknown, action: string): Promise<boolean> {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
   if (!secret) return true;
@@ -26,8 +30,8 @@ export async function verifyRecaptcha(token: unknown, action: string): Promise<b
     const data = (await res.json()) as { success?: boolean; score?: number; action?: string };
     if (!data.success) return false;
     // A mismatched action means the token was generated for a different
-    // form (or replayed) — reject it. A missing action (older/mocked
-    // response) is treated as unknown rather than blocking.
+    // form (or replayed) — reject it. A missing action (v2's normal case)
+    // is treated as unknown rather than blocking.
     if (data.action && data.action !== action) return false;
     return typeof data.score !== 'number' || data.score >= 0.5;
   } catch (err) {
@@ -36,4 +40,4 @@ export async function verifyRecaptcha(token: unknown, action: string): Promise<b
   }
 }
 
-export const RECAPTCHA_FAILURE_MESSAGE = "We couldn't verify that request. Please refresh the page and try again.";
+export const RECAPTCHA_FAILURE_MESSAGE = 'Please complete the verification and try again.';

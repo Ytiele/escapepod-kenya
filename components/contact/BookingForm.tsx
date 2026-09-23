@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -11,6 +11,8 @@ export default function BookingForm() {
   const [email, setEmail] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const translatedError = useTranslated(errorMessage)
@@ -22,11 +24,10 @@ export default function BookingForm() {
     setErrorMessage('')
 
     try {
-      const recaptchaToken = await getRecaptchaToken('book_time')
       const res = await fetch('/api/book-time', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, date, time, recaptchaToken }),
+        body: JSON.stringify({ name, email, date, time, recaptchaToken: captchaToken }),
       })
       const data = await res.json()
 
@@ -42,6 +43,11 @@ export default function BookingForm() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      // A v2 token is single-use either way — remount the widget (fresh
+      // key) so a retry isn't stuck resubmitting an already-spent token.
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -123,6 +129,8 @@ export default function BookingForm() {
           />
         </div>
       </div>
+
+      <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} />
 
       {status === 'error' && (
         <p className="text-sm text-red-600">{translatedError}</p>

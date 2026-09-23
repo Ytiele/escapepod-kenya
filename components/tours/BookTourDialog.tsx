@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { PreplannedTour } from '@/lib/types'
 import { formatUsd } from '@/lib/bookings'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 // Public request form for a pre-planned tour — no account/session needed
 // (unlike the Curation Engine's BookingDialog in app/engine/page.tsx,
@@ -21,6 +21,8 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
   const [phone, setPhone] = useState('')
   const [numTravelers, setNumTravelers] = useState(2)
   const [startDate, setStartDate] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const genericErrorMsg = useTranslated('Something went wrong. Please try again.')
   const namePlaceholder = useTranslated('Your full name')
 
@@ -29,7 +31,6 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
     setStatus('sending')
     setError('')
     try {
-      const recaptchaToken = await getRecaptchaToken('book_tour')
       const res = await fetch('/api/book-tour', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +41,7 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
           phone: phone || undefined,
           numTravelers,
           startDate: startDate || undefined,
-          recaptchaToken,
+          recaptchaToken: captchaToken,
         }),
       })
       const data = await res.json()
@@ -49,6 +50,9 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : genericErrorMsg)
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -141,6 +145,8 @@ export default function BookTourDialog({ tour, onClose }: { tour: PreplannedTour
             />
           </label>
         </div>
+
+        <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} />
 
         {status === 'error' && <p className="text-xs text-red-600">{error}</p>}
 

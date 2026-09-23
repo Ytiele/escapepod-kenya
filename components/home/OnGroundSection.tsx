@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { stagger, staggerFast, scaleIn, slideUp, fadeUp, fadeUpSoft, scaleFade, viewport, viewportNear, ease } from '@/lib/motion'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 // For fields that mount conditionally (after the parent's whileInView has
 // already resolved) — `variants` alone won't animate them in, since they
@@ -69,6 +69,8 @@ function GuideForm() {
   const [phone, setPhone] = useState('')
   const [guideType, setGuideType] = useState('')
   const [otherDescription, setOtherDescription] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -87,11 +89,10 @@ function GuideForm() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
-      const recaptchaToken = await getRecaptchaToken('request_guide')
       const res = await fetch('/api/request-guide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, guideType, otherDescription, recaptchaToken }),
+        body: JSON.stringify({ name, email, phone, guideType, otherDescription, recaptchaToken: captchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
@@ -99,6 +100,9 @@ function GuideForm() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -146,6 +150,8 @@ function GuideForm() {
         />
       )}
 
+      <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} />
+
       <motion.button {...revealIn}
         type="submit"
         disabled={isSubmitting}
@@ -169,6 +175,8 @@ function TransportForm() {
   const [pickupLocation, setPickupLocation] = useState('')
   const [pickupTime, setPickupTime] = useState('')
   const [dropoffLocation, setDropoffLocation] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -189,11 +197,10 @@ function TransportForm() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
-      const recaptchaToken = await getRecaptchaToken('request_transport')
       const res = await fetch('/api/request-transport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, carType, serviceType, pickupLocation, pickupTime, dropoffLocation, recaptchaToken }),
+        body: JSON.stringify({ name, email, carType, serviceType, pickupLocation, pickupTime, dropoffLocation, recaptchaToken: captchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
@@ -201,6 +208,9 @@ function TransportForm() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -271,6 +281,8 @@ function TransportForm() {
               />
             </>
           )}
+
+          <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} />
 
           <motion.button {...revealIn}
             type="submit"

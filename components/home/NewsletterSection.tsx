@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { stagger, fadeUp, slideUp, scaleIn, scaleFade, viewport } from '@/lib/motion'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const translatedError = useTranslated(errorMessage)
@@ -20,11 +22,10 @@ export default function NewsletterSection() {
     if (status === 'submitting' || status === 'success') return // no double submission
     setStatus('submitting')
     try {
-      const recaptchaToken = await getRecaptchaToken('newsletter')
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, recaptchaToken }),
+        body: JSON.stringify({ email, recaptchaToken: captchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
@@ -33,6 +34,9 @@ export default function NewsletterSection() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -100,6 +104,12 @@ export default function NewsletterSection() {
               {isSubmitting ? <T>Sending…</T> : <T>Subscribe</T>}
             </button>
           </motion.form>
+        )}
+
+        {status !== 'success' && (
+          <div className="mt-5 flex justify-center">
+            <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} theme="dark" />
+          </div>
         )}
 
         {status === 'error' && (

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { signIn, signUp, getCurrentUser, requestPasswordReset } from '@/lib/auth'
 import { T, useTranslated } from '@/components/i18n/T'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 type Mode = 'signin' | 'signup' | 'forgot'
 
@@ -19,6 +20,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resetMessage, setResetMessage] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   // Pre-translated validation messages (fixed set of literals — see setError calls below)
   const emailRequiredMsg = useTranslated('Please enter your email address.')
@@ -41,6 +44,8 @@ export default function LoginPage() {
     setResetMessage('')
     setName('')
     setPassword('')
+    setCaptchaToken(null)
+    setCaptchaKey((k) => k + 1)
   }
 
   async function handleForgotSubmit(e: React.FormEvent) {
@@ -52,11 +57,13 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      const result = await requestPasswordReset(email.trim())
+      const result = await requestPasswordReset(email.trim(), captchaToken)
       if ('error' in result) setError(result.error)
       else setResetMessage(result.message)
     } finally {
       setLoading(false)
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -75,8 +82,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const result = mode === 'signup'
-        ? await signUp(name.trim(), email.trim(), password)
-        : await signIn(email.trim(), password)
+        ? await signUp(name.trim(), email.trim(), password, captchaToken)
+        : await signIn(email.trim(), password, captchaToken)
 
       if ('error' in result) {
         setError(result.error)
@@ -85,6 +92,8 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false)
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -190,6 +199,8 @@ export default function LoginPage() {
                 className="w-full bg-cream/5 border border-cream/15 rounded-xl px-4 py-3.5 text-cream placeholder-cream/30 text-sm focus:outline-none focus:border-gold/60 transition-colors"
               />
 
+              <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} theme="dark" />
+
               {resetMessage && (
                 <div className="bg-gold/10 border border-gold/20 rounded-xl px-4 py-3">
                   <p className="text-gold text-sm">{resetMessage}</p>
@@ -288,6 +299,8 @@ export default function LoginPage() {
                 </button>
               </div>
             )}
+
+            <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} theme="dark" />
 
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">

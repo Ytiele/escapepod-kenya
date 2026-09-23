@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { T, useTranslated } from '@/components/i18n/T'
-import { getRecaptchaToken } from '@/lib/recaptcha-client'
+import RecaptchaCheckbox from '@/components/RecaptchaCheckbox'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -10,6 +10,8 @@ type Status = 'idle' | 'submitting' | 'success' | 'error'
 // the same /api/newsletter route as the homepage's Inner Circle section.
 export default function NewsletterSidebar() {
   const [email, setEmail] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const translatedError = useTranslated(errorMessage)
@@ -20,11 +22,10 @@ export default function NewsletterSidebar() {
     if (status === 'submitting' || status === 'success') return
     setStatus('submitting')
     try {
-      const recaptchaToken = await getRecaptchaToken('newsletter')
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, recaptchaToken }),
+        body: JSON.stringify({ email, recaptchaToken: captchaToken }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
@@ -33,6 +34,9 @@ export default function NewsletterSidebar() {
     } catch (err) {
       setStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -60,6 +64,9 @@ export default function NewsletterSidebar() {
             placeholder={emailPlaceholder}
             className="w-full bg-cream border border-navy/10 rounded-xl px-4 py-2.5 text-navy text-sm focus:outline-none focus:border-gold mb-3 disabled:opacity-60"
           />
+          <div className="mb-3">
+            <RecaptchaCheckbox key={captchaKey} onChange={setCaptchaToken} size="compact" />
+          </div>
           <button
             type="submit"
             disabled={status === 'submitting'}
