@@ -81,11 +81,14 @@ const nextConfig: NextConfig = {
       // .escapepodkenya.com/about indexed from back when it was live.
       // Attached to this project (see `vercel domains add`) specifically
       // so this host-matched rule can catch it and send it to the current
-      // real page instead of leaving it a dead end.
+      // real page instead of leaving it a dead end. Destination MUST be
+      // absolute (with the real host) — a relative one resolves against
+      // this same subdomain, which still matches the rule and loops
+      // forever.
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'facultyledstudyabroad.escapepodkenya.com' }],
-        destination: '/study-abroad',
+        destination: 'https://escapepodkenya.com/study-abroad',
         permanent: true,
       },
       // Exact match — WordPress's own "Faculty-Led Study Abroad in
