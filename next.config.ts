@@ -10,9 +10,8 @@ import type { NextConfig } from 'next'
 // against it.
 const CSP = [
   "default-src 'self'",
-  // www.google.com/recaptcha + www.gstatic.com/recaptcha: the reCAPTCHA v3
-  // script every public form loads (lib/recaptcha-client.ts) to fetch a
-  // verification token before submitting.
+  // www.google.com/recaptcha + www.gstatic.com/recaptcha: the reCAPTCHA v2
+  // checkbox widget every public form renders (components/RecaptchaCheckbox.tsx).
   "script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
   "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
   "font-src 'self' https://cdn.fontshare.com",
@@ -21,11 +20,11 @@ const CSP = [
   // actual player iframe only loads on click, into youtube-nocookie.com
   // per frame-src below, not img-src.
   "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://i.ytimg.com https://www.gstatic.com",
-  // www.google.com: reCAPTCHA v3's own script makes calls back to Google
-  // to score the token request.
+  // www.google.com: the reCAPTCHA checkbox's own script makes calls back
+  // to Google to verify the interaction.
   "connect-src 'self' https://www.google.com",
-  // reCAPTCHA v3 renders its required visibility badge in an invisible
-  // iframe from google.com, alongside the existing YouTube embed.
+  // reCAPTCHA renders the checkbox itself in an iframe from google.com,
+  // alongside the existing YouTube embed.
   "frame-src https://www.youtube-nocookie.com https://www.google.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -66,6 +65,47 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [{ source: '/(.*)', headers: SECURITY_HEADERS }]
+  },
+  // escapepodkenya.com ran a WordPress tour-operator theme before this
+  // Next.js rebuild — Google Search Console is still finding these old
+  // URLs (from its pre-rebuild crawl) and reporting them as 404s. Rather
+  // than leave genuinely-gone-but-real pages as dead ends, 301 the ones
+  // with a clear modern equivalent so any residual backlinks/index
+  // entries land somewhere real. The rest (generic tour/taxonomy pages
+  // with no 1:1 replacement) go to the homepage's tours section.
+  async redirects() {
+    return [
+      // A dead marketing subdomain from the same pre-rebuild era, caught
+      // by Vercel's wildcard DNS for the domain (so it resolves at all)
+      // but never attached to a project — Google has facultyledstudyabroad
+      // .escapepodkenya.com/about indexed from back when it was live.
+      // Attached to this project (see `vercel domains add`) specifically
+      // so this host-matched rule can catch it and send it to the current
+      // real page instead of leaving it a dead end.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'facultyledstudyabroad.escapepodkenya.com' }],
+        destination: '/study-abroad',
+        permanent: true,
+      },
+      // Exact match — WordPress's own "Faculty-Led Study Abroad in
+      // Africa" page, now rebuilt at /study-abroad.
+      { source: '/faculty-led-study-abroad-in-africa', destination: '/study-abroad', permanent: true },
+      // WordPress's booking/contact form pages ("enquiries").
+      { source: '/enquiries/:path*', destination: '/contact', permanent: true },
+      // Individual WordPress tour posts and the "tour-type" taxonomy
+      // (including its /feed variant) — no 1:1 modern equivalent, so
+      // these land on the homepage's Pre-Planned Journeys section.
+      { source: '/tour/:path*', destination: '/#pre-planned-trips', permanent: true },
+      { source: '/tour-type/:path*', destination: '/#pre-planned-trips', permanent: true },
+      { source: '/wp/:path*', destination: '/#pre-planned-trips', permanent: true },
+      // WordPress's date-based post archive URLs (/YYYY/MM/DD/).
+      {
+        source: '/:year(\\d{4})/:month(\\d{2})/:day(\\d{2})',
+        destination: '/stories',
+        permanent: true,
+      },
+    ]
   },
 }
 
